@@ -1,0 +1,10 @@
+{
+  "name": "HR",
+  "alias": "hr",
+  "description": "Staff and Human Resource Management Module",
+  "version": "1.0.0",
+  "priority": 1,
+  "providers": [
+    "Modules\\HR\\Providers\\HRServiceProvider"
+  ]
+} 

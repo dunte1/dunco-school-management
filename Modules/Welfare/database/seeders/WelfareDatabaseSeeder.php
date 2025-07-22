@@ -1,0 +1,16 @@
+<?php
+
+namespace Modules\Welfare\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class WelfareDatabaseSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // $this->call([]);
+    }
+}

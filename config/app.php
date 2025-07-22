@@ -123,4 +123,75 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'providers' => [
+        /*
+         * Laravel Framework Service Providers...
+         */
+        Illuminate\Auth\AuthServiceProvider::class,
+        Illuminate\Broadcasting\BroadcastServiceProvider::class,
+        Illuminate\Bus\BusServiceProvider::class,
+        Illuminate\Cache\CacheServiceProvider::class,
+        Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
+        Illuminate\Cookie\CookieServiceProvider::class,
+        Illuminate\Database\DatabaseServiceProvider::class,
+        Illuminate\Encryption\EncryptionServiceProvider::class,
+        Illuminate\Filesystem\FilesystemServiceProvider::class,
+        Illuminate\Foundation\Providers\FoundationServiceProvider::class,
+        Illuminate\Hashing\HashServiceProvider::class,
+        Illuminate\Mail\MailServiceProvider::class,
+        Illuminate\Notifications\NotificationServiceProvider::class,
+        Illuminate\Pagination\PaginationServiceProvider::class,
+        Illuminate\Pipeline\PipelineServiceProvider::class,
+        Illuminate\Queue\QueueServiceProvider::class,
+        Illuminate\Redis\RedisServiceProvider::class,
+        Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
+        Illuminate\Session\SessionServiceProvider::class,
+        Illuminate\Translation\TranslationServiceProvider::class,
+        Illuminate\Validation\ValidationServiceProvider::class,
+        Illuminate\View\ViewServiceProvider::class,
+
+        /*
+         * Application Service Providers...
+         */
+        App\Providers\AppServiceProvider::class,
+        App\Providers\AuthServiceProvider::class,
+        // Add other app providers as needed
+
+        /*
+         * Module Service Providers...
+         */
+        Modules\Core\Providers\CoreServiceProvider::class,
+        Modules\Academic\Providers\AcademicServiceProvider::class,
+        Modules\HR\Providers\HRServiceProvider::class,
+        Modules\Finance\Providers\FinanceServiceProvider::class,
+        Modules\Hostel\Providers\HostelServiceProvider::class,
+        Modules\Library\Providers\LibraryServiceProvider::class,
+        Modules\LMS\Providers\LMSServiceProvider::class,
+        Modules\Inventory\Providers\InventoryServiceProvider::class,
+        Modules\Settings\Providers\SettingsServiceProvider::class,
+        Modules\Welfare\Providers\WelfareServiceProvider::class,
+        Modules\Transport\Providers\TransportServiceProvider::class,
+        Modules\Timetable\Providers\TimetableServiceProvider::class,
+        Modules\Notification\Providers\NotificationServiceProvider::class,
+        Modules\Marketplace\Providers\MarketplaceServiceProvider::class,
+        Modules\Localization\Providers\LocalizationServiceProvider::class,
+        Modules\Portal\Providers\PortalServiceProvider::class,
+        Modules\Portal\Providers\RouteServiceProvider::class,
+        Modules\PWA\Providers\PWAServiceProvider::class,
+        Modules\Research\Providers\ResearchServiceProvider::class,
+        Modules\Document\Providers\DocumentServiceProvider::class,
+        // Modules\ELibrary\Providers\ELibraryServiceProvider::class,
+        Modules\Examination\Providers\ExaminationServiceProvider::class,
+        Modules\Audit\Providers\AuditServiceProvider::class,
+        Modules\Attendance\Providers\AttendanceServiceProvider::class,
+        Modules\Assets\Providers\AssetsServiceProvider::class,
+        Modules\Compliance\Providers\ComplianceServiceProvider::class,
+        Modules\Communication\Providers\CommunicationServiceProvider::class,
+        Modules\ChatBot\Providers\ChatBotServiceProvider::class,
+        Modules\Alumni\Providers\AlumniServiceProvider::class,
+        Modules\API\Providers\APIServiceProvider::class,
+        Modules\Analytics\Providers\AnalyticsServiceProvider::class,
+        Spatie\Permission\PermissionServiceProvider::class,
+    ],
+
 ];

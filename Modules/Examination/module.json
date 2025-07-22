@@ -1,0 +1,11 @@
+{
+    "name": "Examination",
+    "alias": "examination",
+    "description": "Comprehensive examination management system with online proctoring",
+    "keywords": ["exam", "proctoring", "online", "education"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Examination\\Providers\\ExaminationServiceProvider"
+    ],
+    "files": []
+}

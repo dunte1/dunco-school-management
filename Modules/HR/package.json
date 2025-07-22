@@ -1,0 +1,9 @@
+{
+  "name": "duncoschool-hr",
+  "version": "1.0.0",
+  "description": "HR and Staff Management Module",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC"
+} 

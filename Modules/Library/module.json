@@ -1,0 +1,12 @@
+{
+  "name": "Library",
+  "alias": "library",
+  "description": "Library management module.",
+  "keywords": ["library", "books", "management"],
+  "active": true,
+  "order": 0,
+  "providers": [
+    "Modules\\Library\\Providers\\LibraryServiceProvider",
+    "Modules\\Library\\Providers\\RouteServiceProvider"
+  ]
+} 

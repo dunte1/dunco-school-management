@@ -1,0 +1,29 @@
+{
+    "name": "nwidart/library",
+    "description": "Library Module for Dunco School Management System",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Library\\Providers\\LibraryServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Library\\": "app/",
+            "Modules\\Library\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Library\\Tests\\": "Tests/"
+        }
+    }
+}

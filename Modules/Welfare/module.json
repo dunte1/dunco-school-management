@@ -1,0 +1,11 @@
+{
+    "name": "Welfare",
+    "alias": "welfare",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Welfare\\Providers\\WelfareServiceProvider"
+    ],
+    "files": []
+}

@@ -1,0 +1,11 @@
+{
+    "name": "PWA",
+    "alias": "pwa",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PWA\\Providers\\PWAServiceProvider"
+    ],
+    "files": []
+}
