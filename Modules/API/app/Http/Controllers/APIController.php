@@ -1,0 +1,191 @@
+<?php
+
+namespace Modules\API\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Models\User;
+use Modules\Hostel\Models\Hostel;
+use Modules\Hostel\Models\Room;
+use Modules\Hostel\Models\RoomAllocation;
+use Modules\Academic\Models\Student;
+use Modules\Academic\Models\Course;
+use Modules\HR\Models\Employee;
+
+class APIController extends Controller
+{
+    /**
+     * Display a listing of the APIs.
+     */
+    public function index(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'DUNCO School Management System API',
+            'version' => '1.0.0',
+            'endpoints' => [
+                'GET /apis' => 'API Information',
+                'GET /apis/users' => 'List all users',
+                'GET /apis/hostels' => 'List all hostels',
+                'GET /apis/students' => 'List all students',
+                'GET /apis/employees' => 'List all employees',
+                'GET /apis/courses' => 'List all courses',
+                'GET /apis/room-allocations' => 'List room allocations',
+                'POST /apis/auth/login' => 'User login',
+                'POST /apis/auth/logout' => 'User logout',
+            ],
+            'status' => 'active'
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        return response()->json([
+            'message' => 'API endpoint created successfully',
+            'data' => $request->all()
+        ], 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id): JsonResponse
+    {
+        return response()->json([
+            'message' => 'API endpoint details',
+            'id' => $id,
+            'data' => null
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        return response()->json([
+            'message' => 'API endpoint updated successfully',
+            'id' => $id,
+            'data' => $request->all()
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id): JsonResponse
+    {
+        return response()->json([
+            'message' => 'API endpoint deleted successfully',
+            'id' => $id
+        ]);
+    }
+
+    /**
+     * Get all users
+     */
+    public function users(): JsonResponse
+    {
+        $users = User::select('id', 'name', 'email', 'is_active', 'created_at')
+            ->paginate(20);
+
+        return response()->json([
+            'message' => 'Users retrieved successfully',
+            'data' => $users
+        ]);
+    }
+
+    /**
+     * Get all hostels
+     */
+    public function hostels(): JsonResponse
+    {
+        $hostels = Hostel::with(['rooms', 'wardens'])
+            ->paginate(20);
+
+        return response()->json([
+            'message' => 'Hostels retrieved successfully',
+            'data' => $hostels
+        ]);
+    }
+
+    /**
+     * Get all students
+     */
+    public function students(): JsonResponse
+    {
+        $students = Student::with(['user', 'course'])
+            ->paginate(20);
+
+        return response()->json([
+            'message' => 'Students retrieved successfully',
+            'data' => $students
+        ]);
+    }
+
+    /**
+     * Get all employees
+     */
+    public function employees(): JsonResponse
+    {
+        $employees = Employee::with(['user', 'department'])
+            ->paginate(20);
+
+        return response()->json([
+            'message' => 'Employees retrieved successfully',
+            'data' => $employees
+        ]);
+    }
+
+    /**
+     * Get all courses
+     */
+    public function courses(): JsonResponse
+    {
+        $courses = Course::paginate(20);
+
+        return response()->json([
+            'message' => 'Courses retrieved successfully',
+            'data' => $courses
+        ]);
+    }
+
+    /**
+     * Get room allocations
+     */
+    public function roomAllocations(): JsonResponse
+    {
+        $allocations = RoomAllocation::with(['student', 'room', 'hostel'])
+            ->paginate(20);
+
+        return response()->json([
+            'message' => 'Room allocations retrieved successfully',
+            'data' => $allocations
+        ]);
+    }
+
+    /**
+     * System statistics
+     */
+    public function stats(): JsonResponse
+    {
+        $stats = [
+            'total_users' => User::count(),
+            'active_users' => User::where('is_active', true)->count(),
+            'total_hostels' => Hostel::count(),
+            'total_rooms' => Room::count(),
+            'total_students' => Student::count(),
+            'total_employees' => Employee::count(),
+            'total_courses' => Course::count(),
+            'active_allocations' => RoomAllocation::where('status', 'active')->count(),
+        ];
+
+        return response()->json([
+            'message' => 'System statistics retrieved successfully',
+            'data' => $stats
+        ]);
+    }
+} 

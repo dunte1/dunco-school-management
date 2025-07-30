@@ -8,7 +8,28 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('core.roles.update', $role->id) }}" method="POST">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Please fix the following errors:
+                            <ul class="mb-0 mt-2">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('core.roles.update', $role->id) }}" method="POST" id="roleEditForm">
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
@@ -84,13 +105,84 @@
                             <a href="{{ route('core.roles.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="updateRoleBtn">
                                 <i class="fas fa-save"></i> Update Role
                             </button>
+                        </div>
+                        <!-- Debug info -->
+                        <div class="mt-3 p-2 bg-light border rounded">
+                            <small class="text-muted">
+                                <strong>Debug Info:</strong><br>
+                                Form Action: {{ route('core.roles.update', $role->id) }}<br>
+                                Method: POST<br>
+                                CSRF Token: {{ csrf_token() ? 'Present' : 'Missing' }}<br>
+                                Role ID: {{ $role->id }}
+                            </small>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('roleEditForm');
+            const updateBtn = document.getElementById('updateRoleBtn');
+            const nameField = document.getElementById('name');
+            
+            console.log('Form found:', form);
+            console.log('Update button found:', updateBtn);
+            console.log('Name field found:', nameField);
+            
+            function validateForm() {
+                let isValid = true;
+                
+                // Check if name field has a value
+                if (!nameField || !nameField.value.trim()) {
+                    isValid = false;
+                }
+                
+                console.log('Form validation - isValid:', isValid, 'Name value:', nameField ? nameField.value : 'no field');
+                
+                if (updateBtn) {
+                    updateBtn.disabled = !isValid;
+                    updateBtn.classList.toggle('btn-primary', isValid);
+                    updateBtn.classList.toggle('btn-secondary', !isValid);
+                }
+            }
+            
+            // Add event listeners to the name field
+            if (nameField) {
+                nameField.addEventListener('input', validateForm);
+                nameField.addEventListener('change', validateForm);
+                nameField.addEventListener('blur', validateForm);
+            }
+            
+            // Run validation on page load
+            validateForm();
+            
+            // Handle form submission
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    console.log('Form submission started');
+                    if (updateBtn) {
+                        updateBtn.disabled = true;
+                        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                    }
+                });
+            }
+            
+            // Add click handler to update button for debugging
+            if (updateBtn) {
+                updateBtn.addEventListener('click', function(e) {
+                    console.log('Update button clicked');
+                    if (form) {
+                        console.log('Submitting form...');
+                        form.submit();
+                    }
+                });
+            }
+        });
+    </script>
 </x-core::layouts.master> 

@@ -93,7 +93,8 @@ class SettingsController extends Controller
             'system_name', 'logo_path', 'favicon_path', 'default_language', 'default_timezone',
             'enable_exams', 'enable_finance', 'enable_attendance', 'enable_library', 'enable_notifications',
             'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_encryption', 'smtp_from_address',
-            'sms_gateway_url', 'sms_api_key', 'sms_sender_id', 'api_token'
+            'sms_gateway_url', 'sms_api_key', 'sms_sender_id', 'api_token',
+            'fcm_server_key', 'africastalking_username', 'africastalking_api_key'
         ];
         $settings = Setting::whereIn('key', $keys)->pluck('value', 'key');
         // For dropdowns
@@ -128,6 +129,9 @@ class SettingsController extends Controller
             'sms_api_key' => 'nullable|string',
             'sms_sender_id' => 'nullable|string',
             'api_token' => 'nullable|string',
+            'fcm_server_key' => 'nullable|string',
+            'africastalking_username' => 'nullable|string',
+            'africastalking_api_key' => 'nullable|string',
             'delete_logo' => 'nullable|boolean',
             'delete_favicon' => 'nullable|boolean',
         ]);
@@ -152,13 +156,22 @@ class SettingsController extends Controller
             'system_name', 'default_language', 'default_timezone',
             'enable_exams', 'enable_finance', 'enable_attendance', 'enable_library', 'enable_notifications',
             'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_encryption', 'smtp_from_address',
-            'sms_gateway_url', 'sms_api_key', 'sms_sender_id', 'api_token'
+            'sms_gateway_url', 'sms_api_key', 'sms_sender_id', 'api_token',
+            'fcm_server_key', 'africastalking_username', 'africastalking_api_key'
         ];
         foreach ($fields as $field) {
             $value = $request->input($field);
+            
+            // Handle boolean fields
             if (in_array($field, ['enable_exams', 'enable_finance', 'enable_attendance', 'enable_library', 'enable_notifications'])) {
-                $value = $request->boolean($field);
+                $value = $request->boolean($field) ? '1' : '0';
             }
+            
+            // Ensure value is never null - convert to empty string if null
+            if ($value === null) {
+                $value = '';
+            }
+            
             Setting::updateOrCreate(['key' => $field], ['value' => $value, 'type' => 'string']);
         }
 

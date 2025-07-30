@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Attendance\App\Exports;
+namespace Modules\Attendance\Exports;
 
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Support\Collection;
@@ -65,4 +65,4 @@ class AttendanceReportExport implements FromCollection, WithHeadings, Responsabl
             'Date', 'First Name', 'Last Name', 'Class/Staff ID', 'Status', 'Remarks', 'Type'
         ];
     }
-} 
+}

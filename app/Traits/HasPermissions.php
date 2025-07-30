@@ -2,11 +2,10 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\Cache;
+
 trait HasPermissions
 {
-    /**
-     * Check if user has a specific permission
-     */
     public function hasPermission($permission)
     {
         return $this->roles()->whereHas('permissions', function($query) use ($permission) {
@@ -14,73 +13,72 @@ trait HasPermissions
         })->exists();
     }
 
-    /**
-     * Check if user has any of the given permissions
-     */
     public function hasAnyPermission($permissions)
     {
-        if (is_string($permissions)) {
-            $permissions = [$permissions];
+        $userPermissions = $this->getAllPermissionNames();
+        foreach ($permissions as $permission) {
+            if ($userPermissions->contains($permission)) {
+                return true;
+            }
         }
-
-        return $this->roles()->whereHas('permissions', function($query) use ($permissions) {
-            $query->whereIn('name', $permissions);
-        })->exists();
+        return false;
     }
 
-    /**
-     * Check if user has all of the given permissions
-     */
     public function hasAllPermissions($permissions)
     {
-        if (is_string($permissions)) {
-            $permissions = [$permissions];
+        $userPermissions = $this->getAllPermissionNames();
+        foreach ($permissions as $permission) {
+            if (!$userPermissions->contains($permission)) {
+                return false;
+            }
         }
+        return true;
+    }
 
-        $userPermissions = $this->roles->flatMap->permissions->pluck('name')->unique();
+    public function getAllPermissionNames()
+    {
+        $cacheKey = "user_permissions_{$this->id}";
         
-        return collect($permissions)->every(function($permission) use ($userPermissions) {
-            return $userPermissions->contains($permission);
+        return Cache::remember($cacheKey, 300, function () { // Cache for 5 minutes
+            return $this->roles()
+                ->with('permissions')
+                ->get()
+                ->flatMap(function ($role) {
+                    return $role->permissions;
+                })
+                ->pluck('name')
+                ->unique();
+        });
+    }
+
+    public function hasRole($role)
+    {
+        return $this->roles()->where('name', $role)->exists();
+    }
+
+    public function hasAnyRole($roles)
+    {
+        return $this->roles()->whereIn('name', $roles)->exists();
+    }
+
+    public function getAllRoleNames()
+    {
+        $cacheKey = "user_roles_{$this->id}";
+        
+        return Cache::remember($cacheKey, 300, function () { // Cache for 5 minutes
+            return $this->roles()->pluck('name');
         });
     }
 
     /**
-     * Check if user has a specific role
+     * Clear permission cache for this user
      */
-    public function hasRole($role)
+    public function clearPermissionCache()
     {
-        if (is_string($role)) {
-            return $this->roles()->where('name', $role)->exists();
-        }
+        $cacheKey = "user_permissions_{$this->id}";
+        $roleCacheKey = "user_roles_{$this->id}";
         
-        return $this->roles->contains($role);
-    }
-
-    /**
-     * Check if user has any of the given roles
-     */
-    public function hasAnyRole($roles)
-    {
-        if (is_string($roles)) {
-            $roles = [$roles];
-        }
-
-        return $this->roles()->whereIn('name', $roles)->exists();
-    }
-
-    /**
-     * Get all permissions for the user
-     */
-    public function getAllPermissions()
-    {
-        return $this->roles->flatMap->permissions->unique('id');
-    }
-
-    /**
-     * Get all permission names for the user
-     */
-    public function getAllPermissionNames()
-    {
-        return $this->getAllPermissions()->pluck('name');
+        Cache::forget($cacheKey);
+        Cache::forget($roleCacheKey);
     }
 } 

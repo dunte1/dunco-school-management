@@ -16,7 +16,9 @@ class LibraryServiceProvider extends ServiceProvider
         \Log::info('LibraryServiceProvider booted! View path: ' . $viewPath);
         $this->loadViewsFrom($viewPath, 'library');
         // Register module resources, routes, etc.
-        $this->autoGeneratePermissions('library');
+        if (\Schema::hasTable('permissions')) {
+            $this->autoGeneratePermissions('library');
+        }
     }
 
     protected function autoGeneratePermissions($module)

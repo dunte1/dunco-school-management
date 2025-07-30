@@ -3,7 +3,7 @@
 @section('content')
 <style>
     .roles-premium-card {
-        background: #fafdff;
+        background: #fafdf7;
         border-radius: 1.5rem;
         box-shadow: 0 4px 24px 0 rgba(30,167,255,0.07);
         border: 1px solid #e3e9f7;
@@ -168,9 +168,6 @@
                 @endforeach
             </tbody>
         </table>
-    </div>
-    <div class="d-flex justify-content-center mt-4">
-        {{ $roles->links() }}
     </div>
 </div>
 @endsection

@@ -3,7 +3,6 @@
 namespace Modules\Library\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 use App\Models\Modules\Library\Models\Book;
 use App\Models\Modules\Library\Models\Member;
@@ -21,11 +20,15 @@ class LibraryDashboardController extends Controller
             ->where('due_date', '<', Carbon::now())
             ->count();
 
-        // Borrowing trends for the last 30 days
-        $borrowTrends = BorrowRecord::selectRaw('DATE(borrowed_at) as date, COUNT(*) as count')
-            ->where('borrowed_at', '>=', Carbon::now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
+        // Recent books
+        $recentBooks = Book::with(['author', 'category', 'publisher'])
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
+        // Books by status
+        $booksByStatus = Book::selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
             ->get();
 
         // Recent activity (last 5 borrows/returns)
@@ -34,13 +37,14 @@ class LibraryDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return Inertia::render('Library/Dashboard', [
-            'totalBooks' => $totalBooks,
-            'activeMembers' => $activeMembers,
-            'booksBorrowed' => $booksBorrowed,
-            'overdueBooks' => $overdueBooks,
-            'borrowTrends' => $borrowTrends,
-            'recentActivity' => $recentActivity,
-        ]);
+        return view('library::dashboard', compact(
+            'totalBooks',
+            'activeMembers', 
+            'booksBorrowed',
+            'overdueBooks',
+            'recentBooks',
+            'booksByStatus',
+            'recentActivity'
+        ));
     }
 } 

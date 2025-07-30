@@ -43,13 +43,7 @@ class BookController extends Controller
         $categories = \App\Models\Modules\Library\Models\Category::all();
         $authors = \App\Models\Modules\Library\Models\Author::all();
         $publishers = \App\Models\Modules\Library\Models\Publisher::all();
-        return Inertia::render('Books/Index', [
-            'books' => $books,
-            'categories' => $categories,
-            'authors' => $authors,
-            'publishers' => $publishers,
-            'filters' => $request->only(['search', 'category', 'author', 'publisher', 'status'])
-        ]);
+        return view('library::books.index', compact('books', 'categories', 'authors', 'publishers'));
     }
 
     /**
@@ -99,7 +93,8 @@ class BookController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $book = \App\Models\Modules\Library\Models\Book::with(['author', 'category', 'publisher'])->findOrFail($id);
+        return view('library::books.show', compact('book'));
     }
 
     /**
@@ -107,7 +102,11 @@ class BookController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $book = \App\Models\Modules\Library\Models\Book::findOrFail($id);
+        $categories = \App\Models\Modules\Library\Models\Category::all();
+        $authors = \App\Models\Modules\Library\Models\Author::all();
+        $publishers = \App\Models\Modules\Library\Models\Publisher::all();
+        return view('library::books.edit', compact('book', 'categories', 'authors', 'publishers'));
     }
 
     /**
@@ -115,7 +114,31 @@ class BookController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $book = \App\Models\Modules\Library\Models\Book::findOrFail($id);
+        
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'isbn' => 'required|string|max:255|unique:books,isbn,' . $id,
+            'barcode' => 'nullable|string|max:255|unique:books,barcode,' . $id,
+            'edition' => 'nullable|string|max:255',
+            'year' => 'nullable|integer',
+            'category_id' => 'nullable|exists:categories,id',
+            'author_id' => 'nullable|exists:authors,id',
+            'publisher_id' => 'nullable|exists:publishers,id',
+            'cover_image' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:available,borrowed,reserved,lost',
+            'ebook_file' => 'nullable|file|mimes:pdf,epub,mp3|max:20480', // 20MB max
+        ]);
+
+        if ($request->hasFile('ebook_file')) {
+            $file = $request->file('ebook_file');
+            $path = $file->store('ebooks', 'public');
+            $validated['ebook_file_path'] = $path;
+        }
+
+        $book->update($validated);
+        return redirect()->route('library.books.index')->with('success', 'Book updated successfully!');
     }
 
     /**
@@ -123,7 +146,9 @@ class BookController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $book = \App\Models\Modules\Library\Models\Book::findOrFail($id);
+        $book->delete();
+        return redirect()->route('library.books.index')->with('success', 'Book deleted successfully!');
     }
 
     /**

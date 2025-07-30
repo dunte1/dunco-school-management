@@ -135,6 +135,9 @@
             .main-content {
                 margin-left: 0;
             }
+            .sidebar-toggled .main-content {
+                margin-left: 220px;
+            }
             .sidebar.collapsed ~ .main-content {
                 margin-left: 0;
             }
@@ -217,6 +220,7 @@
         // Mobile sidebar toggle
         function toggleMobileSidebar() {
             sidebar.classList.toggle('show');
+            document.body.classList.toggle('sidebar-toggled');
             sidebarBackdrop.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
         }
         
@@ -226,6 +230,7 @@
         // Close sidebar on backdrop click
         sidebarBackdrop.onclick = function() {
             sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-toggled');
             sidebarBackdrop.style.display = 'none';
         };
         
@@ -261,6 +266,7 @@
                 // Mobile: remove collapsed state
                 sidebar.classList.remove('collapsed');
                 sidebar.classList.remove('show');
+                document.body.classList.remove('sidebar-toggled');
                 sidebarBackdrop.style.display = 'none';
             } else {
                 // Desktop: restore collapsed state if it was saved
@@ -310,4 +316,4 @@
     </script>
     @stack('scripts')
 </body>
-</html> 
+</html>

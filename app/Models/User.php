@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\HasPermissions;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasPermissions;
 
     /**
      * The attributes that are mass assignable.
@@ -136,5 +135,24 @@ class User extends Authenticatable
     public function primaryRole()
     {
         return $this->belongsTo(\App\Models\Role::class, 'primary_role_id');
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\EmailVerificationNotification());
+    }
+
+    /**
+     * Activate the user account.
+     */
+    public function activate()
+    {
+        $this->update([
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
     }
 }

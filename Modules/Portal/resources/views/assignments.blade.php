@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold mb-0"><i class="fas fa-book-open me-2"></i>Assignments</h3>
-        @if(Auth::user()->hasRole('parent'))
+        @if(Auth::check() && Auth::user()->hasRole('parent'))
         <form method="GET" action="{{ route('portal.assignments') }}" class="d-flex align-items-center gap-2">
             <label for="student_id" class="fw-semibold me-2">Viewing for:</label>
             <select name="student_id" id="student_id" class="form-select w-auto" onchange="this.form.submit()">
@@ -46,7 +46,7 @@
                         <td>{{ $assignment->end_date->format('M d, Y') }}</td>
                         <td><span class="badge bg-{{ $assignment->status_color }}">{{ ucfirst($assignment->status) }}</span></td>
                         <td>
-                            @if(Auth::user()->hasRole('student'))
+                            @if(Auth::check() && Auth::user()->hasRole('student'))
                                 @if($assignment->end_date->isFuture())
                                 <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#submissionModal">Submit</button>
                                 @else

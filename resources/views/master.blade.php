@@ -1,1 +1,0 @@
-Hello from resources/views/master.blade.php 

@@ -52,6 +52,11 @@ class PortalController extends Controller
 
     public function dashboard(Request $request)
     {
+        // Ensure user is authenticated
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
         $studentData = $this->getStudentData($request);
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
@@ -61,7 +66,7 @@ class PortalController extends Controller
 
         // Fetch dashboard-specific data
         $events = $student ? \Modules\Academic\Models\SubjectCalendarEvent::orderBy('start_time')->where('start_time', '>=', now())->limit(5)->get() : collect();
-        $notifications = $user->notifications()->latest()->limit(5)->get();
+        $notifications = $user ? $user->notifications()->latest()->limit(5)->get() : collect();
         $dueFees = $student ? $student->fees()->where('status', '!=', 'paid')->orderBy('due_date')->get() : collect();
         $recentGrades = $student ? $student->academicRecords()->latest('exam_date')->limit(5)->get() : collect();
 
@@ -421,16 +426,78 @@ class PortalController extends Controller
         $studentData = $this->getStudentData($request);
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
+        $student = $students->first();
 
-        // Demo data
-        $hostelDetails = (object)[
-            'name' => 'St. Patrick\'s Hostel',
-            'room_number' => 'B-207',
-            'room_type' => 'Double Occupancy',
-            'warden' => 'Mr. John Doe',
-            'is_allocated' => true
-        ];
+        // Get real hostel data from the Hostel module
+        $hostelDetails = null;
+        $hostelFees = collect();
+        $hostelIssues = collect();
+        $hostelAnnouncements = collect();
+        $leaveRequests = collect();
 
+        if ($student) {
+            try {
+                // Get room allocation
+                $roomAllocation = \Modules\Hostel\Models\RoomAllocation::where('student_id', $student->id)
+                    ->where('status', 'active')
+                    ->with(['bed.room.floor.hostel', 'bed.room'])
+                    ->first();
+
+                if ($roomAllocation && $roomAllocation->bed && $roomAllocation->bed->room) {
+                    $hostelDetails = (object)[
+                        'name' => $roomAllocation->bed->room->floor->hostel->name ?? 'Unknown Hostel',
+                        'room_number' => $roomAllocation->bed->room->room_number ?? 'Unknown',
+                        'room_type' => $roomAllocation->bed->room->type ?? 'Unknown',
+                        'bed_number' => $roomAllocation->bed->bed_number ?? 'Unknown',
+                        'warden' => 'Not Assigned', // Will be updated when warden relationship is added
+                        'check_in' => $roomAllocation->check_in,
+                        'is_allocated' => true
+                    ];
+                }
+
+                // Get hostel fees
+                $hostelFees = \Modules\Hostel\Models\HostelFee::where('student_id', $student->id)
+                    ->orderBy('due_date')
+                    ->get();
+
+                // Get hostel issues reported by student
+                $hostelIssues = \Modules\Hostel\Models\HostelIssue::where('reported_by', $student->id)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+
+                // Get hostel announcements
+                $hostelAnnouncements = \Modules\Hostel\Models\HostelAnnouncement::where('is_active', true)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+
+                // Get leave requests
+                $leaveRequests = \Modules\Hostel\Models\LeaveRequest::where('student_id', $student->id)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+
+            } catch (\Exception $e) {
+                // Log error but don't break the page
+                \Log::error('Error loading hostel data: ' . $e->getMessage());
+            }
+        }
+
+        // If no real data, show demo data
+        if (!$hostelDetails) {
+            $hostelDetails = (object)[
+                'name' => 'St. Patrick\'s Hostel',
+                'room_number' => 'B-207',
+                'room_type' => 'Double Occupancy',
+                'bed_number' => '1',
+                'warden' => 'Mr. John Doe',
+                'check_in' => now()->subMonths(2),
+                'is_allocated' => false
+            ];
+        }
+
+        // Demo cafeteria menu (this would come from Cafeteria module)
         $menu = [
             'Monday' => ['Breakfast' => 'Toast & Eggs', 'Lunch' => 'Rice & Chicken Curry', 'Dinner' => 'Chapati & Lentils'],
             'Tuesday' => ['Breakfast' => 'Pancakes', 'Lunch' => 'Pasta', 'Dinner' => 'Vegetable Stir-fry'],
@@ -441,7 +508,16 @@ class PortalController extends Controller
             'Sunday' => ['Breakfast' => 'Brunch', 'Lunch' => '-', 'Dinner' => 'Steak'],
         ];
 
-        return view('portal::hostel', compact('students', 'all_students', 'hostelDetails', 'menu'));
+        return view('portal::hostel', compact(
+            'students', 
+            'all_students', 
+            'hostelDetails', 
+            'menu', 
+            'hostelFees', 
+            'hostelIssues', 
+            'hostelAnnouncements', 
+            'leaveRequests'
+        ));
     }
 
     public function transport(Request $request)

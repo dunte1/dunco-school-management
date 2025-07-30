@@ -15,7 +15,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::with('permissions')->paginate(10);
+        $roles = Role::with('permissions')->get();
         return view('core::roles.index', compact('roles'));
     }
 
@@ -95,6 +95,22 @@ class RoleController extends Controller
         $role->update($request->only(['name', 'display_name', 'description']));
         $role->permissions()->sync($request->permissions ?? []);
 
+        // Clear permission cache for all users who have this role
+        $usersWithRole = \App\Models\User::whereHas('roles', function($query) use ($role) {
+            $query->where('roles.id', $role->id);
+        })->get();
+
+        $affectedUserIds = $usersWithRole->pluck('id')->toArray();
+
+        foreach ($usersWithRole as $user) {
+            $user->clearPermissionCache();
+            // Update last permission update timestamp for this user
+            cache()->put("user_permissions_last_update_{$user->id}", now()->toISOString(), 3600);
+        }
+
+        // Broadcast permission update event
+        event(new \App\Events\PermissionsUpdated($role->id, $affectedUserIds));
+
         // Log the action
         AuditLog::log(
             'role.updated',
@@ -103,7 +119,7 @@ class RoleController extends Controller
             $role->toArray()
         );
 
-        return redirect()->route('core.roles.index')->with('success', 'Role updated successfully.');
+        return redirect()->route('core.roles.index')->with('success', 'Role updated successfully. Users with this role will see changes immediately.');
     }
 
     /**
@@ -136,6 +152,23 @@ class RoleController extends Controller
         ]);
         $sourceRole = Role::findOrFail($request->source_role_id);
         $role->permissions()->sync($sourceRole->permissions->pluck('id')->toArray());
-        return redirect()->route('core.roles.edit', $role->id)->with('success', 'Permissions cloned from ' . ($sourceRole->display_name ?? $sourceRole->name) . '.');
+
+        // Clear permission cache for all users who have this role
+        $usersWithRole = \App\Models\User::whereHas('roles', function($query) use ($role) {
+            $query->where('roles.id', $role->id);
+        })->get();
+
+        $affectedUserIds = $usersWithRole->pluck('id')->toArray();
+
+        foreach ($usersWithRole as $user) {
+            $user->clearPermissionCache();
+            // Update last permission update timestamp for this user
+            cache()->put("user_permissions_last_update_{$user->id}", now()->toISOString(), 3600);
+        }
+
+        // Broadcast permission update event
+        event(new \App\Events\PermissionsUpdated($role->id, $affectedUserIds));
+
+        return redirect()->route('core.roles.edit', $role->id)->with('success', 'Permissions cloned from ' . ($sourceRole->display_name ?? $sourceRole->name) . '. Users with this role will see changes immediately.');
     }
 } 

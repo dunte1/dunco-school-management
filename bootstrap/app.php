@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\LogUserActions::class,
+            \App\Http\Middleware\CheckUserActive::class,
+            \App\Http\Middleware\SetLocale::class,
         ]);
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,

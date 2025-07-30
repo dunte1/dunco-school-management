@@ -2,48 +2,62 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Auth;
-use Nwidart\Modules\Laravel\Module;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        // Register modules
         $this->app->register(\Nwidart\Modules\LaravelModulesServiceProvider::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        Vite::prefetch(concurrency: 3);
+        // Performance optimizations
+        $this->configureDatabaseOptimizations();
+        $this->configureQueryOptimizations();
+        
+        // Temporarily disable all functionality
+        // return;
+    }
 
-        // Blade directive for checking permissions
-        Blade::if('permission', function ($permission) {
-            return Auth::check() && Auth::user()->hasPermission($permission);
-        });
+    private function configureDatabaseOptimizations(): void
+    {
+        // Enable query logging in development
+        if (config('app.debug')) {
+            DB::listen(function ($query) {
+                if ($query->time > 100) { // Log slow queries (>100ms)
+                    \Log::warning('Slow query detected', [
+                        'sql' => $query->sql,
+                        'bindings' => $query->bindings,
+                        'time' => $query->time
+                    ]);
+                }
+            });
+        }
 
-        // Blade directive for checking roles
-        Blade::if('role', function ($role) {
-            return Auth::check() && Auth::user()->hasRole($role);
-        });
+        // Optimize database connection
+        DB::connection()->getPdo()->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
+        DB::connection()->getPdo()->setAttribute(\PDO::ATTR_STRINGIFY_FETCHES, false);
+    }
 
-        // Blade directive for checking any permission
-        Blade::if('anypermission', function ($permissions) {
-            return Auth::check() && Auth::user()->hasAnyPermission($permissions);
-        });
-
-        // Blade directive for checking any role
-        Blade::if('anyrole', function ($roles) {
-            return Auth::check() && Auth::user()->hasAnyRole($roles);
-        });
+    private function configureQueryOptimizations(): void
+    {
+        // Prevent N+1 queries by requiring explicit eager loading
+        // Model::preventLazyLoading(!app()->isProduction());
+        
+        // Add query timeout (only for MySQL/MariaDB)
+        $connection = config('database.default');
+        if (in_array($connection, ['mysql', 'mariadb'])) {
+            try {
+                DB::statement('SET SESSION wait_timeout = 300');
+                DB::statement('SET SESSION interactive_timeout = 300');
+            } catch (\Exception $e) {
+                // Ignore if not supported
+            }
+        }
     }
 }

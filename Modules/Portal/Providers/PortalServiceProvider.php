@@ -13,7 +13,9 @@ class PortalServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'portal');
-        $this->autoGeneratePermissions('portal');
+        if (\Schema::hasTable('permissions')) {
+            $this->autoGeneratePermissions('portal');
+        }
     }
 
     protected function autoGeneratePermissions($module)

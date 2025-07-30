@@ -126,6 +126,20 @@
             <label for="api_token" class="form-label">API Token</label>
             <input type="text" name="api_token" id="api_token" class="form-control" value="{{ old('api_token', $settings['api_token'] ?? '') }}">
         </div>
+        <h4>Push Notification Settings</h4>
+        <div class="mb-3">
+            <label for="fcm_server_key" class="form-label">FCM Server Key</label>
+            <input type="text" name="fcm_server_key" id="fcm_server_key" class="form-control" value="{{ old('fcm_server_key', $settings['fcm_server_key'] ?? '') }}">
+        </div>
+        <h4>SMS Provider: Africa's Talking</h4>
+        <div class="mb-3">
+            <label for="africastalking_username" class="form-label">Africa's Talking Username</label>
+            <input type="text" name="africastalking_username" id="africastalking_username" class="form-control" value="{{ old('africastalking_username', $settings['africastalking_username'] ?? '') }}">
+        </div>
+        <div class="mb-3">
+            <label for="africastalking_api_key" class="form-label">Africa's Talking API Key</label>
+            <input type="text" name="africastalking_api_key" id="africastalking_api_key" class="form-control" value="{{ old('africastalking_api_key', $settings['africastalking_api_key'] ?? '') }}">
+        </div>
         <button type="submit" class="btn btn-success">Save Settings</button>
     </form>
 </div>

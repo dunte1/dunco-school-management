@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('authors', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->text('biography')->nullable();
+            $table->string('email')->nullable();
+            $table->string('website')->nullable();
             $table->timestamps();
         });
     }

@@ -16,6 +16,10 @@ class Setting extends Model
         'description',
     ];
 
+    protected $casts = [
+        'value' => 'string',
+    ];
+
     public function school()
     {
         return $this->belongsTo(\App\Models\School::class, 'school_id');

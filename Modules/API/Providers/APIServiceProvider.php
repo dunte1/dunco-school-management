@@ -27,7 +27,9 @@ class APIServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
-        $this->autoGeneratePermissions('api');
+        if (\Schema::hasTable('permissions')) {
+            $this->autoGeneratePermissions('api');
+        }
     }
 
     protected function autoGeneratePermissions($module)

@@ -19,6 +19,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $request->user();
     });
 
+    // Sidebar API routes
+    Route::prefix('sidebar')->group(function () {
+        Route::get('/data', [\App\Http\Controllers\Api\SidebarController::class, 'getSidebarData']);
+        Route::post('/check-permission', [\App\Http\Controllers\Api\SidebarController::class, 'checkPermission']);
+        Route::get('/user-permissions', [\App\Http\Controllers\Api\SidebarController::class, 'getUserPermissions']);
+        Route::post('/trigger-update', [\App\Http\Controllers\Api\SidebarController::class, 'triggerUpdate']);
+        Route::get('/last-update', [\App\Http\Controllers\Api\SidebarController::class, 'getLastUpdate']);
+    });
+
     Route::get('/attendance/analytics/student', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'getStudentAnalytics']);
     Route::get('/attendance/analytics/staff', [\Modules\HR\Http\Controllers\AttendanceController::class, 'getStaffAnalytics']);
     Route::apiResource('attendance/session-templates', \App\Http\Controllers\Modules\Attendance\Http\Controllers\SessionTemplateController::class);

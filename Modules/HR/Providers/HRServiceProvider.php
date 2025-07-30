@@ -11,7 +11,9 @@ class HRServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'hr');
-        $this->autoGeneratePermissions('hr');
+        if (\Schema::hasTable('permissions')) {
+            $this->autoGeneratePermissions('hr');
+        }
     }
 
     protected function autoGeneratePermissions($module)

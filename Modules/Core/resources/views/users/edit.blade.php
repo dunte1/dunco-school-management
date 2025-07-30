@@ -110,6 +110,21 @@
                             <input class="form-check-input" type="checkbox" id="force_password_reset" name="force_password_reset" value="1" {{ old('force_password_reset', $user->force_password_reset) ? 'checked' : '' }}>
                             <label class="form-check-label" for="force_password_reset">Force password reset on next login</label>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notification Preferences</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notify_email" name="notify_email" value="1" {{ old('notify_email', $user->notify_email) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="notify_email">Email Notifications</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notify_sms" name="notify_sms" value="1" {{ old('notify_sms', $user->notify_sms) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="notify_sms">SMS Notifications</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notify_push" name="notify_push" value="1" {{ old('notify_push', $user->notify_push) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="notify_push">App Notifications</label>
+                            </div>
+                        </div>
                     <div class="d-flex justify-content-between align-items-center mt-4">
                         <a href="{{ route('core.users.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-1"></i> Back

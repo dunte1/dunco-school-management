@@ -19,7 +19,9 @@ class TimetableServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
-        $this->autoGeneratePermissions('timetable');
+        if (\Schema::hasTable('permissions')) {
+            $this->autoGeneratePermissions('timetable');
+        }
     }
 
     /**
