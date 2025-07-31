@@ -15,7 +15,20 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::with('permissions')->get();
+        // Force fresh load of roles with permissions and clear any cache
+        \Cache::forget('roles_index_view');
+        
+        $roles = Role::with(['permissions' => function($query) {
+            $query->orderBy('name');
+        }])->get();
+        
+        // Force refresh each role's permissions
+        foreach ($roles as $role) {
+            $role->load('permissions');
+            // Clear any cached permissions for this role
+            \Cache::forget("role_permissions_{$role->id}");
+        }
+        
         return view('core::roles.index', compact('roles'));
     }
 
@@ -94,6 +107,12 @@ class RoleController extends Controller
 
         $role->update($request->only(['name', 'display_name', 'description']));
         $role->permissions()->sync($request->permissions ?? []);
+        
+        // Force refresh the role's permissions relationship
+        $role->load('permissions');
+        
+        // Clear any cached queries for this role
+        \DB::table('role_has_permissions')->where('role_id', $role->id)->get();
 
         // Clear permission cache for all users who have this role
         $usersWithRole = \App\Models\User::whereHas('roles', function($query) use ($role) {
@@ -110,6 +129,9 @@ class RoleController extends Controller
 
         // Broadcast permission update event
         event(new \App\Events\PermissionsUpdated($role->id, $affectedUserIds));
+        
+        // Clear any cached views for roles
+        \Cache::forget('roles_index_view');
 
         // Log the action
         AuditLog::log(

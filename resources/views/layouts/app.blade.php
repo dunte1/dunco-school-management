@@ -302,17 +302,27 @@
         .main-content {
             margin-left: 180px;
             padding: 2rem 1rem 1rem 1rem;
-            transition: margin-left 0.3s;
+            transition: margin-left 0.3s ease;
             min-height: 100vh;
+            width: calc(100vw - 180px);
+            overflow-x: auto;
         }
         .sidebar.collapsed ~ .main-content {
             margin-left: 64px;
+            width: calc(100vw - 64px);
         }
         @media (max-width: 991.98px) {
             .sidebar { left: -248px; width: 248px; }
             .sidebar.show { left: 0; }
-            .main-content { margin-left: 0; }
-            .sidebar.collapsed ~ .main-content { margin-left: 0; }
+            .main-content { 
+                margin-left: 0; 
+                width: 100vw;
+                padding: 1rem 0.5rem 0.5rem 0.5rem;
+            }
+            .sidebar.collapsed ~ .main-content { 
+                margin-left: 0; 
+                width: 100vw;
+            }
             .sidebar-section-divider { width: 95%; }
         }
         /* Remove default Bootstrap accordion arrow */
@@ -378,7 +388,7 @@
         @if(\App\Helpers\NavigationHelper::canAccessModule('core') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section" data-module="core">Core Modules</div>
         <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="coreSidebarAccordion" data-module="core">
+        <div class="accordion mb-2" id="sidebarMainAccordion">
             <div class="accordion-item border-0 bg-transparent">
                 <h2 class="accordion-header" id="coreHeading">
                     <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#coreCollapse" aria-expanded="false" aria-controls="coreCollapse">
@@ -387,7 +397,7 @@
                         <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
                     </button>
                 </h2>
-                <div id="coreCollapse" class="accordion-collapse collapse" aria-labelledby="coreHeading" data-bs-parent="#coreSidebarAccordion">
+                <div id="coreCollapse" class="accordion-collapse collapse" aria-labelledby="coreHeading" data-bs-parent="#sidebarMainAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('schools.view'))
@@ -424,16 +434,15 @@
         @if(auth()->user()->hasPermission('settings.view'))
         <div class="sidebar-section" data-module="settings">Settings</div>
         <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="settingsSidebarAccordion" data-module="settings">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="settingsHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="false" aria-controls="settingsCollapse">
-                        <span class="nav-icon"><i class="fas fa-cog"></i></span>
-                        <span class="nav-text">Settings</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="settingsCollapse" class="accordion-collapse collapse" aria-labelledby="settingsHeading" data-bs-parent="#settingsSidebarAccordion">
+        <div class="accordion-item border-0 bg-transparent">
+            <h2 class="accordion-header" id="settingsHeading">
+                <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="false" aria-controls="settingsCollapse">
+                    <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                    <span class="nav-text">Settings</span>
+                    <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+            </h2>
+            <div id="settingsCollapse" class="accordion-collapse collapse" aria-labelledby="settingsHeading" data-bs-parent="#sidebarMainAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('settings.view'))
@@ -460,16 +469,15 @@
         @if(\App\Helpers\NavigationHelper::canAccessModule('hr') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section" data-module="hr">Management</div>
         <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="hrSidebarAccordion" data-module="hr">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="hrHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#hrCollapse" aria-expanded="false" aria-controls="hrCollapse">
-                        <span class="nav-icon"><i class="fas fa-chalkboard-teacher"></i></span>
-                        <span class="nav-text">HR</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="hrCollapse" class="accordion-collapse collapse" aria-labelledby="hrHeading" data-bs-parent="#hrSidebarAccordion">
+        <div class="accordion-item border-0 bg-transparent">
+            <h2 class="accordion-header" id="hrHeading">
+                <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#hrCollapse" aria-expanded="false" aria-controls="hrCollapse">
+                    <span class="nav-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                    <span class="nav-text">HR</span>
+                    <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+            </h2>
+            <div id="hrCollapse" class="accordion-collapse collapse" aria-labelledby="hrHeading" data-bs-parent="#sidebarMainAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('hr.view'))
@@ -1101,110 +1109,8 @@
             </div>
         </div>
         @endif
-        {{-- Governance & Compliance Section (Merged Audit + Compliance) --}}
-        @if(\App\Helpers\NavigationHelper::canAccessModule('compliance') || \App\Helpers\NavigationHelper::canAccessModule('audit') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Governance & Compliance</div>
-        <div class="sidebar-section-divider"></div>
-        
-        {{-- Compliance Module (Standards & Policies) --}}
-        <div class="accordion mb-2" id="complianceSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="complianceHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#complianceCollapse" aria-expanded="false" aria-controls="complianceCollapse">
-                        <span class="nav-icon"><i class="fas fa-shield-alt"></i></span>
-                        <span class="nav-text">Compliance</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="complianceCollapse" class="accordion-collapse collapse" aria-labelledby="complianceHeading" data-bs-parent="#complianceSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('compliance.view'))
-                            <a href="/compliance" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('compliance')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('compliance.manage.view'))
-                            <a href="/compliance/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('compliance/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        {{-- Audit Module (Monitoring & Logs) --}}
-        <div class="accordion mb-2" id="auditSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="auditHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#auditCollapse" aria-expanded="false" aria-controls="auditCollapse">
-                        <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
-                        <span class="nav-text">Audit</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="auditCollapse" class="accordion-collapse collapse" aria-labelledby="auditHeading" data-bs-parent="#auditSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('audit.view'))
-                            <a href="{{ route('audit.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('audit.index')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('audit.manage.view'))
-                            <a href="{{ route('audit.manage.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('audit.manage.*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('lms') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">LMS</div>
-        <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="lmsSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="lmsHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#lmsCollapse" aria-expanded="false" aria-controls="lmsCollapse">
-                        <span class="nav-icon"><i class="fas fa-graduation-cap"></i></span>
-                        <span class="nav-text">LMS</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="lmsCollapse" class="accordion-collapse collapse" aria-labelledby="lmsHeading" data-bs-parent="#lmsSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('lms.view'))
-                            <a href="/lms" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('lms')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('lms.courses.view'))
-                            <a href="/lms/courses" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('lms/courses*')) active @endif">
-                                <i class="fas fa-book me-2"></i> Courses
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('lms.assignments.view'))
-                            <a href="/lms/assignments" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('lms/assignments*')) active @endif">
-                                <i class="fas fa-tasks me-2"></i> Assignments
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('lms.grades.view'))
-                            <a href="/lms/grades" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('lms/grades*')) active @endif">
-                                <i class="fas fa-star me-2"></i> Grades
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
+
+
         @if(\App\Helpers\NavigationHelper::canAccessModule('document') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section">Document</div>
         <div class="sidebar-section-divider"></div>
@@ -1236,7 +1142,7 @@
             </div>
         </div>
         @endif
-        @if(auth()->user()->hasPermission('notification.view'))
+        @if(\App\Helpers\NavigationHelper::canAccessModule('notification') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section">Notification</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="notificationSidebarAccordion">
@@ -1267,29 +1173,29 @@
             </div>
         </div>
         @endif
-        @if(auth()->user()->hasPermission('analytics.view'))
-        <div class="sidebar-section">Analytics</div>
+        @if(\App\Helpers\NavigationHelper::canAccessModule('settings') || auth()->user()->hasRole('admin'))
+        <div class="sidebar-section">Settings</div>
         <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="analyticsSidebarAccordion">
+        <div class="accordion mb-2" id="settingsSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="analyticsHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#analyticsCollapse" aria-expanded="false" aria-controls="analyticsCollapse">
-                        <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
-                        <span class="nav-text">Analytics</span>
+                <h2 class="accordion-header" id="settingsHeading">
+                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="false" aria-controls="settingsCollapse">
+                        <span class="nav-icon"><i class="fas fa-cogs"></i></span>
+                        <span class="nav-text">Settings</span>
                         <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
                     </button>
                 </h2>
-                <div id="analyticsCollapse" class="accordion-collapse collapse" aria-labelledby="analyticsHeading" data-bs-parent="#analyticsSidebarAccordion">
+                <div id="settingsCollapse" class="accordion-collapse collapse" aria-labelledby="settingsHeading" data-bs-parent="#settingsSidebarAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('analytics.view'))
-                            <a href="/analytics" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('analytics')) active @endif">
+                            @if(auth()->user()->hasPermission('settings.view'))
+                            <a href="/settings" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('settings*')) active @endif">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('analytics.reports.view'))
-                            <a href="/analytics/reports" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('analytics/reports*')) active @endif">
-                                <i class="fas fa-chart-bar me-2"></i> Reports
+                            @if(auth()->user()->hasPermission('settings.global.view'))
+                            <a href="/settings/global" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('settings/global*')) active @endif">
+                                <i class="fas fa-globe me-2"></i> Global Settings
                             </a>
                             @endif
                         </nav>
@@ -1298,7 +1204,7 @@
             </div>
         </div>
         @endif
-        @if(auth()->user()->hasPermission('api.view'))
+        @if(\App\Helpers\NavigationHelper::canAccessModule('api') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section">API</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="apiSidebarAccordion">
@@ -1329,14 +1235,14 @@
             </div>
         </div>
         @endif
-        @if(auth()->user()->hasPermission('chatbot.view'))
+        @if(\App\Helpers\NavigationHelper::canAccessModule('chatbot') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section">Chatbot</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="chatbotSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
                 <h2 class="accordion-header" id="chatbotHeading">
                     <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#chatbotCollapse" aria-expanded="false" aria-controls="chatbotCollapse">
-                        <span class="nav-icon"><i class="fas fa-home"></i></span>
+                        <span class="nav-icon"><i class="fas fa-robot"></i></span>
                         <span class="nav-text">Chatbot</span>
                         <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
                     </button>
@@ -1360,297 +1266,12 @@
             </div>
         </div>
         @endif
-        @if(auth()->user()->hasPermission('marketplace.view'))
-        <div class="sidebar-section">Marketplace</div>
-        <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="marketplaceSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="marketplaceHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#marketplaceCollapse" aria-expanded="false" aria-controls="marketplaceCollapse">
-                        <span class="nav-icon"><i class="fas fa-home"></i></span>
-                        <span class="nav-text">Marketplace</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="marketplaceCollapse" class="accordion-collapse collapse" aria-labelledby="marketplaceHeading" data-bs-parent="#marketplaceSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('marketplace.view'))
-                            <a href="/marketplace" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('marketplace')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('marketplace.manage.view'))
-                            <a href="/marketplace/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('marketplace/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        @if(auth()->user()->hasPermission('pwa.view'))
-        <div class="sidebar-section">PWA</div>
-        <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="pwaSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="pwaHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#pwaCollapse" aria-expanded="false" aria-controls="pwaCollapse">
-                        <span class="nav-icon"><i class="fas fa-home"></i></span>
-                        <span class="nav-text">PWA</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="pwaCollapse" class="accordion-collapse collapse" aria-labelledby="pwaHeading" data-bs-parent="#pwaSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('pwa.view'))
-                            <a href="/pwa" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('pwa*')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('pwa.manage.view'))
-                            <a href="/pwa/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('pwa/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        @if(auth()->user()->hasPermission('research.view'))
-        <div class="sidebar-section">Research</div>
-        <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="researchSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="researchHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#researchCollapse" aria-expanded="false" aria-controls="researchCollapse">
-                        <span class="nav-icon"><i class="fas fa-home"></i></span>
-                        <span class="nav-text">Research</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="researchCollapse" class="accordion-collapse collapse" aria-labelledby="researchHeading" data-bs-parent="#researchSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('research.view'))
-                            <a href="/research" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('research')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('research.manage.view'))
-                            <a href="/research/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('research/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
         
-        {{-- Student Services Section (Merged Welfare + Cafeteria) --}}
-        @if(\App\Helpers\NavigationHelper::canAccessModule('welfare') || \App\Helpers\NavigationHelper::canAccessModule('cafeteria') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Student Services</div>
-        <div class="sidebar-section-divider"></div>
+
         
-        {{-- Welfare Module (Student Support) --}}
-        <div class="accordion mb-2" id="welfareSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="welfareHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#welfareCollapse" aria-expanded="false" aria-controls="welfareCollapse">
-                        <span class="nav-icon"><i class="fas fa-heart"></i></span>
-                        <span class="nav-text">Welfare</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="welfareCollapse" class="accordion-collapse collapse" aria-labelledby="welfareHeading" data-bs-parent="#welfareSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('welfare.view'))
-                            <a href="/welfare" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('welfare')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('welfare.manage'))
-                            <a href="/welfare/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('welfare/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
+
         
-        {{-- Cafeteria Module (Food Services) --}}
-        <div class="accordion mb-2" id="cafeteriaSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="cafeteriaHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#cafeteriaCollapse" aria-expanded="false" aria-controls="cafeteriaCollapse">
-                        <span class="nav-icon"><i class="fas fa-utensils"></i></span>
-                        <span class="nav-text">Cafeteria</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="cafeteriaCollapse" class="accordion-collapse collapse" aria-labelledby="cafeteriaHeading" data-bs-parent="#cafeteriaSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('cafeteria.view'))
-                            <a href="/cafeteria" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('cafeteria')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('cafeteria.manage'))
-                            <a href="/cafeteria/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('cafeteria/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-        {{-- Resource Management Section (Merged Inventory + Assets) --}}
-        @if(\App\Helpers\NavigationHelper::canAccessModule('inventory') || \App\Helpers\NavigationHelper::canAccessModule('assets') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Resource Management</div>
-        <div class="sidebar-section-divider"></div>
-        
-        {{-- Inventory Module (Items & Supplies) --}}
-        <div class="accordion mb-2" id="inventorySidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="inventoryHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#inventoryCollapse" aria-expanded="false" aria-controls="inventoryCollapse">
-                        <span class="nav-icon"><i class="fas fa-boxes"></i></span>
-                        <span class="nav-text">Inventory</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="inventoryCollapse" class="accordion-collapse collapse" aria-labelledby="inventoryHeading" data-bs-parent="#inventorySidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('inventory.view'))
-                            <a href="/inventory" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('inventory')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('inventory.manage'))
-                            <a href="/inventory/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('inventory/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        {{-- Assets Module (Equipment & Facilities) --}}
-        <div class="accordion mb-2" id="assetsSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="assetsHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#assetsCollapse" aria-expanded="false" aria-controls="assetsCollapse">
-                        <span class="nav-icon"><i class="fas fa-building"></i></span>
-                        <span class="nav-text">Assets</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="assetsCollapse" class="accordion-collapse collapse" aria-labelledby="assetsHeading" data-bs-parent="#assetsSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('assets.view'))
-                            <a href="/assets" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('assets')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('assets.manage'))
-                            <a href="/assets/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('assets/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-        {{-- Alumni & External Relations Section --}}
-        @if(\App\Helpers\NavigationHelper::canAccessModule('alumni') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">External Relations</div>
-        <div class="sidebar-section-divider"></div>
-        
-        {{-- Alumni Module --}}
-        <div class="accordion mb-2" id="alumniSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="alumniHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#alumniCollapse" aria-expanded="false" aria-controls="alumniCollapse">
-                        <span class="nav-icon"><i class="fas fa-graduation-cap"></i></span>
-                        <span class="nav-text">Alumni</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="alumniCollapse" class="accordion-collapse collapse" aria-labelledby="alumniHeading" data-bs-parent="#alumniSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('alumni.view'))
-                            <a href="/alumni" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('alumni')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('alumni.manage'))
-                            <a href="/alumni/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('alumni/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-        {{-- System Configuration Section --}}
-        @if(\App\Helpers\NavigationHelper::canAccessModule('localization') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">System Configuration</div>
-        <div class="sidebar-section-divider"></div>
-        
-        {{-- Localization Module --}}
-        <div class="accordion mb-2" id="localizationSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="localizationHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#localizationCollapse" aria-expanded="false" aria-controls="localizationCollapse">
-                        <span class="nav-icon"><i class="fas fa-globe"></i></span>
-                        <span class="nav-text">Localization</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="localizationCollapse" class="accordion-collapse collapse" aria-labelledby="localizationHeading" data-bs-parent="#localizationSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('localization.view'))
-                            <a href="/localization" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('localization')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('localization.manage'))
-                            <a href="/localization/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('localization/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
+
     </nav>
     
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -1768,6 +1389,64 @@
                 refreshSidebar();
             }
         }, 300000); // 5 minutes
+        
+        // Accordion behavior: Ensure only one accordion is open at a time
+        document.addEventListener('DOMContentLoaded', function() {
+            const accordionButtons = document.querySelectorAll('.sidebar .accordion-button');
+            
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('data-bs-target');
+                    const targetCollapse = document.querySelector(targetId);
+                    
+                    // Close all other accordions
+                    const allCollapses = document.querySelectorAll('.sidebar .accordion-collapse');
+                    allCollapses.forEach(collapse => {
+                        if (collapse !== targetCollapse && collapse.classList.contains('show')) {
+                            const bsCollapse = new bootstrap.Collapse(collapse, {
+                                toggle: false
+                            });
+                            bsCollapse.hide();
+                        }
+                    });
+                });
+            });
+        });
+        
+        // Ensure proper sidebar spacing and prevent content overlap
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            function updateContentSpacing() {
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.style.marginLeft = '64px';
+                    mainContent.style.width = 'calc(100vw - 64px)';
+                } else {
+                    mainContent.style.marginLeft = '180px';
+                    mainContent.style.width = 'calc(100vw - 180px)';
+                }
+            }
+            
+            // Initial setup
+            updateContentSpacing();
+            
+            // Watch for sidebar state changes
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        updateContentSpacing();
+                    }
+                });
+            });
+            
+            if (sidebar) {
+                observer.observe(sidebar, {
+                    attributes: true,
+                    attributeFilter: ['class']
+                });
+            }
+        });
     </script>
     
     @stack('scripts')

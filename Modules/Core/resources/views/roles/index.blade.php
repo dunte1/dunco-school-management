@@ -152,9 +152,14 @@
                     <td>{{ $role->display_name }}</td>
                     <td>{{ $role->description }}</td>
                     <td>
-                        @foreach($role->permissions as $permission)
-                            <span class="roles-permission-badge">{{ $permission->display_name ?? $permission->name }}</span>
-                        @endforeach
+                        @if($role->permissions->count() > 0)
+                            @foreach($role->permissions as $permission)
+                                <span class="roles-permission-badge">{{ $permission->display_name ?? $permission->name }}</span>
+                            @endforeach
+                        @else
+                            <span class="text-muted">No permissions assigned</span>
+                        @endif
+                        <!-- Debug: {{ $role->permissions->count() }} permissions loaded -->
                     </td>
                     <td>
                         <a href="{{ route('core.roles.show', $role->id) }}" class="roles-action-btn view" title="View" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="View">

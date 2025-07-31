@@ -16,8 +16,21 @@ class NavigationHelper
             return true;
         }
 
+        // Define functional modules (only the ones that actually exist)
+        $functionalModules = [
+            'core', 'academic', 'examination', 'finance', 'hr', 'library', 
+            'hostel', 'transport', 'timetable', 'attendance', 'communication', 
+            'portal', 'document', 'notification', 'settings', 'api', 'chatbot'
+        ];
+
+        // For admin users, allow access to all functional modules
+        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+            return in_array($module, $functionalModules);
+        }
+
+        // For non-admin users, check specific permissions
         $modulePermissions = [
-            'core' => ['schools.view', 'users.view', 'roles.view', 'permissions.view', 'audit.view'],
+            'core' => ['schools.view', 'users.view', 'roles.view', 'permissions.view'],
             'academic' => ['academic.view', 'academic.students.view', 'academic.classes.view', 'academic.subjects.view'],
             'examination' => ['examination.view', 'examination.teacher.exams', 'examination.teacher.grade'],
             'finance' => ['finance.view', 'finance.fees.view', 'finance.billing.view', 'finance.payments.view'],
@@ -26,7 +39,7 @@ class NavigationHelper
             'hostel' => ['hostel.view', 'hostel.allocations.view', 'hostel.fees.view', 'hostel.issues.view', 'hostel.leave.view', 'hostel.visitors.view', 'hostel.announcements.view', 'hostel.reports.view'],
             'transport' => ['transport.view', 'transport.vehicles.view', 'transport.routes.view', 'transport.drivers.view', 'transport.trips.view'],
             'timetable' => ['timetable.view', 'timetable.schedules.view', 'timetable.teacher_availabilities.view', 'timetable.rooms.view', 'timetable.room_allocations.view'],
-            'attendance' => ['attendance.view', 'attendance.mark.view', 'attendance.reports.view', 'attendance.settings.view', 'attendance.biometric_logs.view', 'attendance.qr_logs.view', 'attendance.face_logs.view', 'attendance.acknowledgment_logs.view'],
+            'attendance' => ['attendance.view', 'attendance.mark.view', 'attendance.reports.view', 'attendance.settings.view'],
             'communication' => ['communication.view', 'communication.inbox.view', 'communication.compose.view', 'communication.announcements.view'],
             'portal' => ['portal.view', 'portal.student.view', 'portal.parent.view'],
             'document' => ['document.view', 'document.upload.view', 'document.manage.view'],
@@ -57,14 +70,21 @@ class NavigationHelper
         $user = Auth::user();
         if (!$user) return [];
 
-        $availableModules = [
+        // Define all functional modules
+        $functionalModules = [
             'core', 'academic', 'examination', 'finance', 'hr', 'library', 
             'hostel', 'transport', 'timetable', 'attendance', 'communication', 
             'portal', 'document', 'notification', 'settings', 'api', 'chatbot'
         ];
 
+        // For admin users, return all functional modules
+        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+            return $functionalModules;
+        }
+
+        // For non-admin users, check permissions for each module
         $userModules = [];
-        foreach ($availableModules as $module) {
+        foreach ($functionalModules as $module) {
             if (self::canAccessModule($module)) {
                 $userModules[] = $module;
             }
