@@ -130,9 +130,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-analytics'
 
-    // WebSocket
-    implementation 'com.squareup.okhttp3:okhttp-ws:4.11.0'
-
     // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
