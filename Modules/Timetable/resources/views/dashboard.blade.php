@@ -53,12 +53,7 @@
             </div>
         </div>
     </div>
-    @php
-        $allTimetables = \App\Models\Modules\Timetable\Models\Timetable::all();
-        $allTeachers = \App\Models\User::whereHas('roles', function($q){ $q->where('name', 'teacher'); })->get();
-        $allClasses = \Modules\Academic\Models\AcademicClass::all();
-        $allRooms = \Modules\Timetable\Models\Room::all();
-    @endphp
+    {{-- Data is now passed from the controller --}}
     <div class="row mb-4">
         <div class="col-md-12">
             <form class="card shadow-sm p-3 mb-3" method="GET" action="">

@@ -1,95 +1,101 @@
-@extends('finance::layouts.app')
+@extends('layouts.app')
+
+@section('title', 'Fee Categories - Finance Module')
 
 @section('content')
-<div class="container mx-auto p-4" x-data="{ showModal: false, form: { name: '', description: '' }, errors: {}, loading: false }">
-    <h1 class="text-2xl font-bold mb-4">Fee Categories</h1>
-    <button @click="showModal = true" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4 inline-block">Add Category</button>
-    <table class="min-w-full bg-white rounded shadow">
-        <thead>
-            <tr>
-                <th class="px-4 py-2">Name</th>
-                <th class="px-4 py-2">Description</th>
-                <th class="px-4 py-2">Actions</th>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">Fee Categories</h1>
+            <p class="text-muted mb-0">Organize fees into categories</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('finance.fees.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Fees
+            </a>
+            <a href="{{ route('finance.fee-categories.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Category
+            </a>
+        </div>
+    </div>
+
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <ul class="mb-0 ps-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <!-- Fee Categories Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Fee Categories List</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3">Name</th>
+                            <th class="px-4 py-3">Description</th>
+                            <th class="px-4 py-3 text-center">Actions</th>
             </tr>
         </thead>
-        <tbody id="fee-category-list">
-            @foreach($categories as $category)
-            <tr>
-                <td class="border px-4 py-2">{{ $category->name }}</td>
-                <td class="border px-4 py-2">{{ $category->description }}</td>
-                <td class="border px-4 py-2">
-                    <a href="{{ route('finance.fee-categories.edit', $category) }}" class="text-blue-600 hover:underline">Edit</a>
-                    <form action="{{ route('finance.fee-categories.destroy', $category) }}" method="POST" class="inline">
+                    <tbody>
+                        @forelse($categories as $category)
+                        <tr>
+                            <td class="px-4 py-3">
+                                <strong>{{ $category->name }}</strong>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-muted">{{ $category->description ?: 'No description provided' }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ route('finance.fee-categories.edit', $category) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('finance.fee-categories.destroy', $category) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:underline ml-2" onclick="return confirm('Delete this category?')">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this fee category?')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                     </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-tags fa-3x mb-3"></i>
+                                    <h5>No Fee Categories Found</h5>
+                                    <p>Start by creating your first fee category.</p>
+                                    <a href="{{ route('finance.fee-categories.create') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>Add First Category
+                                    </a>
+                                </div>
                 </td>
             </tr>
-            @endforeach
+                        @endforelse
         </tbody>
     </table>
-
-    <!-- Modal -->
-    <div x-show="showModal" style="display: none;" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-            <button @click="showModal = false" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700">&times;</button>
-            <h2 class="text-xl font-bold mb-4">Add Fee Category</h2>
-            <form @submit.prevent="submitForm" x-ref="form">
-                <div class="mb-4">
-                    <label class="block mb-1">Name</label>
-                    <input type="text" x-model="form.name" name="name" class="w-full border rounded px-3 py-2" required>
-                    <template x-if="errors.name"><div class="text-red-600 text-sm mt-1" x-text="errors.name"></div></template>
                 </div>
-                <div class="mb-4">
-                    <label class="block mb-1">Description</label>
-                    <textarea x-model="form.description" name="description" class="w-full border rounded px-3 py-2"></textarea>
-                    <template x-if="errors.description"><div class="text-red-600 text-sm mt-1" x-text="errors.description"></div></template>
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" x-bind:disabled="loading">
-                    <span x-show="!loading">Save</span>
-                    <span x-show="loading">Saving...</span>
-                </button>
-                <button type="button" @click="showModal = false" class="ml-2 text-gray-600 hover:underline">Cancel</button>
-            </form>
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('feeCategoryModal', () => ({
-        showModal: false,
-        form: { name: '', description: '' },
-        errors: {},
-        loading: false,
-        submitForm() {
-            this.loading = true;
-            this.errors = {};
-            fetch('{{ route('finance.fee-categories.store') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(this.form)
-            })
-            .then(async response => {
-                this.loading = false;
-                if (response.ok) {
-                    this.showModal = false;
-                    this.form = { name: '', description: '' };
-                    // Reload the list (simple way: reload page, or use AJAX to update table)
-                    window.location.reload();
-                } else {
-                    const data = await response.json();
-                    this.errors = data.errors || {};
-                }
-            })
-            .catch(() => { this.loading = false; });
-        }
-    }));
-});
-</script>
 @endsection 

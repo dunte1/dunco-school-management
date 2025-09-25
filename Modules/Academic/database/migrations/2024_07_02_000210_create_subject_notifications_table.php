@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSubjectNotificationsTable extends Migration
+return new class extends Migration
 {
     public function up(): void
     {
@@ -12,7 +12,7 @@ class CreateSubjectNotificationsTable extends Migration
             $table->id();
             $table->foreignId('subject_id')->constrained('academic_subjects')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('type'); // info, warning, deadline, etc.
+            $table->string('type');
             $table->string('message');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
@@ -23,4 +23,4 @@ class CreateSubjectNotificationsTable extends Migration
     {
         Schema::dropIfExists('subject_notifications');
     }
-} 
+};

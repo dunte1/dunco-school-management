@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -385,7 +385,7 @@
             <span class="nav-icon"><i class="fas fa-tachometer-alt"></i></span>
             <span class="nav-text">Dashboard</span>
         </a>
-        @if(\App\Helpers\NavigationHelper::canAccessModule('core') || auth()->user()->hasRole('admin'))
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('core') || auth()->user()->hasRole('admin')))
         <div class="sidebar-section" data-module="core">Core Modules</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="sidebarMainAccordion">
@@ -400,27 +400,27 @@
                 <div id="coreCollapse" class="accordion-collapse collapse" aria-labelledby="coreHeading" data-bs-parent="#sidebarMainAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('schools.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('schools.view'))
                             <a href="{{ route('core.schools.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('core.schools.*')) active @endif" data-permission="schools.view">
                                 <i class="fas fa-school me-2"></i> Schools
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('users.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('users.view'))
                             <a href="{{ route('core.users.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('core.users.*')) active @endif" data-permission="users.view">
                                 <i class="fas fa-users me-2"></i> Users
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('roles.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('roles.view'))
                             <a href="{{ route('core.roles.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('core.roles.*')) active @endif" data-permission="roles.view">
                                 <i class="fas fa-user-shield me-2"></i> Roles
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('permissions.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('permissions.view'))
                             <a href="{{ route('core.permissions.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('core.permissions.*')) active @endif" data-permission="permissions.view">
                                 <i class="fas fa-key me-2"></i> Permissions
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('audit.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('audit.view'))
                             <a href="{{ route('core.audit_logs.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('core.audit_logs.*')) active @endif" data-permission="audit.view">
                                 <i class="fas fa-clipboard-list me-2"></i> Audit Logs
                             </a>
@@ -431,7 +431,7 @@
             </div>
         </div>
         @endif
-        @if(auth()->user()->hasPermission('settings.view'))
+        @if(auth()->check() && auth()->user()->hasPermission('settings.view'))
         <div class="sidebar-section" data-module="settings">Settings</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion-item border-0 bg-transparent">
@@ -445,17 +445,17 @@
             <div id="settingsCollapse" class="accordion-collapse collapse" aria-labelledby="settingsHeading" data-bs-parent="#sidebarMainAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('settings.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('settings.view'))
                             <a href="{{ route('settings.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('settings.*')) active @endif" data-permission="settings.view">
                                 <i class="fas fa-cog me-2"></i> Settings
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('settings.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('settings.view'))
                             <a href="{{ route('settings.global') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('settings.global')) active @endif">
                                 <i class="fas fa-sliders-h me-2"></i> Global Settings
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('settings.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('settings.view'))
                             <a href="{{ route('settings.per_school') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('settings.per_school')) active @endif">
                                 <i class="fas fa-school me-2"></i> Per-School Settings
                             </a>
@@ -466,7 +466,7 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('hr') || auth()->user()->hasRole('admin'))
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('hr') || auth()->user()->hasRole('admin')))
         <div class="sidebar-section" data-module="hr">Management</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion-item border-0 bg-transparent">
@@ -480,32 +480,32 @@
             <div id="hrCollapse" class="accordion-collapse collapse" aria-labelledby="hrHeading" data-bs-parent="#sidebarMainAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('hr.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('hr.view'))
                             <a href="{{ route('hr.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link" data-permission="hr.view">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hr.staff.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('hr.staff.view'))
                             <a href="{{ route('hr.staff.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link" data-permission="hr.staff.view">
                                 <i class="fas fa-user-tie me-2"></i> Staff
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hr.leave.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('hr.leave.view'))
                             <a href="{{ route('hr.leave.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link">
                                 <i class="fas fa-plane-departure me-2"></i> Leave
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hr.payroll.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('hr.payroll.view'))
                             <a href="{{ route('hr.payroll.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link">
                                 <i class="fas fa-money-bill-wave me-2"></i> Payroll
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hr.contract.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('hr.contract.view'))
                             <a href="{{ route('hr.contract.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link">
                                 <i class="fas fa-file-contract me-2"></i> Contracts
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hr.departments.view'))
+                            @if(auth()->check() && auth()->user()->hasPermission('hr.departments.view'))
                             <a href="{{ route('hr.departments.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link">
                                 <i class="fas fa-building me-2"></i> Departments
                             </a>
@@ -516,7 +516,7 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('academic') || auth()->user()->hasRole('admin'))
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('academic') || auth()->user()->hasRole('admin')))
         <div class="sidebar-section" data-module="academic">Academic</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="academicSidebarAccordion" data-module="academic">
@@ -557,7 +557,7 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('examination') || auth()->user()->hasRole('admin'))
+        @if(auth()->check() && \App\Helpers\NavigationHelper::canAccessModule('examination') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section" data-module="examination">Examination</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="examinationSidebarAccordion" data-module="examination">
@@ -669,7 +669,7 @@
         </div>
         @endif
 
-        @if(\App\Helpers\NavigationHelper::canAccessModule('library') || auth()->user()->hasRole('admin'))
+        @if(auth()->check() && \App\Helpers\NavigationHelper::canAccessModule('library') || auth()->user()->hasRole('admin'))
         <div class="sidebar-section" data-module="library">Library</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="librarySidebarAccordion" data-module="library">
@@ -731,7 +731,59 @@
         </div>
         @endif
 
-        @if(\App\Helpers\NavigationHelper::canAccessModule('finance') || auth()->user()->hasRole('admin'))
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('chatbot') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="chatbot">AI Assistant</div>
+        <div class="sidebar-section-divider"></div>
+        <div class="accordion mb-2" id="chatbotSidebarAccordion" data-module="chatbot">
+            <div class="accordion-item border-0 bg-transparent">
+                <h2 class="accordion-header" id="chatbotHeading">
+                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#chatbotCollapse" aria-expanded="false" aria-controls="chatbotCollapse">
+                        <span class="nav-icon"><i class="fas fa-robot"></i></span>
+                        <span class="nav-text">ChatBot</span>
+                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                </h2>
+                <div id="chatbotCollapse" class="accordion-collapse collapse" aria-labelledby="chatbotHeading" data-bs-parent="#chatbotSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <nav class="nav flex-column ms-3">
+                            @if(auth()->check() && auth()->user()->hasPermission('chatbot.view'))
+                            <a href="{{ route('chatbot.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('chatbot.index')) active @endif" data-permission="chatbot.view">
+                                <i class="fas fa-comments me-2"></i> Chat Interface
+                            </a>
+                            @endif
+                            @if(auth()->check() && auth()->user()->hasPermission('chatbot.admin'))
+                            <a href="{{ route('chatbot.admin.dashboard') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('chatbot.admin.dashboard')) active @endif" data-permission="chatbot.admin">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                            @endif
+                            @if(auth()->check() && auth()->user()->hasPermission('chatbot.admin'))
+                            <a href="{{ route('chatbot.admin.settings') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('chatbot.admin.settings')) active @endif" data-permission="chatbot.admin">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                            @endif
+                            @if(auth()->check() && auth()->user()->hasPermission('chatbot.admin'))
+                            <a href="{{ route('chatbot.admin.usage') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('chatbot.admin.usage')) active @endif" data-permission="chatbot.admin">
+                                <i class="fas fa-chart-bar me-2"></i> Usage Statistics
+                            </a>
+                            @endif
+                            @if(auth()->check() && auth()->user()->hasPermission('chatbot.admin'))
+                            <a href="{{ route('chatbot.admin.models') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('chatbot.admin.models')) active @endif" data-permission="chatbot.admin">
+                                <i class="fas fa-brain me-2"></i> AI Models
+                            </a>
+                            @endif
+                            @if(auth()->check() && auth()->user()->hasPermission('chatbot.admin'))
+                            <a href="{{ route('chatbot.admin.health') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('chatbot.admin.health')) active @endif" data-permission="chatbot.admin">
+                                <i class="fas fa-heartbeat me-2"></i> System Health
+                            </a>
+                            @endif
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('finance') || auth()->user()->hasRole('admin')))
         <div class="sidebar-section" data-module="finance">Finance</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="financeSidebarAccordion" data-module="finance">
@@ -747,7 +799,7 @@
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('finance.view'))
-                            <a href="{{ route('finance.fees.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('finance.fees.*')) active @endif" data-permission="finance.view">
+                            <a href="{{ route('finance.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('finance.index')) active @endif" data-permission="finance.view">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
@@ -813,8 +865,8 @@
         </div>
         @endif
 
-        @if(\App\Helpers\NavigationHelper::canAccessModule('timetable') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Timetable</div>
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('timetable') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="timetable">Timetable</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="timetableSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -826,6 +878,7 @@
                     </button>
                 </h2>
                 <div id="timetableCollapse" class="accordion-collapse collapse" aria-labelledby="timetableHeading" data-bs-parent="#timetableSidebarAccordion">
+                    <div class="accordion-body p-0">
                     <nav class="nav flex-column ms-3">
                         @if(auth()->user()->hasPermission('timetable.view'))
                         <a href="{{ route('timetables.dashboard') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('timetables/dashboard')) active @endif">
@@ -834,7 +887,7 @@
                         @endif
                         @if(auth()->user()->hasPermission('timetable.schedules.view'))
                         <a href="{{ route('class_schedules.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('class_schedules.*')) active @endif">
-                            <i class="icon-calendar"></i> Class Schedules
+                                <i class="fas fa-calendar me-2"></i> Class Schedules
                         </a>
                         @endif
                         @if(auth()->user()->hasPermission('timetable.teacher_availabilities.view'))
@@ -852,21 +905,75 @@
                             <i class="fas fa-th-large me-2"></i> Room Allocations
                         </a>
                         @endif
+                            @if(auth()->user()->hasPermission('timetable.settings.view'))
+                            <a href="{{ route('timetable.settings') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('timetable.settings')) active @endif">
+                                <i class="fas fa-cogs me-2"></i> Settings
+                            </a>
+                            @endif
                     </nav>
+                    </div>
                 </div>
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('portal') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Portal</div>
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('portal') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="portal">Portal</div>
         <div class="sidebar-section-divider"></div>
-        <a href="{{ route('portal.dashboard') }}" class="nav-link @if(request()->routeIs('portal.*')) active @endif" title="Student/Parent Portal">
+        <div class="accordion mb-2" id="portalSidebarAccordion">
+            <div class="accordion-item border-0 bg-transparent">
+                <h2 class="accordion-header" id="portalHeading">
+                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#portalCollapse" aria-expanded="false" aria-controls="portalCollapse">
             <span class="nav-icon"><i class="fas fa-user-friends"></i></span>
             <span class="nav-text">Student/Parent Portal</span>
+                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                </h2>
+                <div id="portalCollapse" class="accordion-collapse collapse" aria-labelledby="portalHeading" data-bs-parent="#portalSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <nav class="nav flex-column ms-3">
+                            @if(auth()->user()->hasPermission('portal.view'))
+                            <a href="{{ route('portal.dashboard') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.dashboard')) active @endif">
+                                <i class="fas fa-home me-2"></i> Dashboard
         </a>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('attendance') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Attendance</div>
+                            @if(auth()->user()->hasPermission('portal.academics.view'))
+                            <a href="{{ route('portal.academics') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.academics')) active @endif">
+                                <i class="fas fa-graduation-cap me-2"></i> Academics
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('portal.schedule.view'))
+                            <a href="{{ route('portal.schedule') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.schedule')) active @endif">
+                                <i class="fas fa-calendar-alt me-2"></i> Schedule
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('portal.materials.view'))
+                            <a href="{{ route('portal.materials') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.materials')) active @endif">
+                                <i class="fas fa-book me-2"></i> Materials
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('portal.assignments.view'))
+                            <a href="{{ route('portal.assignments') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.assignments')) active @endif">
+                                <i class="fas fa-book-open me-2"></i> Assignments
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('portal.finance.view'))
+                            <a href="{{ route('portal.finance') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.finance')) active @endif">
+                                <i class="fas fa-money-bill-wave me-2"></i> Finance
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('portal.communication.view'))
+                            <a href="{{ route('portal.communication') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('portal.communication')) active @endif">
+                                <i class="fas fa-comments me-2"></i> Communication
+                            </a>
+                            @endif
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('attendance') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="attendance">Attendance</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="attendanceSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -926,8 +1033,8 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('communication') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Communication</div>
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('communication') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="communication">Communication</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="communicationSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -957,7 +1064,7 @@
                             </a>
                             @endif
                             @if(auth()->user()->hasPermission('communication.announcements.view'))
-                            <a href="{{ route('communication.dashboard') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('communication.dashboard')) active @endif">
+                            <a href="{{ route('communication.announcements') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('communication.announcements.*')) active @endif">
                                 <i class="fas fa-bullhorn me-2"></i> Announcements
                             </a>
                             @endif
@@ -977,8 +1084,8 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('hostel') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Hostel</div>
+        @if(auth()->check() && (auth()->user()->hasRole('admin') || \App\Helpers\NavigationHelper::canAccessModule('hostel')))
+        <div class="sidebar-section" data-module="hostel">Hostel</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="hostelSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -992,62 +1099,67 @@
                 <div id="hostelCollapse" class="accordion-collapse collapse" aria-labelledby="hostelHeading" data-bs-parent="#hostelSidebarAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('hostel.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.view'))
                             <a href="{{ route('hostel.dashboard') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.dashboard')) active @endif">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.allocations.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.hostels.view'))
+                            <a href="{{ route('hostel.hostels.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.hostels.*')) active @endif">
+                                <i class="fas fa-building me-2"></i> Hostels
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.allocations.view'))
                             <a href="{{ route('hostel.room_allocations.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.room_allocations.*')) active @endif">
                                 <i class="fas fa-bed me-2"></i> Room Allocations
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.rooms.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.rooms.view'))
                             <a href="{{ route('hostel.rooms.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.rooms.*')) active @endif">
                                 <i class="fas fa-door-open me-2"></i> Rooms
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.floors.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.floors.view'))
                             <a href="{{ route('hostel.floors.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.floors.*')) active @endif">
                                 <i class="fas fa-building me-2"></i> Floors
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.beds.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.beds.view'))
                             <a href="{{ route('hostel.beds.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.beds.*')) active @endif">
                                 <i class="fas fa-bed me-2"></i> Beds
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.fees.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.fees.view'))
                             <a href="{{ route('hostel.fees.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.fees.*')) active @endif">
                                 <i class="fas fa-coins me-2"></i> Hostel Fees
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.issues.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.issues.view'))
                             <a href="{{ route('hostel.issues.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.issues.*')) active @endif">
                                 <i class="fas fa-exclamation-triangle me-2"></i> Issues
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.leave.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.leave.view'))
                             <a href="{{ route('hostel.leave_requests.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.leave_requests.*')) active @endif">
                                 <i class="fas fa-plane-departure me-2"></i> Leave Management
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.visitors.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.visitors.view'))
                             <a href="{{ route('hostel.visitors.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.visitors.*')) active @endif">
                                 <i class="fas fa-user-friends me-2"></i> Visitors
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.announcements.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.announcements.view'))
                             <a href="{{ route('hostel.announcements.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.announcements.*')) active @endif">
                                 <i class="fas fa-bullhorn me-2"></i> Announcements
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.wardens.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.wardens.view'))
                             <a href="{{ route('hostel.wardens.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.wardens.*')) active @endif">
                                 <i class="fas fa-user-shield me-2"></i> Wardens
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('hostel.reports.view'))
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('hostel.reports.view'))
                             <a href="{{ route('hostel.reports.dashboard') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('hostel.reports.*')) active @endif">
                                 <i class="fas fa-chart-bar me-2"></i> Reports
                             </a>
@@ -1058,8 +1170,8 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('transport') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Transport</div>
+        @if(auth()->check() && (auth()->user()->hasRole('admin') || \App\Helpers\NavigationHelper::canAccessModule('transport')))
+        <div class="sidebar-section" data-module="transport">Transport</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="transportSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -1073,33 +1185,33 @@
                 <div id="transportCollapse" class="accordion-collapse collapse" aria-labelledby="transportHeading" data-bs-parent="#transportSidebarAccordion">
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('transport.view'))
-                            <a href="/transport" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('transport')) active @endif">
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('transport.view'))
+                            <a href="{{ route('transport.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('transport.index')) active @endif">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('transport.vehicles.view'))
-                            <a href="/transport/vehicles" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('transport/vehicles*')) active @endif">
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('transport.vehicles.view'))
+                            <a href="{{ route('transport.vehicles.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('transport.vehicles.*')) active @endif">
                                 <i class="fas fa-car me-2"></i> Vehicles
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('transport.routes.view'))
-                            <a href="/transport/routes" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('transport/routes*')) active @endif">
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('transport.routes.view'))
+                            <a href="{{ route('transport.routes.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('transport.routes.*')) active @endif">
                                 <i class="fas fa-route me-2"></i> Routes
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('transport.drivers.view'))
-                            <a href="/transport/drivers" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('transport/drivers*')) active @endif">
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('transport.drivers.view'))
+                            <a href="{{ route('transport.drivers.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('transport.drivers.*')) active @endif">
                                 <i class="fas fa-user-tie me-2"></i> Drivers
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('transport.trips.view'))
-                            <a href="/transport/trips" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('transport/trips*')) active @endif">
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('transport.trips.view'))
+                            <a href="{{ route('transport.trips.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('transport.trips.*')) active @endif">
                                 <i class="fas fa-route me-2"></i> Trips
                             </a>
                             @endif
-                            @if(auth()->user()->hasPermission('transport.reports.view'))
-                            <a href="/transport/reports" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('transport/reports*')) active @endif">
+                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasPermission('transport.reports.view'))
+                            <a href="{{ route('transport.reports') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('transport.reports')) active @endif">
                                 <i class="fas fa-chart-bar me-2"></i> Reports
                             </a>
                             @endif
@@ -1110,9 +1222,8 @@
         </div>
         @endif
 
-
-        @if(\App\Helpers\NavigationHelper::canAccessModule('document') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Document</div>
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('document') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="document">Document</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="documentSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -1127,13 +1238,18 @@
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('document.view'))
-                            <a href="/document" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('document')) active @endif">
+                            <a href="{{ route('document.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('document.index')) active @endif">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
                             @if(auth()->user()->hasPermission('document.upload.view'))
-                            <a href="/document/upload" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('document/upload*')) active @endif">
+                            <a href="{{ route('document.upload') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('document.upload.*')) active @endif">
                                 <i class="fas fa-upload me-2"></i> Upload
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('document.manage.view'))
+                            <a href="{{ route('document.manage') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('document.manage.*')) active @endif">
+                                <i class="fas fa-cogs me-2"></i> Manage
                             </a>
                             @endif
                         </nav>
@@ -1142,8 +1258,8 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('notification') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Notification</div>
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('notification') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="notification">Notification</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="notificationSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
@@ -1158,12 +1274,12 @@
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('notification.view'))
-                            <a href="/notification" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('notification*')) active @endif">
+                            <a href="{{ route('notification.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('notification.index')) active @endif">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
                             @if(auth()->user()->hasPermission('notification.manage.view'))
-                            <a href="/notification/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('notification/manage*')) active @endif">
+                            <a href="{{ route('notification.manage') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('notification.manage.*')) active @endif">
                                 <i class="fas fa-cogs me-2"></i> Manage
                             </a>
                             @endif
@@ -1173,45 +1289,14 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('settings') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Settings</div>
-        <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="settingsSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="settingsHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="false" aria-controls="settingsCollapse">
-                        <span class="nav-icon"><i class="fas fa-cogs"></i></span>
-                        <span class="nav-text">Settings</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="settingsCollapse" class="accordion-collapse collapse" aria-labelledby="settingsHeading" data-bs-parent="#settingsSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('settings.view'))
-                            <a href="/settings" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('settings*')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('settings.global.view'))
-                            <a href="/settings/global" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('settings/global*')) active @endif">
-                                <i class="fas fa-globe me-2"></i> Global Settings
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('api') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">API</div>
+        @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('api') || auth()->user()->hasRole('admin')))
+        <div class="sidebar-section" data-module="api">API</div>
         <div class="sidebar-section-divider"></div>
         <div class="accordion mb-2" id="apiSidebarAccordion">
             <div class="accordion-item border-0 bg-transparent">
                 <h2 class="accordion-header" id="apiHeading">
                     <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#apiCollapse" aria-expanded="false" aria-controls="apiCollapse">
-                        <span class="nav-icon"><i class="fas fa-home"></i></span>
+                        <span class="nav-icon"><i class="fas fa-code"></i></span>
                         <span class="nav-text">API</span>
                         <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
                     </button>
@@ -1220,13 +1305,38 @@
                     <div class="accordion-body p-0">
                         <nav class="nav flex-column ms-3">
                             @if(auth()->user()->hasPermission('api.view'))
-                            <a href="/api" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('api')) active @endif">
+                            <a href="{{ route('api.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.index')) active @endif">
                                 <i class="fas fa-home me-2"></i> Dashboard
                             </a>
                             @endif
                             @if(auth()->user()->hasPermission('api.manage.view'))
-                            <a href="/api/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('api/manage*')) active @endif">
+                            <a href="{{ route('api.manage') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.manage.*')) active @endif">
                                 <i class="fas fa-cogs me-2"></i> Manage
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('api.users.view'))
+                            <a href="{{ route('api.users') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.users')) active @endif">
+                                <i class="fas fa-users me-2"></i> Users API
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('api.students.view'))
+                            <a href="{{ route('api.students') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.students')) active @endif">
+                                <i class="fas fa-user-graduate me-2"></i> Students API
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('api.staff.view'))
+                            <a href="{{ route('api.staff') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.staff')) active @endif">
+                                <i class="fas fa-user-tie me-2"></i> Staff API
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('api.classes.view'))
+                            <a href="{{ route('api.classes') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.classes')) active @endif">
+                                <i class="fas fa-chalkboard me-2"></i> Classes API
+                            </a>
+                            @endif
+                            @if(auth()->user()->hasPermission('api.stats.view'))
+                            <a href="{{ route('api.stats') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->routeIs('api.stats')) active @endif">
+                                <i class="fas fa-chart-bar me-2"></i> Statistics API
                             </a>
                             @endif
                         </nav>
@@ -1235,43 +1345,6 @@
             </div>
         </div>
         @endif
-        @if(\App\Helpers\NavigationHelper::canAccessModule('chatbot') || auth()->user()->hasRole('admin'))
-        <div class="sidebar-section">Chatbot</div>
-        <div class="sidebar-section-divider"></div>
-        <div class="accordion mb-2" id="chatbotSidebarAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header" id="chatbotHeading">
-                    <button class="accordion-button collapsed bg-transparent px-2 py-1 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#chatbotCollapse" aria-expanded="false" aria-controls="chatbotCollapse">
-                        <span class="nav-icon"><i class="fas fa-robot"></i></span>
-                        <span class="nav-text">Chatbot</span>
-                        <span class="custom-chevron"><i class="fas fa-chevron-down"></i></span>
-                    </button>
-                </h2>
-                <div id="chatbotCollapse" class="accordion-collapse collapse" aria-labelledby="chatbotHeading" data-bs-parent="#chatbotSidebarAccordion">
-                    <div class="accordion-body p-0">
-                        <nav class="nav flex-column ms-3">
-                            @if(auth()->user()->hasPermission('chatbot.view'))
-                            <a href="/chatbot" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('chatbot')) active @endif">
-                                <i class="fas fa-home me-2"></i> Dashboard
-                            </a>
-                            @endif
-                            @if(auth()->user()->hasPermission('chatbot.manage.view'))
-                            <a href="/chatbot/manage" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link @if(request()->is('chatbot/manage*')) active @endif">
-                                <i class="fas fa-cogs me-2"></i> Manage
-                            </a>
-                            @endif
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-
-        
-
-        
-
     </nav>
     
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -1291,6 +1364,14 @@
                     <input class="form-control border-start-0" type="search" placeholder="Search..." aria-label="Search">
                 </div>
             </form>
+            @if(auth()->check() && (\App\Helpers\NavigationHelper::canAccessModule('chatbot') || auth()->user()->hasRole('admin')))
+            <div class="d-flex align-items-center me-3">
+                <a href="{{ route('chatbot.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2" title="AI School Assistant">
+                    <i class="fas fa-robot"></i>
+                    <span class="d-none d-md-inline">AI Assistant</span>
+                </a>
+            </div>
+            @endif
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 @auth
                 <li class="nav-item dropdown">

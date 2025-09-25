@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('departments', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('type')->nullable(); // Academic, Non-Academic, etc.
-            $table->unsignedBigInteger('school_id')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('departments')) {
+            Schema::create('departments', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('type')->nullable(); // Academic, Non-Academic, etc.
+                $table->unsignedBigInteger('school_id')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down()

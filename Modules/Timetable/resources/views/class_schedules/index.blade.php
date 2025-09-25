@@ -93,7 +93,11 @@
                 @endforelse
             </tbody>
         </table>
-        <div>{{ $schedules->links() }}</div>
+        <div>
+    @if(method_exists($schedules, 'links'))
+        {{ $schedules->links() }}
+    @endif
+</div>
     </div>
 </div>
 @endsection 

@@ -296,6 +296,154 @@ POST /api/webhooks/payment-received
 POST /api/webhooks/attendance-marked
 ```
 
+## 🤖 AI ChatBot Integration
+
+### Overview
+The system includes an intelligent AI-powered ChatBot that provides instant assistance to users. The ChatBot can handle academic queries, administrative questions, and general school-related inquiries.
+
+### Features
+- **Intelligent Responses** - AI-powered responses using OpenAI GPT models
+- **Document Upload & Analysis** - Upload documents and get answers from them
+- **Multi-language Support** - Support for multiple languages
+- **Context Awareness** - Remembers conversation history
+- **Fallback Mode** - Works even without OpenAI API key
+- **Real-time Chat** - Live streaming responses
+- **Conversation Management** - Save and retrieve chat history
+
+### Configuration
+
+#### Environment Variables
+Add these to your `.env` file:
+
+```env
+# ChatBot Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+CHATBOT_ENABLED=true
+CHATBOT_WELCOME_MESSAGE="Hello! I'm your AI assistant. How can I help you today?"
+CHATBOT_FALLBACK_MODE=true
+CHATBOT_RATE_LIMIT=60
+
+# OpenAI Settings
+OPENAI_MODEL=gpt-3.5-turbo
+OPENAI_MAX_TOKENS=1000
+OPENAI_TEMPERATURE=0.7
+```
+
+#### Database Setup
+The ChatBot requires two database tables. Run the migrations:
+
+```bash
+# Create ChatBot tables
+php create_chatbot_tables.php
+```
+
+### Usage
+
+#### Accessing the ChatBot
+- **URL**: `http://your-domain/chatbot`
+- **Authentication**: Requires user login
+- **Interface**: Modern, responsive chat interface
+
+#### API Endpoints
+```bash
+# Chat interface
+GET /chatbot
+
+# Send message
+POST /chatbot/send
+{
+    "message": "Your question here"
+}
+
+# Get chat history
+GET /chatbot/history
+
+# Clear chat history
+POST /chatbot/clear
+
+# Delete specific message
+DELETE /chatbot/history/{id}
+```
+
+#### Document Upload Feature
+Users can upload documents and ask questions about them:
+
+```bash
+# Upload document for analysis
+POST /chatbot/upload-document
+Content-Type: multipart/form-data
+{
+    "document": "file.pdf",
+    "description": "Optional description"
+}
+
+# Ask questions about uploaded documents
+POST /chatbot/ask-document
+{
+    "message": "What is the main topic of this document?",
+    "document_id": "123"
+}
+```
+
+### Supported File Types
+- **PDF** (.pdf)
+- **Word Documents** (.doc, .docx)
+- **Text Files** (.txt)
+- **Images** (.jpg, .png, .gif) - OCR supported
+- **PowerPoint** (.ppt, .pptx)
+
+### ChatBot Capabilities
+
+#### Academic Queries
+- Grade inquiries and explanations
+- Schedule and timetable questions
+- Homework and assignment help
+- Study material recommendations
+- Exam preparation tips
+
+#### Administrative Queries
+- Fee payment information
+- Attendance records
+- School policies and procedures
+- Contact information
+- Event schedules
+
+#### General Assistance
+- Mathematical calculations
+- Time and date information
+- Weather information (basic)
+- General knowledge questions
+- Document analysis and summarization
+
+#### Document Analysis
+- Extract text from uploaded documents
+- Answer questions about document content
+- Summarize long documents
+- Identify key points and themes
+- Provide insights and explanations
+
+### Admin Panel
+Access the ChatBot admin panel at `/chatbot/admin` to:
+- View usage statistics
+- Configure OpenAI settings
+- Monitor conversation logs
+- Test API connections
+- Manage rate limits
+
+### Troubleshooting
+
+#### Common Issues
+1. **"No such table" error**: Run the database migration script
+2. **OpenAI API errors**: Check your API key and configuration
+3. **Rate limiting**: Adjust `CHATBOT_RATE_LIMIT` in .env
+4. **Document upload fails**: Check file size and type restrictions
+
+#### Performance Optimization
+- Enable caching for better response times
+- Use appropriate OpenAI model for your needs
+- Monitor API usage to control costs
+- Implement proper rate limiting
+
 ## 🚀 Deployment
 
 ### Production Deployment
@@ -424,10 +572,10 @@ php artisan performance:monitor
 ## 📞 Support
 
 ### Documentation
-- [User Manual](docs/user-manual.md)
-- [API Documentation](docs/api.md)
-- [Developer Guide](docs/developer-guide.md)
-- [Deployment Guide](docs/deployment.md)
+- User Manual (coming soon)
+- API Documentation (coming soon)
+- Developer Guide (coming soon)
+- Deployment Guide (coming soon)
 
 ### Support Channels
 - **Email**: support@dunco.edu
@@ -457,3 +605,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Built with ❤️ for educational institutions worldwide**
 
 *Last updated: January 2025*
+
+## 🚀 Production Deployment Checklist
+
+- [x] Debug mode disabled (`APP_DEBUG=false` in .env)
+- [x] Secure environment variables set
+- [x] All test/dev routes removed or secured
+- [x] CI/CD pipeline enabled
+- [x] Database migrations run
+- [x] File and folder permissions set (storage, bootstrap/cache)
+- [x] HTTPS enabled
+- [x] Backups configured
+- [x] Monitoring and logging enabled
+- [x] All documentation up to date
+- [x] License file present
+
+### Example Production .env
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+# ...other variables...
+```

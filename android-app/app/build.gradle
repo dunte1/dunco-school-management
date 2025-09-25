@@ -31,17 +31,17 @@ android {
             buildConfigField "String", "BASE_URL", "\"https://your-domain.com/api/mobile/v1/\""
         }
         debug {
-            buildConfigField "String", "BASE_URL", "\"http://10.0.2.2:8000/api/mobile/v1/\""
+            buildConfigField "String", "BASE_URL", "\"http://192.168.1.100:8000/api/mobile/v1/\""
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '21'
     }
 
     buildFeatures {
@@ -50,7 +50,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.7'
+        kotlinCompilerExtensionVersion '1.5.4'
     }
 
     packaging {
@@ -138,4 +138,7 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
+    
+    // Logging
+    implementation 'com.jakewharton.timber:timber:5.0.1'
 } 

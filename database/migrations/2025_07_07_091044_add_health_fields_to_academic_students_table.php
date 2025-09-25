@@ -11,8 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('academic_students')) {
+            return;
+        }
+
         Schema::table('academic_students', function (Blueprint $table) {
-            $table->text('disabilities')->nullable();
+            if (! Schema::hasColumn('academic_students', 'disabilities')) {
+                $table->text('disabilities')->nullable();
+            }
         });
     }
 
@@ -21,8 +27,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('academic_students')) {
+            return;
+        }
+
         Schema::table('academic_students', function (Blueprint $table) {
-            $table->dropColumn(['disabilities']);
+            if (Schema::hasColumn('academic_students', 'disabilities')) {
+                $table->dropColumn(['disabilities']);
+            }
         });
     }
 };

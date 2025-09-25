@@ -76,9 +76,9 @@ class StaffController extends Controller
         }
         $data['user_id'] = $user->id;
         $staff = Staff::create($data);
-        // Generate QR code for staff ID
-        $qrPath = 'staff_qrcodes/'.$data['staff_id'].'.png';
-        \Storage::disk('public')->put($qrPath, QrCode::format('png')->size(200)->generate($data['staff_id']));
+        // Generate QR code for staff ID (using SVG format to avoid imagick dependency)
+        $qrPath = 'staff_qrcodes/'.$data['staff_id'].'.svg';
+        \Storage::disk('public')->put($qrPath, QrCode::format('svg')->size(200)->generate($data['staff_id']));
         $staff->qr_code = $qrPath;
         $staff->save();
         // Handle document upload

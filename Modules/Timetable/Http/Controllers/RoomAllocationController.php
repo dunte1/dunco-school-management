@@ -4,6 +4,7 @@ namespace Modules\Timetable\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
 use Modules\Timetable\Models\RoomAllocation;
 use Modules\Timetable\Http\Requests\RoomAllocationRequest;
 use Illuminate\Support\Facades\Response;
@@ -13,42 +14,88 @@ class RoomAllocationController extends Controller
 {
     public function index(Request $request)
     {
-        $allocations = RoomAllocation::all();
+        try {
+            if (Schema::hasTable('room_allocations')) {
+                $allocations = RoomAllocation::all();
+            } else {
+                $allocations = collect();
+            }
+        } catch (\Exception $e) {
+            $allocations = collect();
+        }
+
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($allocations);
         }
-        return view('room_allocations_index', compact('allocations'));
+        return view('timetable::room_allocations_index', compact('allocations'));
     }
 
     public function store(RoomAllocationRequest $request)
     {
-        $allocation = RoomAllocation::create($request->validated());
-        return response()->json($allocation, 201);
+        try {
+            if (!Schema::hasTable('room_allocations')) {
+                return response()->json(['error' => 'Room allocations table does not exist.'], 500);
+            }
+            $allocation = RoomAllocation::create($request->validated());
+            return response()->json($allocation, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create room allocation: ' . $e->getMessage()], 500);
+        }
     }
 
     public function show($id)
     {
-        $allocation = RoomAllocation::findOrFail($id);
-        return response()->json($allocation);
+        try {
+            if (!Schema::hasTable('room_allocations')) {
+                return response()->json(['error' => 'Room allocations table does not exist.'], 500);
+            }
+            $allocation = RoomAllocation::findOrFail($id);
+            return response()->json($allocation);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Room allocation not found.'], 404);
+        }
     }
 
     public function update(RoomAllocationRequest $request, $id)
     {
-        $allocation = RoomAllocation::findOrFail($id);
-        $allocation->update($request->validated());
-        return response()->json($allocation);
+        try {
+            if (!Schema::hasTable('room_allocations')) {
+                return response()->json(['error' => 'Room allocations table does not exist.'], 500);
+            }
+            $allocation = RoomAllocation::findOrFail($id);
+            $allocation->update($request->validated());
+            return response()->json($allocation);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update room allocation: ' . $e->getMessage()], 500);
+        }
     }
 
     public function destroy($id)
     {
-        $allocation = RoomAllocation::findOrFail($id);
-        $allocation->delete();
-        return response()->json(null, 204);
+        try {
+            if (!Schema::hasTable('room_allocations')) {
+                return response()->json(['error' => 'Room allocations table does not exist.'], 500);
+            }
+            $allocation = RoomAllocation::findOrFail($id);
+            $allocation->delete();
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete room allocation: ' . $e->getMessage()], 500);
+        }
     }
 
     public function exportCsv()
     {
-        $allocations = RoomAllocation::all();
+        try {
+            if (Schema::hasTable('room_allocations')) {
+                $allocations = RoomAllocation::all();
+            } else {
+                $allocations = collect();
+            }
+        } catch (\Exception $e) {
+            $allocations = collect();
+        }
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="room_allocations.csv"',
@@ -72,8 +119,17 @@ class RoomAllocationController extends Controller
 
     public function exportPdf()
     {
-        $allocations = RoomAllocation::all();
-        $pdf = Pdf::loadView('Timetable::room_allocations_pdf', compact('allocations'));
+        try {
+            if (Schema::hasTable('room_allocations')) {
+                $allocations = RoomAllocation::all();
+            } else {
+                $allocations = collect();
+            }
+        } catch (\Exception $e) {
+            $allocations = collect();
+        }
+
+        $pdf = Pdf::loadView('timetable::room_allocations_pdf', compact('allocations'));
         return $pdf->download('room_allocations.pdf');
     }
 
@@ -95,33 +151,41 @@ class RoomAllocationController extends Controller
      */
     public function checkConflicts(Request $request)
     {
-        $roomId = $request->input('room_id');
-        $query = RoomAllocation::query();
-        if ($roomId) {
-            $query->where('room_id', $roomId);
-        }
-        $allocations = $query->orderBy('allocation_date')->get();
-        $conflicts = [];
-        $byDate = $allocations->groupBy('allocation_date');
-        foreach ($byDate as $date => $allocs) {
-            $byTime = $allocs->groupBy('room_id');
-            foreach ($byTime as $roomId => $roomAllocs) {
-                $sorted = $roomAllocs->sortBy('class_schedule_id');
-                $prev = null;
-                foreach ($sorted as $alloc) {
-                    if ($prev && $alloc->allocation_date == $prev->allocation_date) {
-                        $conflicts[] = [
-                            'room_id' => $roomId,
-                            'allocation_date' => $date,
-                            'conflict' => [$prev->id, $alloc->id],
-                            'color' => 'red', // red for conflict
-                        ];
+        try {
+            if (!Schema::hasTable('room_allocations')) {
+                return response()->json([]);
+            }
+
+            $roomId = $request->input('room_id');
+            $query = RoomAllocation::query();
+            if ($roomId) {
+                $query->where('room_id', $roomId);
+            }
+            $allocations = $query->orderBy('allocation_date')->get();
+            $conflicts = [];
+            $byDate = $allocations->groupBy('allocation_date');
+            foreach ($byDate as $date => $allocs) {
+                $byTime = $allocs->groupBy('room_id');
+                foreach ($byTime as $roomId => $roomAllocs) {
+                    $sorted = $roomAllocs->sortBy('class_schedule_id');
+                    $prev = null;
+                    foreach ($sorted as $alloc) {
+                        if ($prev && $alloc->allocation_date == $prev->allocation_date) {
+                            $conflicts[] = [
+                                'room_id' => $roomId,
+                                'allocation_date' => $date,
+                                'conflict' => [$prev->id, $alloc->id],
+                                'color' => 'red', // red for conflict
+                            ];
+                        }
+                        $prev = $alloc;
                     }
-                    $prev = $alloc;
                 }
             }
+            return response()->json($conflicts);
+        } catch (\Exception $e) {
+            return response()->json([]);
         }
-        return response()->json($conflicts);
     }
 
     /**
@@ -131,12 +195,20 @@ class RoomAllocationController extends Controller
      */
     public function allocationsPerRoom(Request $request)
     {
-        $roomId = $request->input('room_id');
-        $allocations = RoomAllocation::where('room_id', $roomId)->orderBy('allocation_date')->get();
-        $calendar = [];
-        foreach ($allocations as $alloc) {
-            $calendar[$alloc->allocation_date][] = $alloc;
+        try {
+            if (!Schema::hasTable('room_allocations')) {
+                return response()->json([]);
+            }
+
+            $roomId = $request->input('room_id');
+            $allocations = RoomAllocation::where('room_id', $roomId)->orderBy('allocation_date')->get();
+            $calendar = [];
+            foreach ($allocations as $alloc) {
+                $calendar[$alloc->allocation_date][] = $alloc;
+            }
+            return response()->json($calendar);
+        } catch (\Exception $e) {
+            return response()->json([]);
         }
-        return response()->json($calendar);
     }
 } 

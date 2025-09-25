@@ -1,0 +1,3 @@
+student_id,name,admission_number,class_id,admission_date,date_of_birth,gender,parent_name,parent_contact,medical_conditions,disabilities,allergies,stream,house,group,is_transfer,previous_school,immunizations,chronic_conditions,emergency_contact_name,emergency_contact_relationship,emergency_contact_phone,doctor_name,doctor_phone,insurance_provider,insurance_number
+S001,John Doe,,1,2024-09-01,2010-05-15,male,Jane Doe,janedoe@email.com,,,A,Red,Science,0,,,Polio;Measles,,Mary Doe,Mother,0712345678,Dr. Smith,0711222333,ABC Insurance,INS12345
+S002,Jane Smith,,2,2024-09-01,2011-03-22,female,Robert Smith,robertsmith@email.com,Asthma,,,B,Blue,Arts,1,Old School,Polio;Hepatitis,Asthma,John Smith,Father,0722333444,Dr. Adams,0722111222,XYZ Health,INS54321 

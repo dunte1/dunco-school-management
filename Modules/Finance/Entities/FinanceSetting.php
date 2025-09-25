@@ -7,9 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class FinanceSetting extends Model
 {
     protected $table = 'finance_settings';
-    protected $fillable = ['settings'];
-    protected $casts = [
-        'settings' => 'array',
-    ];
+    protected $fillable = ['key', 'value'];
     public $timestamps = false;
 } 

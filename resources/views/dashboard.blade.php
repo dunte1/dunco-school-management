@@ -8,11 +8,10 @@
             @php
                 // Dummy trend data for demonstration; replace with real logic if available
                 $statTrends = [
-                    ['change' => 5, 'up' => true],     // Schools
-                    ['change' => -2, 'up' => false],   // Users
-                    ['change' => 1, 'up' => true],     // Roles
-                    ['change' => 0, 'up' => true],     // Permissions
-                    ['change' => -1, 'up' => false],   // Audit Logs
+                    0 => ['change' => 5, 'up' => true],     // Schools
+                    1 => ['change' => -2, 'up' => false],   // Users
+                    2 => ['change' => 1, 'up' => true],     // Roles
+                    3 => ['change' => 0, 'up' => true],     // Permissions
                 ];
             @endphp
             <div class="row mb-4">
@@ -22,6 +21,8 @@
                 <div class="col-12">
                     <div class="row mb-3 g-3 justify-content-center">
                         @php
+                            // Ensure $stats is defined and has default values
+                            $stats = $stats ?? [];
                             $statCards = [
                                 ['icon' => 'users', 'color' => 'success', 'label' => 'Users', 'value' => $stats['users'] ?? 0, 'i' => 1],
                                 ['icon' => 'user-tag', 'color' => 'warning', 'label' => 'Roles', 'value' => $stats['roles'] ?? 0, 'i' => 2],
@@ -37,9 +38,9 @@
                                 <div class="fs-3 fw-bold">{{ $stat['value'] }}</div>
                                 <div class="fw-semibold small">{{ $stat['label'] }}</div>
                                 <div class="stat-trend mt-1" style="font-size:0.95rem;">
-                                    @if($statTrends[$stat['i']]['change'] > 0)
+                                    @if(isset($statTrends[$stat['i']]) && $statTrends[$stat['i']]['change'] > 0)
                                         <span style="color:#22c55e;"><i class="fas fa-arrow-up"></i> +{{ $statTrends[$stat['i']]['change'] }}%</span>
-                                    @elseif($statTrends[$stat['i']]['change'] < 0)
+                                    @elseif(isset($statTrends[$stat['i']]) && $statTrends[$stat['i']]['change'] < 0)
                                         <span style="color:#e53935;"><i class="fas fa-arrow-down"></i> {{ $statTrends[$stat['i']]['change'] }}%</span>
                                     @else
                                         <span style="color:#b0bec5;"><i class="fas fa-minus"></i> 0%</span>

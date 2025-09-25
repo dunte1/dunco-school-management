@@ -53,6 +53,8 @@
             @endforelse
         </tbody>
     </table>
-    {{ $rooms->links() }}
+    @if(method_exists($rooms, 'links'))
+        {{ $rooms->links() }}
+    @endif
 </div>
 @endsection 

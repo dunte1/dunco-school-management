@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('payrolls', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('payrolls', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->decimal('basic_salary', 12, 2);
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['paid', 'pending'])->default('pending');
             $table->string('payslip_path')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('performance_reviews', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('performance_reviews', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->unsignedBigInteger('reviewer_id')->nullable();
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('disciplinary_action')->nullable();
             $table->date('action_date')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

@@ -1,268 +1,428 @@
-@extends('layouts.app')
+@extends('examination::layouts.app')
+
+@section('title', 'Examination Management System')
 
 @section('content')
 <style>
     .examination-premium-card {
-        background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
-        border-radius: 1.5rem;
-        box-shadow: 0 8px 32px 0 rgba(30,167,255,0.08);
-        border: 1px solid #e3e9f7;
-        padding: 2.5rem 2rem 2rem 2rem;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        padding: 3rem;
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
+        backdrop-filter: blur(20px);
     }
+    
     .examination-premium-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #1ea7ff 0%, #1565c0 50%, #ffb300 100%);
+        height: 6px;
+        background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 25%, #7c3aed 50%, #dc2626 75%, #ea580c 100%);
+        border-radius: 24px 24px 0 0;
     }
+    
     .examination-header-premium {
         display: flex;
         align-items: center;
-        gap: 1.2rem;
-        margin-bottom: 2rem;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+        position: relative;
     }
+    
     .examination-header-premium .icon {
-        font-size: 2.8rem;
-        color: #fff;
-        background: linear-gradient(135deg, #1ea7ff 0%, #1565c0 100%);
-        border-radius: 1.2rem;
-        padding: 1rem 1.2rem;
-        box-shadow: 0 4px 16px rgba(30,167,255,0.15);
+        font-size: 3rem;
+        color: #ffffff;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 20px;
+        padding: 1.5rem 1.8rem;
+        box-shadow: 0 12px 24px rgba(59, 130, 246, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-    .examination-header-premium h1 {
-        font-weight: 700;
-        font-size: 2.2rem;
-        color: #1a237e;
-        letter-spacing: 1.2px;
-        margin-bottom: 0.5rem;
-        text-shadow: none;
-    }
-    .examination-header-premium p {
-        color: #5a6c7d;
-        font-size: 1.1rem;
-        margin: 0;
-        font-weight: 500;
-    }
-    .examination-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
-    }
-    .examination-stat-card {
-        background: #fff;
-        border-radius: 1.2rem;
-        padding: 1.8rem;
-        box-shadow: 0 4px 16px rgba(30,167,255,0.06);
-        border: 1px solid #e3e9f7;
-        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
+    
+    .examination-header-premium .icon::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .examination-header-premium h1 {
+        font-weight: 800;
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.75rem;
+        line-height: 1.2;
+    }
+    
+    .examination-header-premium p {
+        color: #64748b;
+        font-size: 1.25rem;
+        margin: 0;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+    
+    .examination-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .examination-stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    
     .examination-stat-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #1ea7ff 0%, #1565c0 100%);
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 20px 20px 0 0;
     }
+    
     .examination-stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(30,167,255,0.12);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.06);
     }
+    
     .examination-stat-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1rem;
-    }
-    .examination-stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        color: #fff;
-    }
-    .examination-stat-icon.blue { background: linear-gradient(135deg, #1ea7ff 0%, #1565c0 100%); }
-    .examination-stat-icon.green { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
-    .examination-stat-icon.orange { background: linear-gradient(135deg, #ffb300 0%, #f59e0b 100%); }
-    .examination-stat-icon.purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
-    .examination-stat-number {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #1a237e;
-        margin-bottom: 0.5rem;
-    }
-    .examination-stat-label {
-        color: #5a6c7d;
-        font-size: 1rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-    .examination-stat-change {
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-    .examination-stat-change.positive { color: #22c55e; }
-    .examination-stat-change.negative { color: #e53935; }
-    .examination-actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2.5rem;
-    }
-    .examination-action-btn {
-        background: #fff;
-        border: 2px solid #e3e9f7;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        text-decoration: none;
-        color: #1a237e;
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.8rem;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(30,167,255,0.04);
-    }
-    .examination-action-btn:hover {
-        border-color: #1ea7ff;
-        background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(30,167,255,0.12);
-        color: #1a237e;
-        text-decoration: none;
-    }
-    .examination-action-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #1ea7ff 0%, #1565c0 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        color: #fff;
-        box-shadow: 0 4px 12px rgba(30,167,255,0.15);
-    }
-    .examination-action-title {
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin: 0;
-    }
-    .examination-action-desc {
-        font-size: 0.9rem;
-        color: #5a6c7d;
-        margin: 0;
-    }
-    .examination-recent-section {
-        background: #fff;
-        border-radius: 1.2rem;
-        padding: 2rem;
-        box-shadow: 0 4px 16px rgba(30,167,255,0.06);
-        border: 1px solid #e3e9f7;
-    }
-    .examination-recent-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f1f5f9;
     }
-    .examination-recent-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #1a237e;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-    .examination-recent-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 0.8rem;
-        margin-bottom: 0.8rem;
-        transition: background 0.2s ease;
-        border: 1px solid transparent;
-    }
-    .examination-recent-item:hover {
-        background: #f8f9ff;
-        border-color: #e3e9f7;
-    }
-    .examination-recent-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #1ea7ff 0%, #1565c0 100%);
+    
+    .examination-stat-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.1rem;
-        color: #fff;
+        font-size: 1.8rem;
+        color: #ffffff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
     }
-    .examination-recent-content {
-        flex: 1;
+    
+    .examination-stat-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
     }
-    .examination-recent-title-item {
+    
+    .examination-stat-card:hover .examination-stat-icon::before {
+        transform: translateX(100%);
+    }
+    
+    .examination-stat-icon.blue { 
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
+    }
+    
+    .examination-stat-icon.green { 
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+    }
+    
+    .examination-stat-icon.orange { 
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+    }
+    
+    .examination-stat-icon.purple { 
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); 
+    }
+    
+    .examination-stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        line-height: 1;
+    }
+    
+    .examination-stat-label {
+        color: #64748b;
         font-weight: 600;
-        color: #1a237e;
-        margin-bottom: 0.2rem;
-    }
-    .examination-recent-meta {
-        font-size: 0.9rem;
-        color: #5a6c7d;
-    }
-    .examination-recent-status {
-        padding: 0.3rem 0.8rem;
-        border-radius: 0.6rem;
-        font-size: 0.8rem;
-        font-weight: 600;
+        font-size: 1rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
     }
-    .examination-recent-status.active { background: #dcfce7; color: #16a34a; }
-    .examination-recent-status.completed { background: #dbeafe; color: #2563eb; }
-    .examination-recent-status.pending { background: #fef3c7; color: #d97706; }
+    
+    .examination-feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .examination-feature-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    
+    .examination-feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .examination-feature-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.06);
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .examination-feature-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .examination-feature-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+    
+    .examination-feature-card:hover .examination-feature-icon::before {
+        transform: translateX(100%);
+    }
+    
+    .examination-feature-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+    }
+    
+    .examination-feature-description {
+        color: #64748b;
+        font-size: 1rem;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+    
+    .examination-action-buttons {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .examination-action-btn {
+        padding: 1rem 2rem;
+        border-radius: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.1rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .examination-action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .examination-action-btn:hover::before {
+        left: 100%;
+    }
+    
+    .examination-action-btn.primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    }
+    
+    .examination-action-btn.primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+        color: #ffffff;
+    }
+    
+    .examination-action-btn.secondary {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        color: #475569;
+        border: 1px solid #cbd5e1;
+    }
+    
+    .examination-action-btn.secondary:hover {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        color: #334155;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Responsive design */
     @media (max-width: 768px) {
-        .examination-premium-card { padding: 1.5rem 1rem; }
-        .examination-header-premium h1 { font-size: 1.8rem; }
-        .examination-stats-grid { grid-template-columns: 1fr; }
-        .examination-actions-grid { grid-template-columns: repeat(2, 1fr); }
+        .examination-premium-card {
+            padding: 2rem;
+            margin: 1rem;
+        }
+        
+        .examination-header-premium {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .examination-header-premium h1 {
+            font-size: 2rem;
+        }
+        
+        .examination-stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .examination-feature-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .examination-action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .examination-action-btn {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+    }
+    
+    /* Animation for cards on load */
+    .examination-stat-card,
+    .examination-feature-card {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    
+    .examination-stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .examination-stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .examination-stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .examination-stat-card:nth-child(4) { animation-delay: 0.4s; }
+    
+    .examination-feature-card:nth-child(1) { animation-delay: 0.5s; }
+    .examination-feature-card:nth-child(2) { animation-delay: 0.6s; }
+    .examination-feature-card:nth-child(3) { animation-delay: 0.7s; }
+    .examination-feature-card:nth-child(4) { animation-delay: 0.8s; }
+    
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
+<div class="container py-4">
 <div class="examination-premium-card">
     <div class="examination-header-premium">
-        <span class="icon"><i class="fas fa-file-alt"></i></span>
+            <div class="icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
         <div>
-            <h1>Examination Dashboard</h1>
-            <p>Manage exams, schedules, and results efficiently</p>
+                <h1>Examination Management System</h1>
+                <p>Comprehensive exam management and assessment platform</p>
         </div>
     </div>
 
-    <!-- Statistics Grid -->
     <div class="examination-stats-grid">
         <div class="examination-stat-card">
             <div class="examination-stat-header">
@@ -272,38 +432,26 @@
             </div>
             <div class="examination-stat-number">24</div>
             <div class="examination-stat-label">Total Exams</div>
-            <div class="examination-stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +12% from last month
-            </div>
         </div>
 
         <div class="examination-stat-card">
             <div class="examination-stat-header">
                 <div class="examination-stat-icon green">
-                    <i class="fas fa-calendar-check"></i>
+                        <i class="fas fa-users"></i>
+                    </div>
                 </div>
-            </div>
-            <div class="examination-stat-number">8</div>
-            <div class="examination-stat-label">Active Schedules</div>
-            <div class="examination-stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +3 this week
-            </div>
+                <div class="examination-stat-number">156</div>
+                <div class="examination-stat-label">Active Students</div>
         </div>
 
         <div class="examination-stat-card">
             <div class="examination-stat-header">
                 <div class="examination-stat-icon orange">
-                    <i class="fas fa-users"></i>
+                        <i class="fas fa-clock"></i>
+                    </div>
                 </div>
-            </div>
-            <div class="examination-stat-number">156</div>
-            <div class="examination-stat-label">Students Enrolled</div>
-            <div class="examination-stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +8% from last week
-            </div>
+                <div class="examination-stat-number">8</div>
+                <div class="examination-stat-label">Upcoming Exams</div>
         </div>
 
         <div class="examination-stat-card">
@@ -312,124 +460,66 @@
                     <i class="fas fa-chart-line"></i>
                 </div>
             </div>
-            <div class="examination-stat-number">87.5%</div>
+                <div class="examination-stat-number">87%</div>
             <div class="examination-stat-label">Average Score</div>
-            <div class="examination-stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +2.3% improvement
-            </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="examination-actions-grid">
-        <a href="{{ route('examination.exams.create') }}" class="examination-action-btn">
-            <div class="examination-action-icon">
-                <i class="fas fa-plus"></i>
-            </div>
-            <h4 class="examination-action-title">Create Exam</h4>
-            <p class="examination-action-desc">Set up a new examination</p>
-        </a>
-        <a href="{{ route('examination.questions.index') }}" class="examination-action-btn">
-            <div class="examination-action-icon">
+        <div class="examination-feature-grid">
+            <a href="{{ route('examination.questions.index') }}" class="examination-feature-card">
+                <div class="examination-feature-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
                 <i class="fas fa-question-circle"></i>
             </div>
-            <h4 class="examination-action-title">Question Bank</h4>
-            <p class="examination-action-desc">Manage all questions</p>
-        </a>
-        <a href="{{ route('examination.schedules.index') }}" class="examination-action-btn">
-            <div class="examination-action-icon">
+                <div class="examination-feature-title">Question Bank</div>
+                <div class="examination-feature-description">
+                    Create, manage, and organize examination questions with multiple choice, essay, and other formats.
+                </div>
+            </a>
+            
+            <a href="{{ route('examination.schedules.index') }}" class="examination-feature-card">
+                <div class="examination-feature-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
                 <i class="fas fa-calendar-alt"></i>
             </div>
-            <h4 class="examination-action-title">Schedules</h4>
-            <p class="examination-action-desc">View and manage exam schedules</p>
-        </a>
-        <a href="{{ route('examination.proctoring.index') }}" class="examination-action-btn">
-            <div class="examination-action-icon">
+                <div class="examination-feature-title">Exam Scheduling</div>
+                <div class="examination-feature-description">
+                    Schedule exams, set time limits, and manage exam sessions with automatic notifications.
+                </div>
+            </a>
+            
+            <a href="{{ route('examination.proctoring.index') }}" class="examination-feature-card">
+                <div class="examination-feature-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                 <i class="fas fa-eye"></i>
             </div>
-            <h4 class="examination-action-title">Proctoring</h4>
-            <p class="examination-action-desc">Monitor exam sessions</p>
-        </a>
-        <a href="{{ route('examination.results.index') }}" class="examination-action-btn">
-            <div class="examination-action-icon">
-                <i class="fas fa-chart-bar"></i>
+                <div class="examination-feature-title">Proctoring</div>
+                <div class="examination-feature-description">
+                    Monitor exams in real-time with advanced proctoring features and security measures.
             </div>
-            <h4 class="examination-action-title">Results</h4>
-            <p class="examination-action-desc">View exam results</p>
-        </a>
-        <a href="{{ route('examination.schedules.timetable') }}" class="examination-action-btn">
-            <div class="examination-action-icon">
-                <i class="fas fa-clock"></i>
+            </a>
+            
+            <a href="{{ route('examination.results.index') }}" class="examination-feature-card">
+                <div class="examination-feature-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-clipboard-check"></i>
+        </div>
+                <div class="examination-feature-title">Results & Analytics</div>
+                <div class="examination-feature-description">
+                    Generate detailed reports, analyze performance, and provide comprehensive feedback.
             </div>
-            <h4 class="examination-action-title">Timetable</h4>
-            <p class="examination-action-desc">See all exam timetables</p>
-        </a>
-    </div>
-
-    <!-- Recent Activities -->
-    <div class="examination-recent-section">
-        <div class="examination-recent-header">
-            <h3 class="examination-recent-title">
-                <i class="fas fa-history"></i>
-                Recent Activities
-            </h3>
-            <a href="#" class="btn btn-outline-primary btn-sm">View All</a>
+            </a>
         </div>
 
-        <div class="examination-recent-item">
-            <div class="examination-recent-icon">
-                <i class="fas fa-file-alt"></i>
-            </div>
-            <div class="examination-recent-content">
-                <div class="examination-recent-title-item">Mathematics Final Exam</div>
-                <div class="examination-recent-meta">Created by Dr. Smith • 2 hours ago</div>
-            </div>
-            <span class="examination-recent-status active">Active</span>
-        </div>
-
-        <div class="examination-recent-item">
-            <div class="examination-recent-icon">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="examination-recent-content">
-                <div class="examination-recent-title-item">Physics Midterm Schedule</div>
-                <div class="examination-recent-meta">Scheduled for Dec 15, 2024 • 1 day ago</div>
-            </div>
-            <span class="examination-recent-status pending">Pending</span>
-        </div>
-
-        <div class="examination-recent-item">
-            <div class="examination-recent-icon">
-                <i class="fas fa-chart-bar"></i>
-            </div>
-            <div class="examination-recent-content">
-                <div class="examination-recent-title-item">Chemistry Lab Results</div>
-                <div class="examination-recent-meta">Results published • 3 days ago</div>
-            </div>
-            <span class="examination-recent-status completed">Completed</span>
-        </div>
-
-        <div class="examination-recent-item">
-            <div class="examination-recent-icon">
+        <div class="examination-action-buttons">
+            <a href="{{ route('examination.dashboard') }}" class="examination-action-btn primary">
+                <i class="fas fa-tachometer-alt"></i>
+                Go to Dashboard
+            </a>
+            <a href="{{ route('examination.questions.index') }}" class="examination-action-btn secondary">
                 <i class="fas fa-question-circle"></i>
-            </div>
-            <div class="examination-recent-content">
-                <div class="examination-recent-title-item">Biology Question Bank Updated</div>
-                <div class="examination-recent-meta">50 new questions added • 1 week ago</div>
-            </div>
-            <span class="examination-recent-status completed">Completed</span>
-        </div>
-
-        <div class="examination-recent-item">
-            <div class="examination-recent-icon">
-                <i class="fas fa-eye"></i>
-            </div>
-            <div class="examination-recent-content">
-                <div class="examination-recent-title-item">English Proctoring Alert</div>
-                <div class="examination-recent-meta">Suspicious activity detected • 2 weeks ago</div>
-            </div>
-            <span class="examination-recent-status pending">Pending</span>
+                Manage Questions
+            </a>
+            <a href="{{ route('examination.schedules.index') }}" class="examination-action-btn secondary">
+                <i class="fas fa-calendar-alt"></i>
+                View Schedules
+            </a>
         </div>
     </div>
 </div>

@@ -18,7 +18,13 @@ class DashboardController extends Controller
 
         // Get user's primary role
         $primaryRole = $user->primaryRole;
-        $userRoles = $user->roles->pluck('name')->toArray();
+        
+        // Safely get user roles with error handling
+        try {
+            $userRoles = $user->roles ? $user->roles->pluck('name')->toArray() : [];
+        } catch (Exception $e) {
+            $userRoles = [];
+        }
 
         // Role-based dashboard routing
         if (in_array('admin', $userRoles) || in_array('super_admin', $userRoles)) {
@@ -92,11 +98,11 @@ class DashboardController extends Controller
             'current_class' => $student ? $student->currentClass : null,
             'total_subjects' => $student ? $student->classes->flatMap->subjects->count() : 0,
             'attendance_rate' => $this->calculateAttendanceRate($student),
-            'upcoming_exams' => $this->safeGet('\Modules\Examination\Models\Exam', function($query) use ($student) {
+            'upcoming_exams' => $student ? $this->safeGet('\Modules\Examination\Models\Exam', function($query) use ($student) {
                 return $query->whereHas('classes', function($q) use ($student) {
                     $q->where('student_id', $student->id);
                 })->where('start_date', '>=', now());
-            }, 5),
+            }, 5) : collect(),
         ];
 
         return view('dashboard.student', compact('stats', 'student'));
@@ -269,11 +275,14 @@ class DashboardController extends Controller
                 $query = $conditions($query);
             }
             
-            if ($limit) {
-                $query->latest()->take($limit);
+            // If no limit is specified and we're looking for a unique record (like by user_id),
+            // return the first result as a single model instance
+            if (!$limit) {
+                return $query->first();
             }
             
-            return $query->get();
+            // Otherwise, return a collection with the specified limit
+            return $query->latest()->take($limit)->get();
         } catch (\Exception $e) {
             return collect();
         }

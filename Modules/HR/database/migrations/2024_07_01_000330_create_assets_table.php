@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('assets', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('assets', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->string('asset_type');
@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('returned_at')->nullable();
             $table->boolean('is_returned')->default(false);
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

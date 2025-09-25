@@ -11,19 +11,53 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-            \App\Http\Middleware\LogUserActions::class,
-            \App\Http\Middleware\CheckUserActive::class,
-            \App\Http\Middleware\SetLocale::class,
-        ]);
-        $middleware->alias([
-            'permission' => \App\Http\Middleware\CheckPermission::class,
-        ]);
+        // Global middleware
+        $middleware->append(App\Http\Middleware\SecurityHeaders::class);
+
+        // Force HTTPS in production
+        $middleware->append(App\Http\Middleware\ForceHttps::class);
+
+        // Ensure permission/role changes apply immediately after refresh/login
+        $middleware->appendToGroup('web', App\Http\Middleware\ClearPermissionCache::class);
+        $middleware->appendToGroup('api', App\Http\Middleware\ClearPermissionCache::class);
+
+        // Optional useful middleware
+        $middleware->appendToGroup('web', App\Http\Middleware\CheckUserActive::class);
+        $middleware->appendToGroup('web', App\Http\Middleware\PerformanceMonitor::class);
+        $middleware->appendToGroup('api', App\Http\Middleware\PerformanceMonitor::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+        // Basic exception handling configuration
+    })
+    ->withProviders([
+        // Essential Laravel Framework Service Providers for Laravel 12
+        Illuminate\Foundation\Providers\FoundationServiceProvider::class,
+        Illuminate\Cache\CacheServiceProvider::class,
+        Illuminate\Filesystem\FilesystemServiceProvider::class,
+        Illuminate\View\ViewServiceProvider::class,
+        Illuminate\Events\EventServiceProvider::class,
+        Illuminate\Database\DatabaseServiceProvider::class,
+        Illuminate\Session\SessionServiceProvider::class,
+        Illuminate\Encryption\EncryptionServiceProvider::class,
+        Illuminate\Cookie\CookieServiceProvider::class,
+        Illuminate\Auth\AuthServiceProvider::class,
+        Illuminate\Hashing\HashServiceProvider::class,
+        Illuminate\Queue\QueueServiceProvider::class,
+        Illuminate\Validation\ValidationServiceProvider::class,
+        Illuminate\Translation\TranslationServiceProvider::class,
+        Illuminate\Routing\RoutingServiceProvider::class,
 
-// Removed module service provider registrations. Now handled in config/app.php
+        // Application Service Providers
+        App\Providers\AppServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,
+        App\Providers\AuthServiceProvider::class,
+
+        // NOTE: Module package and module providers disabled for now to avoid
+        // cache binding and boot conflicts on Laravel 12.
+        // Nwidart\Modules\LaravelModulesServiceProvider::class,
+        // Modules\Core\Providers\CoreServiceProvider::class,
+        // Modules\Academic\Providers\AcademicServiceProvider::class,
+        // Modules\Examination\Providers\ExaminationServiceProvider::class,
+        // Modules\ChatBot\Providers\ChatBotServiceProvider::class,
+    ])
+    ->create();

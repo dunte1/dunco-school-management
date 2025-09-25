@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('attendance_sessions', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('attendance_sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->foreignId('class_id')->constrained('academic_classes')->onDelete('cascade');
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->time('end_time')->nullable();
             $table->foreignId('timetable_slot_id')->nullable()->constrained('timetables')->onDelete('set null');
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

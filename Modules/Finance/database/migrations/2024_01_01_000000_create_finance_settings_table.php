@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
-        Schema::create('finance_settings', function (Blueprint $table) {
-            $table->id();
-            $table->json('settings');
-        });
+        if (!Schema::hasTable('finance_settings')) {
+            Schema::create('finance_settings', function (Blueprint $table) {
+                $table->id();
+                $table->json('settings');
+            });
+        }
     }
 
     public function down()

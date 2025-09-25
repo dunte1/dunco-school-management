@@ -43,8 +43,8 @@ class CustomVerifyEmailController extends Controller
             $user->activate();
         }
 
-        return redirect()->route('login')
-            ->with('status', 'Your email has been verified successfully! Your account is now activated. You can now login.');
+        return redirect()->to(route('dashboard', [], false) . '?verified=1')
+            ->with('status', 'Your email has been verified successfully! Your account is now activated.');
     }
 
     /**

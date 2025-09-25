@@ -11,10 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('academic_students')) {
+            return;
+        }
+
         Schema::table('academic_students', function (Blueprint $table) {
-            $table->string('name')->nullable();
-            $table->string('admission_number')->nullable();
-            $table->unsignedBigInteger('class_id')->nullable();
+            if (! Schema::hasColumn('academic_students', 'name')) {
+                $table->string('name')->nullable();
+            }
+            if (! Schema::hasColumn('academic_students', 'admission_number')) {
+                $table->string('admission_number')->nullable();
+            }
+            if (! Schema::hasColumn('academic_students', 'class_id')) {
+                $table->unsignedBigInteger('class_id')->nullable();
+            }
         });
     }
 
@@ -23,8 +33,18 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('academic_students')) {
+            return;
+        }
+
         Schema::table('academic_students', function (Blueprint $table) {
-            $table->dropColumn(['name', 'admission_number', 'class_id']);
+            $drops = [];
+            foreach (['name','admission_number','class_id'] as $col) {
+                if (Schema::hasColumn('academic_students', $col)) { $drops[] = $col; }
+            }
+            if (!empty($drops)) {
+                $table->dropColumn($drops);
+            }
         });
     }
 };

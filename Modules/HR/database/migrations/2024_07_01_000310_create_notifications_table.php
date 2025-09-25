@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('hr_notifications', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('hr_notifications', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id')->nullable();
             $table->string('type'); // leave, birthday, contract_expiry, etc.
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->boolean('is_read')->default(false);
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

@@ -3,6 +3,23 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+
+if (!function_exists('module_path')) {
+    /**
+     * Get the path to a module directory
+     */
+    function module_path($module, $path = '')
+    {
+        $modulePath = base_path('Modules/' . $module);
+        
+        if ($path) {
+            return $modulePath . '/' . $path;
+        }
+        
+        return $modulePath;
+    }
+}
 
 class NavigationHelper
 {
@@ -16,6 +33,20 @@ class NavigationHelper
             return true;
         }
 
+        // Check if module is enabled in modules_statuses.json
+        $moduleEnabled = false;
+        $statusFile = base_path('modules_statuses.json');
+        if (file_exists($statusFile)) {
+            $statuses = json_decode(file_get_contents($statusFile), true);
+            // Check both lowercase and capitalized versions
+            $moduleKey = ucfirst($module);
+            if (isset($statuses[$moduleKey]) && $statuses[$moduleKey] === true) {
+                $moduleEnabled = true;
+            } elseif (isset($statuses[$module]) && $statuses[$module] === true) {
+                $moduleEnabled = true;
+            }
+        }
+
         // Define functional modules (only the ones that actually exist)
         $functionalModules = [
             'core', 'academic', 'examination', 'finance', 'hr', 'library', 
@@ -23,42 +54,45 @@ class NavigationHelper
             'portal', 'document', 'notification', 'settings', 'api', 'chatbot'
         ];
 
-        // For admin users, allow access to all functional modules
-        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-            return in_array($module, $functionalModules);
-        }
-
-        // For non-admin users, check specific permissions
-        $modulePermissions = [
-            'core' => ['schools.view', 'users.view', 'roles.view', 'permissions.view'],
-            'academic' => ['academic.view', 'academic.students.view', 'academic.classes.view', 'academic.subjects.view'],
-            'examination' => ['examination.view', 'examination.teacher.exams', 'examination.teacher.grade'],
-            'finance' => ['finance.view', 'finance.fees.view', 'finance.billing.view', 'finance.payments.view'],
-            'hr' => ['hr.view', 'hr.staff.view', 'hr.leave.view', 'hr.payroll.view', 'hr.contract.view', 'hr.departments.view'],
-            'library' => ['library.view', 'library.books.view', 'library.categories.view', 'library.authors.view', 'library.publishers.view', 'library.members.view', 'library.borrows.view', 'library.reports.view'],
-            'hostel' => ['hostel.view', 'hostel.allocations.view', 'hostel.fees.view', 'hostel.issues.view', 'hostel.leave.view', 'hostel.visitors.view', 'hostel.announcements.view', 'hostel.reports.view'],
-            'transport' => ['transport.view', 'transport.vehicles.view', 'transport.routes.view', 'transport.drivers.view', 'transport.trips.view'],
-            'timetable' => ['timetable.view', 'timetable.schedules.view', 'timetable.teacher_availabilities.view', 'timetable.rooms.view', 'timetable.room_allocations.view'],
-            'attendance' => ['attendance.view', 'attendance.mark.view', 'attendance.reports.view', 'attendance.settings.view'],
-            'communication' => ['communication.view', 'communication.inbox.view', 'communication.compose.view', 'communication.announcements.view'],
-            'portal' => ['portal.view', 'portal.student.view', 'portal.parent.view'],
-            'document' => ['document.view', 'document.upload.view', 'document.manage.view'],
-            'notification' => ['notification.view', 'notification.manage.view'],
-            'settings' => ['settings.view', 'settings.global.view', 'settings.per_school.view'],
-            'api' => ['api.view', 'api.manage.view'],
-            'chatbot' => ['chatbot.view', 'chatbot.manage.view'],
-        ];
-
-        if (!isset($modulePermissions[$module])) {
+        // If module is not in functional modules, return false
+        if (!in_array($module, $functionalModules)) {
             return false;
         }
 
-        $userPermissions = $user->getAllPermissionNames()->toArray();
-        
-        // Check if user has ANY of the required permissions for this module
-        foreach ($modulePermissions[$module] as $permission) {
-            if (in_array($permission, $userPermissions)) {
-                return true;
+        // If module is enabled in modules_statuses.json, check permissions
+        if ($moduleEnabled) {
+            // For non-admin users, check specific permissions
+            $modulePermissions = [
+                'core' => ['schools.view', 'users.view', 'roles.view', 'permissions.view'],
+                'academic' => ['academic.view', 'academic.students.view', 'academic.classes.view', 'academic.subjects.view'],
+                'examination' => ['examination.view', 'examination.teacher.exams', 'examination.teacher.grade'],
+                'finance' => ['finance.view', 'finance.fees.view', 'finance.billing.view', 'finance.payments.view'],
+                'hr' => ['hr.view', 'hr.staff.view', 'hr.leave.view', 'hr.payroll.view', 'hr.contract.view', 'hr.departments.view'],
+                'library' => ['library.view', 'library.books.view', 'library.categories.view', 'library.authors.view', 'library.publishers.view', 'library.members.view', 'library.borrows.view', 'library.reports.view'],
+                'hostel' => ['hostel.view', 'hostel.allocations.view', 'hostel.fees.view', 'hostel.issues.view', 'hostel.leave.view', 'hostel.visitors.view', 'hostel.announcements.view', 'hostel.reports.view'],
+                'transport' => ['transport.view', 'transport.vehicles.view', 'transport.routes.view', 'transport.drivers.view', 'transport.trips.view'],
+                'timetable' => ['timetable.view', 'timetable.schedules.view', 'timetable.teacher_availabilities.view', 'timetable.rooms.view', 'timetable.room_allocations.view'],
+                'attendance' => ['attendance.view', 'attendance.mark.view', 'attendance.reports.view', 'attendance.settings.view'],
+                'communication' => ['communication.view', 'communication.inbox.view', 'communication.compose.view', 'communication.announcements.view'],
+                'portal' => ['portal.view', 'portal.student.view', 'portal.parent.view'],
+                'document' => ['document.view', 'document.upload.view', 'document.manage.view'],
+                'notification' => ['notification.view', 'notification.manage.view'],
+                'settings' => ['settings.view', 'settings.global.view', 'settings.per_school.view'],
+                'api' => ['api.view', 'api.manage.view'],
+                'chatbot' => ['chatbot.view', 'chatbot.manage.view'],
+            ];
+
+            if (!isset($modulePermissions[$module])) {
+                return false;
+            }
+
+            $userPermissions = self::getCachedUserPermissions($user->id);
+            
+            // Check if user has ANY of the required permissions for this module
+            foreach ($modulePermissions[$module] as $permission) {
+                if (in_array($permission, $userPermissions)) {
+                    return true;
+                }
             }
         }
         
@@ -70,27 +104,38 @@ class NavigationHelper
         $user = Auth::user();
         if (!$user) return [];
 
-        // Define all functional modules
-        $functionalModules = [
-            'core', 'academic', 'examination', 'finance', 'hr', 'library', 
-            'hostel', 'transport', 'timetable', 'attendance', 'communication', 
-            'portal', 'document', 'notification', 'settings', 'api', 'chatbot'
-        ];
-
-        // For admin users, return all functional modules
-        if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-            return $functionalModules;
-        }
-
-        // For non-admin users, check permissions for each module
-        $userModules = [];
-        foreach ($functionalModules as $module) {
-            if (self::canAccessModule($module)) {
-                $userModules[] = $module;
+        return Cache::remember("nav:user:{$user->id}:modules", 300, function () use ($user) {
+            // Check modules_statuses.json directly first
+            $statusFile = base_path('modules_statuses.json');
+            if (file_exists($statusFile)) {
+                $statuses = json_decode(file_get_contents($statusFile), true);
+                if ($statuses) {
+                    $enabledModules = [];
+                    foreach ($statuses as $module => $enabled) {
+                        if ($enabled === true) {
+                            $enabledModules[] = strtolower($module);
+                        }
+                    }
+                    // For admin, return all functional modules
+                    if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+                        return [
+                            'core','academic','examination','finance','hr','library','hostel','transport','timetable','attendance','communication','portal','document','notification','settings','api','chatbot'
+                        ];
+                    }
+                    // For non-admin, filter by access
+                    $visible = [];
+                    foreach ($enabledModules as $module) {
+                        if (self::canAccessModule($module)) {
+                            $visible[] = $module;
+                        }
+                    }
+                    return $visible;
+                }
             }
-        }
 
-        return $userModules;
+            // Fallback
+            return [];
+        });
     }
 
     public static function hasPermission($permission)
@@ -101,7 +146,8 @@ class NavigationHelper
         if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
             return true;
         }
-        return $user->hasPermission($permission);
+        $permissions = self::getCachedUserPermissions($user->id);
+        return in_array($permission, $permissions, true);
     }
 
     public static function hasAnyPermission($permissions)
@@ -117,8 +163,9 @@ class NavigationHelper
             $permissions = [$permissions];
         }
         
+        $userPermissions = self::getCachedUserPermissions($user->id);
         foreach ($permissions as $permission) {
-            if ($user->hasPermission($permission)) {
+            if (in_array($permission, $userPermissions, true)) {
                 return true;
             }
         }
@@ -139,8 +186,9 @@ class NavigationHelper
             $permissions = [$permissions];
         }
         
+        $userPermissions = self::getCachedUserPermissions($user->id);
         foreach ($permissions as $permission) {
-            if (!$user->hasPermission($permission)) {
+            if (!in_array($permission, $userPermissions, true)) {
                 return false;
             }
         }
@@ -171,5 +219,30 @@ class NavigationHelper
         }
         
         return false;
+    }
+
+    protected static function getCachedUserPermissions(int $userId): array
+    {
+        return Cache::remember("nav:user:{$userId}:perms", 300, function () use ($userId) {
+            $user = Auth::user();
+            if (!$user) {
+                return [];
+            }
+            if (method_exists($user, 'getAllPermissionNames')) {
+                try {
+                    return $user->getAllPermissionNames()->toArray();
+                } catch (\Throwable $e) {
+                    return [];
+                }
+            }
+            if (method_exists($user, 'getAllPermissions')) {
+                try {
+                    return $user->getAllPermissions()->pluck('name')->toArray();
+                } catch (\Throwable $e) {
+                    return [];
+                }
+            }
+            return [];
+        });
     }
 } 

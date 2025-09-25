@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('staff_polls', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('staff_polls', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->string('question');
             $table->json('options');
             $table->string('answer')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

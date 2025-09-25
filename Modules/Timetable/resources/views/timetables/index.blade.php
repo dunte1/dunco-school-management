@@ -77,6 +77,8 @@
             @endforeach
         </tbody>
     </table>
-    {{ $timetables->links() }}
+    @if(method_exists($timetables, 'links'))
+        {{ $timetables->links() }}
+    @endif
 </div>
 @endsection 

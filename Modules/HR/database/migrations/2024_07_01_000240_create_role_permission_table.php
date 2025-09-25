@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('role_permission', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('role_id');
-            $table->unsignedBigInteger('permission_id');
-            $table->timestamps();
-            $table->unique(['role_id', 'permission_id']);
-        });
+        if (!Schema::hasTable('role_permission')) {
+            Schema::create('role_permission', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('role_id');
+                $table->unsignedBigInteger('permission_id');
+                $table->timestamps();
+                $table->unique(['role_id', 'permission_id']);
+            });
+        }
     }
 
     public function down()

@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('staff_documents', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('staff_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->string('type'); // CV, certification, contract, etc.
             $table->string('file_path');
             $table->string('description')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

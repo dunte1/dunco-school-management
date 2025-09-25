@@ -7,6 +7,7 @@ use Modules\HR\Http\Controllers\RoleController;
 use Modules\HR\Http\Controllers\PermissionController;
 use Modules\HR\Http\Controllers\AttendanceController;
 use Modules\HR\Http\Controllers\LeaveController;
+use Modules\HR\Http\Controllers\LeaveTypeController;
 use Modules\HR\Http\Controllers\PayrollController;
 use Modules\HR\Http\Controllers\ContractController;
 use Modules\HR\Http\Controllers\PerformanceReviewController;
@@ -26,9 +27,12 @@ Route::middleware(['web', 'auth'])->prefix('hr')->group(function () {
     Route::get('attendance-report', [AttendanceController::class, 'report'])->name('attendance.report');
 
     Route::resource('leave', LeaveController::class)->names('hr.leave');
-    Route::post('leave/{id}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
-    Route::post('leave/{id}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
-    Route::get('leave-balances', [LeaveController::class, 'balances'])->name('leave.balances');
+    Route::post('leave/{id}/approve', [LeaveController::class, 'approve'])->name('hr.leave.approve');
+    Route::post('leave/{id}/reject', [LeaveController::class, 'reject'])->name('hr.leave.reject');
+    Route::get('leave-balances', [LeaveController::class, 'balances'])->name('hr.leave.balances');
+    
+    Route::resource('leave-type', LeaveTypeController::class)->names('hr.leave-type');
+    Route::post('leave-type/{id}/toggle-status', [LeaveTypeController::class, 'toggleStatus'])->name('hr.leave-type.toggle-status');
 
     Route::resource('payroll', PayrollController::class)->names('hr.payroll');
     Route::post('payroll/{id}/mark-paid', [PayrollController::class, 'markPaid'])->name('hr.payroll.markPaid');
@@ -36,3 +40,4 @@ Route::middleware(['web', 'auth'])->prefix('hr')->group(function () {
     Route::resource('contract', ContractController::class)->names('hr.contract');
     Route::resource('performance-reviews', PerformanceReviewController::class)->names('hr.performance_reviews');
 }); 
+

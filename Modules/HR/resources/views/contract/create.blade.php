@@ -1,4 +1,4 @@
-@extends('hr::layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <h2>Add Contract</h2>

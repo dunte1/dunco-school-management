@@ -11,8 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('proctoring_logs')) {
+            return;
+        }
+
         Schema::table('proctoring_logs', function (Blueprint $table) {
-            $table->softDeletes();
+            if (! Schema::hasColumn('proctoring_logs', 'deleted_at')) {
+                $table->softDeletes();
+            }
         });
     }
 
@@ -21,8 +27,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('proctoring_logs')) {
+            return;
+        }
+
         Schema::table('proctoring_logs', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+            if (Schema::hasColumn('proctoring_logs', 'deleted_at')) {
+                $table->dropSoftDeletes();
+            }
         });
     }
 };

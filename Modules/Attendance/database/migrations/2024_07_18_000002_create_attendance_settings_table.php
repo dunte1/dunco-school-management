@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('attendance_settings', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('attendance_settings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->time('default_marking_start')->nullable();
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('chronic_absent_threshold')->nullable();
             $table->text('custom_message')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

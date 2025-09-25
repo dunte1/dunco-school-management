@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
-        Schema::create('staff_attendance_records', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('staff_attendance_records', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('school_id');
             $table->unsignedBigInteger('staff_id');
@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->softDeletes();
 
             $table->index(['school_id', 'staff_id', 'date']);
-        });
+        }); }
     }
 
     public function down()

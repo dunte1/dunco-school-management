@@ -61,7 +61,9 @@
                 @endforeach
             </tbody>
         </table>
-        {{ $availabilities->links() }}
+        @if(method_exists($availabilities, 'links'))
+            {{ $availabilities->links() }}
+        @endif
     </div>
     <div id="weeklyGridView" style="display:none;">
         <div class="table-responsive">

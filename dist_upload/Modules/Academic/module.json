@@ -1,0 +1,20 @@
+{
+    "name":  "Academic",
+    "alias":  "academic",
+    "description":  "Academic management module for classes, subjects, students, and examinations",
+    "keywords":  [
+                     "academic",
+                     "education",
+                     "classes",
+                     "subjects",
+                     "students",
+                     "exams"
+                 ],
+    "priority":  0,
+    "providers":  [
+                      "Modules\\Academic\\Providers\\AcademicServiceProvider"
+                  ],
+    "files":  [
+
+              ]
+}

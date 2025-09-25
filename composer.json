@@ -8,20 +8,23 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "illuminate/cache": "*",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "*",
-        "nwidart/laravel-modules": "^12.0",
+        "nwidart/laravel-modules": "*",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "*",
+        "spatie/laravel-backup": "^10.0",
+        "sentry/sentry-laravel": "^4.6",
+        "knuckleswtf/scribe": "^4.38",
         "stancl/tenancy": "^3.9",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "laravel/breeze": "^2.3",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.41",
@@ -31,46 +34,34 @@
         "pestphp/pest-plugin-laravel": "^3.2"
     },
     "autoload": {
-  "psr-4": {
-    "App\\": "app/",
-    "Database\\Factories\\": "database/factories/",
-    "Database\\Seeders\\": "database/seeders/",
-    "Modules\\": "Modules/",
-    "Modules\\Alumni\\": "Modules/Alumni/app/",
-    "Modules\\Cafeteria\\": "Modules/Cafeteria/app/",
-    "Modules\\Academic\\": "Modules/Academic/app/",
-    "Modules\\Analytics\\": "Modules/Analytics/app/",
-    "Modules\\Assets\\": "Modules/Assets/app/",
-    "Modules\\Attendance\\": "Modules/Attendance/app/",
-    "Modules\\Audit\\": "Modules/Audit/app/",
-    "Modules\\Communication\\": "Modules/Communication/app/",
-    "Modules\\Compliance\\": "Modules/Compliance/app/",
-    "Modules\\Core\\": "Modules/Core/app/",
-    "Modules\\Document\\": "Modules/Document/app/",
-    "Modules\\ELibrary\\": "Modules/ELibrary/app/",
-    "Modules\\Examination\\": "Modules/Examination/app/",
-    "Modules\\Finance\\": "Modules/Finance/app/",
-    "Modules\\Hostel\\": "Modules/Hostel/app/",
-    "Modules\\HR\\": "Modules/HR/app/",
-    "Modules\\Inventory\\": "Modules/Inventory/app/",
-    "Modules\\Library\\": "Modules/Library/app/",
-    "Modules\\LMS\\": "Modules/LMS/app/",
-    "Modules\\Localization\\": "Modules/Localization/app/",
-    "Modules\\Marketplace\\": "Modules/Marketplace/app/",
-    "Modules\\Notification\\": "Modules/Notification/app/",
-    "Modules\\Portal\\": "Modules/Portal/app/",
-    "Modules\\PWA\\": "Modules/PWA/app/",
-    "Modules\\Research\\": "Modules/Research/app/",
-    "Modules\\Settings\\": "Modules/Settings/app/",
-    "Modules\\Timetable\\": "Modules/Timetable/app/",
-    "Modules\\Transport\\": "Modules/Transport/app/",
-    "Modules\\Welfare\\": "Modules/Welfare/app/",
-    "Modules\\ChatBot\\": "Modules/ChatBot/app/"
-  },
-  "files": [
-    "app/Helpers/NavigationHelper.php"
-  ]
+    "psr-4": {
+      "App\\": "app/",
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/",
+      "Modules\\Finance\\": "Modules/Finance/",
+      "Modules\\Finance\\Entities\\": "Modules/Finance/Entities/",
+      "Modules\\Academic\\": "Modules/Academic/",
+      "Modules\\Core\\": "Modules/Core/",
+      "Modules\\Attendance\\": "Modules/Attendance/",
+      "Modules\\Communication\\": "Modules/Communication/",
+      "Modules\\Document\\": "Modules/Document/",
+      "Modules\\Examination\\": "Modules/Examination/",
+      "Modules\\Hostel\\": "Modules/Hostel/",
+      "Modules\\HR\\": "Modules/HR/",
+      "Modules\\Library\\": "Modules/Library/",
+      "Modules\\Notification\\": "Modules/Notification/",
+      "Modules\\Portal\\": "Modules/Portal/",
+      "Modules\\Settings\\": "Modules/Settings/",
+      "Modules\\Timetable\\": "Modules/Timetable/",
+      "Modules\\Transport\\": "Modules/Transport/",
+      "Modules\\API\\": "Modules/API/",
+      "Modules\\ChatBot\\": "Modules/ChatBot/"
     },
+    "files": [
+      "app/Helpers/NavigationHelper.php",
+      "app/Helpers/ModuleHelper.php"
+    ]
+  },
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
@@ -78,8 +69,10 @@
     },
     "scripts": {
         "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump"
+        ],
+        "dont-discover": [
+            "nwidart/laravel-modules"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
@@ -103,7 +96,15 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "nwidart/laravel-modules",
+                "laravel/sanctum",
+                "spatie/laravel-permission",
+                "stancl/tenancy",
+                "barryvdh/laravel-dompdf",
+                "maatwebsite/excel",
+                "simplesoftwareio/simple-qrcode"
+            ]
         }
     },
     "config": {

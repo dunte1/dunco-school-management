@@ -4,6 +4,7 @@ namespace Modules\Timetable\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
 use Modules\Timetable\Models\Room;
 use Modules\Timetable\Http\Requests\RoomRequest;
 use Illuminate\Support\Facades\Response;
@@ -14,7 +15,16 @@ class RoomController extends Controller
     // Blade CRUD methods
     public function index()
     {
-        $rooms = Room::paginate(15);
+        try {
+            if (Schema::hasTable('rooms')) {
+                $rooms = Room::paginate(15);
+            } else {
+                $rooms = collect();
+            }
+        } catch (\Exception $e) {
+            $rooms = collect();
+        }
+        
         return view('timetable::rooms.index', compact('rooms'));
     }
 

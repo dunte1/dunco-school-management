@@ -174,6 +174,53 @@ class CoreSeeder extends Seeder
             ['name' => 'timetable.manage', 'display_name' => 'Manage Timetables', 'description' => 'Full access to timetable management', 'module' => 'Timetable'],
         ];
 
+        // Additional submenu permissions to align with sidebar
+        $permissions = array_merge($permissions, [
+            // Academic
+            ['name' => 'academic.view', 'display_name' => 'View Academic', 'module' => 'Academic'],
+            ['name' => 'academic.students.view', 'display_name' => 'View Students', 'module' => 'Academic'],
+            ['name' => 'academic.classes.view', 'display_name' => 'View Classes', 'module' => 'Academic'],
+            ['name' => 'academic.subjects.view', 'display_name' => 'View Subjects', 'module' => 'Academic'],
+
+            // Finance
+            ['name' => 'finance.view', 'display_name' => 'View Finance', 'module' => 'Finance'],
+            ['name' => 'finance.fees.view', 'display_name' => 'View Fees', 'module' => 'Finance'],
+            ['name' => 'finance.billing.view', 'display_name' => 'View Billing', 'module' => 'Finance'],
+            ['name' => 'finance.payments.view', 'display_name' => 'View Payments', 'module' => 'Finance'],
+
+            // Attendance
+            ['name' => 'attendance.view', 'display_name' => 'View Attendance', 'module' => 'Attendance'],
+            ['name' => 'attendance.mark.view', 'display_name' => 'Mark Attendance', 'module' => 'Attendance'],
+            ['name' => 'attendance.reports.view', 'display_name' => 'View Attendance Reports', 'module' => 'Attendance'],
+            ['name' => 'attendance.settings.view', 'display_name' => 'View Attendance Settings', 'module' => 'Attendance'],
+
+            // Library
+            ['name' => 'library.view', 'display_name' => 'View Library', 'module' => 'Library'],
+            ['name' => 'library.books.view', 'display_name' => 'View Books', 'module' => 'Library'],
+            ['name' => 'library.categories.view', 'display_name' => 'View Categories', 'module' => 'Library'],
+            ['name' => 'library.members.view', 'display_name' => 'View Members', 'module' => 'Library'],
+
+            // Timetable
+            ['name' => 'timetable.schedules.view', 'display_name' => 'View Schedules', 'module' => 'Timetable'],
+            ['name' => 'timetable.rooms.view', 'display_name' => 'View Rooms', 'module' => 'Timetable'],
+
+            // Transport
+            ['name' => 'transport.view', 'display_name' => 'View Transport', 'module' => 'Transport'],
+            ['name' => 'transport.vehicles.view', 'display_name' => 'View Vehicles', 'module' => 'Transport'],
+            ['name' => 'transport.routes.view', 'display_name' => 'View Routes', 'module' => 'Transport'],
+            ['name' => 'transport.drivers.view', 'display_name' => 'View Drivers', 'module' => 'Transport'],
+
+            // Hostel
+            ['name' => 'hostel.view', 'display_name' => 'View Hostel', 'module' => 'Hostel'],
+            ['name' => 'hostel.allocations.view', 'display_name' => 'View Allocations', 'module' => 'Hostel'],
+            ['name' => 'hostel.fees.view', 'display_name' => 'View Hostel Fees', 'module' => 'Hostel'],
+
+            // Communication
+            ['name' => 'communication.view', 'display_name' => 'View Communication', 'module' => 'Communication'],
+            ['name' => 'communication.inbox.view', 'display_name' => 'View Inbox', 'module' => 'Communication'],
+            ['name' => 'communication.announcements.view', 'display_name' => 'View Announcements', 'module' => 'Communication'],
+        ]);
+
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
                 ['name' => $permission['name']],

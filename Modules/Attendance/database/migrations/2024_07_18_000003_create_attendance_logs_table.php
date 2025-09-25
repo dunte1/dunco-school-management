@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('attendance_logs', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('attendance_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_record_id')->constrained('academic_attendance_records')->onDelete('cascade');
             $table->foreignId('changed_by')->constrained('users')->onDelete('cascade');
@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('changes')->nullable(); // JSON or text description
             $table->text('remarks')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

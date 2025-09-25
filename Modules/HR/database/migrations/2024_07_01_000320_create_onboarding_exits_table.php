@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('onboarding_exits', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('onboarding_exits', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->json('onboarding_checklist')->nullable();
@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('exit_reason')->nullable();
             $table->boolean('archived')->default(false);
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

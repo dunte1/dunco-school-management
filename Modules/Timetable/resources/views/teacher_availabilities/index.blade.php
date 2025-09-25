@@ -148,6 +148,8 @@
             @endforelse
         </tbody>
     </table>
-    {{ $availabilities->links() }}
+    @if(method_exists($availabilities, 'links'))
+        {{ $availabilities->links() }}
+    @endif
 </div>
 @endsection 

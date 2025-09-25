@@ -8,15 +8,18 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('notification_templates', function (Blueprint $table) {
-            $table->id();
-            $table->string('event'); // e.g. application_approved, fee_overdue
-            $table->string('channel'); // email, sms, whatsapp
-            $table->string('subject')->nullable();
-            $table->text('body');
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
+        // Avoid duplicate table creation; Communication module may create this table
+        if (!Schema::hasTable('notification_templates')) {
+            Schema::create('notification_templates', function (Blueprint $table) {
+                $table->id();
+                $table->string('event'); // e.g. application_approved, fee_overdue
+                $table->string('channel'); // email, sms, whatsapp
+                $table->string('subject')->nullable();
+                $table->text('body');
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down()

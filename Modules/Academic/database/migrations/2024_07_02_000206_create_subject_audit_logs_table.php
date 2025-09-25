@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSubjectAuditLogsTable extends Migration
+return new class extends Migration
 {
     public function up(): void
     {
@@ -12,7 +12,7 @@ class CreateSubjectAuditLogsTable extends Migration
             $table->id();
             $table->foreignId('subject_id')->constrained('academic_subjects')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('action'); // created, updated, deleted, assigned, etc.
+            $table->string('action');
             $table->json('changes')->nullable();
             $table->timestamps();
         });
@@ -22,4 +22,4 @@ class CreateSubjectAuditLogsTable extends Migration
     {
         Schema::dropIfExists('subject_audit_logs');
     }
-} 
+};

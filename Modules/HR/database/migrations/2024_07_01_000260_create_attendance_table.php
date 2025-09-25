@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('attendance', function (Blueprint $table) {
+        if (!Schema::hasTable('')) { Schema::create('attendance', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('staff_id');
             $table->date('date');
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('status', ['present', 'absent', 'leave', 'late', 'half-day'])->default('present');
             $table->string('remarks')->nullable();
             $table->timestamps();
-        });
+        }); }
     }
 
     public function down()

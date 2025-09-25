@@ -16,6 +16,77 @@ use Modules\Finance\Http\Controllers\ReportController;
 use Modules\Finance\Http\Controllers\ReceiptController;
 use Modules\Finance\Http\Controllers\TaxController;
 use Modules\Finance\Http\Controllers\SettingsController;
+use Modules\Finance\Http\Controllers\FinanceController;
+
+// Test route to check if finance module is loading
+Route::get('finance/test', function () {
+    return 'Finance module is working!';
+})->name('finance.test');
+
+// Test route for main layout
+Route::get('finance/layout-test', function () {
+    return view('layouts.app', ['content' => '<div class="container-fluid"><h1>Layout Test</h1><p>This is a test of the main layout.</p></div>']);
+})->name('finance.layout-test');
+
+// Test route for fees without controller
+Route::get('finance/fees-test', function () {
+    return view('finance::fees.index', ['fees' => collect()]);
+})->name('finance.fees.test');
+
+// Test route for fee-types without controller
+Route::get('finance/fee-categories-test', function () {
+    return view('finance::fee_categories.index', ['categories' => collect()]);
+})->name('finance.fee-categories.test');
+
+// Test route for fee-types with controller and error handling
+Route::get('finance/fee-types-debug', function () {
+    try {
+        $controller = new \Modules\Finance\Http\Controllers\FeeTypeController();
+        return $controller->index();
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+})->name('finance.fee-types.debug');
+
+// Test route for FeeType model instantiation
+Route::get('finance/fee-type-model-test', function () {
+    try {
+        $model = new \Modules\Finance\Models\FeeType();
+        return response()->json(['success' => 'FeeType model instantiated successfully']);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
+    }
+})->name('finance.fee-type-model-test');
+
+// Test route to check database tables
+Route::get('finance/db-test', function () {
+    try {
+        $tables = ['fees', 'fee_categories', 'fee_types', 'payments', 'taxes', 'bank_accounts', 'bank_transactions', 'ledger_entries', 'invoices', 'finance_roles', 'finance_settings'];
+        $results = [];
+        
+        foreach ($tables as $table) {
+            try {
+                $exists = \Illuminate\Support\Facades\Schema::hasTable($table);
+                $results[$table] = $exists ? 'EXISTS' : 'MISSING';
+            } catch (Exception $e) {
+                $results[$table] = 'ERROR: ' . $e->getMessage();
+            }
+        }
+        
+        return response()->json($results);
+    } catch (Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('finance.db.test');
 
 // Payment Gateway Routes (must be outside the admin group for portal access)
 Route::post('finance/payment/pay/{fee_id}', [PaymentController::class, 'pay'])->name('finance.payment.pay');
@@ -26,6 +97,9 @@ Route::post('finance/payment/mpesa-callback', [PaymentController::class, 'mpesaC
 Route::post('finance/payment/bank-transfer/{fee_id}', [PaymentController::class, 'submitBankTransfer'])->name('finance.payment.bank-transfer');
 
 Route::prefix('finance')->name('finance.')->group(function () {
+    // Main Finance Dashboard
+    Route::get('/', [FinanceController::class, 'index'])->name('index');
+    
     Route::resource('fees', FeeController::class)->names([
         'index'   => 'fees.index',
         'create'  => 'fees.create',
@@ -97,5 +171,5 @@ Route::prefix('finance')->name('finance.')->group(function () {
     Route::get('banks/transfer', [MultiBankController::class, 'transfer'])->name('banks.transfer');
     Route::post('banks/transfer', [MultiBankController::class, 'storeTransfer'])->name('banks.storeTransfer');
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
-    Route::post('settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 }); 

@@ -8,15 +8,27 @@ return new class extends Migration
 {
     public function up()
     {
+        if (! Schema::hasTable('exam_results')) {
+            return;
+        }
+
         Schema::table('exam_results', function (Blueprint $table) {
-            $table->softDeletes();
+            if (! Schema::hasColumn('exam_results', 'deleted_at')) {
+                $table->softDeletes();
+            }
         });
     }
 
     public function down()
     {
+        if (! Schema::hasTable('exam_results')) {
+            return;
+        }
+
         Schema::table('exam_results', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+            if (Schema::hasColumn('exam_results', 'deleted_at')) {
+                $table->dropSoftDeletes();
+            }
         });
     }
 }; 
