@@ -60,20 +60,16 @@ class AdminController extends Controller
         ]);
 
         try {
-            // Update environment variables
-            $this->updateEnvironmentVariable('OPENAI_API_KEY', $request->input('openai_api_key'));
-            $this->updateEnvironmentVariable('OPENAI_MODEL', $request->input('openai_model'));
-            $this->updateEnvironmentVariable('OPENAI_MAX_TOKENS', $request->input('openai_max_tokens'));
-            $this->updateEnvironmentVariable('OPENAI_TEMPERATURE', $request->input('openai_temperature'));
-            $this->updateEnvironmentVariable('CHATBOT_ENABLED', $request->input('chatbot_enabled') ? 'true' : 'false');
-
-            // Update config cache
-            Cache::forget('config');
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Settings updated successfully',
+            // Runtime .env writes were disabled for security (Phase 0).
+            // ChatBot configuration must be managed via environment/config and redeployed.
+            \Log::warning('Attempted runtime ChatBot settings update; disabled for security.', [
+                'user_id' => optional($request->user())->id,
             ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Runtime settings updates are disabled. Update the environment configuration and redeploy.',
+            ], 403);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -174,25 +170,14 @@ class AdminController extends Controller
 
     /**
      * Update environment variable
+     *
+     * Disabled for security (Phase 0): runtime writes to .env allow arbitrary
+     * configuration/secret tampering. Manage configuration via environment and deploy.
      */
     protected function updateEnvironmentVariable($key, $value)
     {
-        $path = base_path('.env');
-        
-        if (file_exists($path)) {
-            $content = file_get_contents($path);
-            
-            if (strpos($content, $key . '=') !== false) {
-                $content = preg_replace(
-                    '/^' . $key . '=.*/m',
-                    $key . '=' . $value,
-                    $content
-                );
-            } else {
-                $content .= "\n" . $key . '=' . $value;
-            }
-            
-            file_put_contents($path, $content);
-        }
+        \Log::warning('Blocked attempt to write environment variable at runtime.', [
+            'key' => $key,
+        ]);
     }
 } 

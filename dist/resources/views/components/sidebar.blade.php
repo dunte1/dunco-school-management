@@ -1,3 +1,0 @@
-<div>
-    <!-- Sidebar placeholder -->
-</div> 

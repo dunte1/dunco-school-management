@@ -179,26 +179,10 @@ class ChatBotSettingsController extends Controller
      */
     protected function updateEnvironmentVariable(string $key, $value): void
     {
-        $envFile = base_path('.env');
-        
-        if (!file_exists($envFile)) {
-            throw new \Exception('.env file not found');
-        }
-
-        $envContent = file_get_contents($envFile);
-        
-        // Escape the value if it contains special characters
-        $escapedValue = is_string($value) ? '"' . addslashes($value) . '"' : $value;
-        
-        // Check if the key already exists
-        if (preg_match("/^{$key}=/m", $envContent)) {
-            // Update existing key
-            $envContent = preg_replace("/^{$key}=.*/m", "{$key}={$escapedValue}", $envContent);
-        } else {
-            // Add new key
-            $envContent .= "\n{$key}={$escapedValue}";
-        }
-        
-        file_put_contents($envFile, $envContent);
+        // Disabled for security (Phase 0): runtime .env writes allow arbitrary
+        // configuration/secret tampering. Manage configuration via environment and deploy.
+        \Log::warning('Blocked attempt to write environment variable at runtime.', [
+            'key' => $key,
+        ]);
     }
 } 
