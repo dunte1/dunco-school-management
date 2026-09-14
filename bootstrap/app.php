@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', App\Http\Middleware\CheckUserActive::class);
         $middleware->appendToGroup('web', App\Http\Middleware\PerformanceMonitor::class);
         $middleware->appendToGroup('api', App\Http\Middleware\PerformanceMonitor::class);
+        $middleware->appendToGroup('web', App\Http\Middleware\HandleInertiaRequests::class);
 
         // Route middleware aliases (previously undefined, causing 500s / no authz)
         $middleware->alias([
@@ -58,6 +59,9 @@ return Application::configure(basePath: dirname(__DIR__))
         App\Providers\AppServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
+
+        // Packages disabled from auto-discovery in composer.json (dont-discover)
+        Laravel\Sanctum\SanctumServiceProvider::class,
 
         // NOTE: Module package and module providers disabled for now to avoid
         // cache binding and boot conflicts on Laravel 12.

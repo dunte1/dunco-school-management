@@ -4,13 +4,13 @@ namespace Modules\Portal\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Portal\app\Models\Announcement;
+use Modules\Portal\Models\Announcement;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Modules\Portal\app\Models\Message;
-use Modules\Portal\app\Notifications\GeneralAnnouncement;
+use Modules\Portal\Models\Message;
+use Modules\Portal\Notifications\GeneralAnnouncement;
 use App\Models\User;
-use App\Models\Modules\Library\app\Models\Book;
+use App\Models\Modules\Library\Models\Book;
 use Modules\Finance\Entities\FinanceSetting;
 
 class PortalController extends Controller

@@ -89,26 +89,70 @@ class AppServiceProvider extends ServiceProvider
                 && auth()->user()->hasRole($role);
         });
 
-        // Ensure module view namespaces are registered (e.g., 'core::')
-        $statusFile = base_path('modules_statuses.json');
-        if (file_exists($statusFile)) {
-            $statuses = json_decode(file_get_contents($statusFile), true) ?: [];
-            foreach ($statuses as $moduleName => $enabled) {
-                if ($enabled) {
-                    $moduleBasePath = base_path('Modules/' . $moduleName);
-                    $viewsPath = $moduleBasePath . '/resources/views';
-                    if (is_dir($viewsPath)) {
-                        view()->addNamespace(strtolower($moduleName), $viewsPath);
-                    }
+        $this->bootEnabledModules();
+    }
 
-                    // Load migrations for enabled modules so they run without the module package
-                    $migrationsPath = $moduleBasePath . '/Database/Migrations';
-                    if (is_dir($migrationsPath)) {
-                        $this->loadMigrationsFrom($migrationsPath);
-                    }
+    /**
+     * Register view namespaces and load migrations for enabled modules without
+     * relying on the (disabled) nwidart/laravel-modules package.
+     *
+     * Path lookups are case-insensitive so this works on both Windows and Linux.
+     */
+    protected function bootEnabledModules(): void
+    {
+        $statusFile = base_path('modules_statuses.json');
+        if (!file_exists($statusFile)) {
+            return;
+        }
+
+        $statuses = json_decode(file_get_contents($statusFile), true) ?: [];
+
+        foreach ($statuses as $moduleName => $enabled) {
+            if (!$enabled) {
+                continue;
+            }
+
+            $moduleBasePath = base_path('Modules/' . $moduleName);
+            if (!is_dir($moduleBasePath)) {
+                continue;
+            }
+
+            // View namespaces: register lowercase, exact and snake_case aliases so
+            // both `view('finance::...')` and `view('Finance::...')` resolve.
+            $viewsPath = $this->findFirstDir($moduleBasePath, ['resources/views', 'Resources/Views']);
+            if ($viewsPath !== null) {
+                $namespaces = array_unique([
+                    strtolower($moduleName),
+                    $moduleName,
+                    \Illuminate\Support\Str::snake($moduleName),
+                ]);
+
+                foreach ($namespaces as $namespace) {
+                    view()->addNamespace($namespace, $viewsPath);
                 }
             }
+
+            // Migrations (case-insensitive path).
+            $migrationsPath = $this->findFirstDir($moduleBasePath, ['database/migrations', 'Database/Migrations']);
+            if ($migrationsPath !== null) {
+                $this->loadMigrationsFrom($migrationsPath);
+            }
         }
+    }
+
+    /**
+     * Return the first existing directory among the given relative candidates.
+     */
+    protected function findFirstDir(string $basePath, array $candidates): ?string
+    {
+        foreach ($candidates as $candidate) {
+            $path = $basePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $candidate);
+            if (is_dir($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     private function configureDatabaseOptimizations(): void

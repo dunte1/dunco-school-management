@@ -18,6 +18,11 @@ class RouteServiceProvider extends ServiceProvider
             Route::prefix('api')
                 ->middleware('api')
                 ->group(base_path('routes/api.php'));
+
+            // Module API routes are opt-in (see routes/modules-api.php).
+            Route::prefix('api')
+                ->middleware('api')
+                ->group(base_path('routes/modules-api.php'));
         });
     }
 }
