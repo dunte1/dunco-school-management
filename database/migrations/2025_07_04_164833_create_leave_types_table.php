@@ -8,11 +8,20 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * NOTE: This canonical migration merges the columns that were previously
+     * split across two colliding migrations (database/ and Modules/HR/).
      */
     public function up(): void
     {
+        if (Schema::hasTable('leave_types')) {
+            return;
+        }
+
         Schema::create('leave_types', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }

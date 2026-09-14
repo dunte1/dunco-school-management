@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'primary_role_id')) {
                 $table->unsignedBigInteger('primary_role_id')->nullable()->after('school_id');
-                $table->foreign('primary_role_id')->references('id')->on('roles')->onDelete('set null');
             }
         });
     }

@@ -8,6 +8,9 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * NOTE: This canonical migration merges the columns that were previously
+     * split across two colliding migrations (database/ and Modules/Academic/).
      */
     public function up(): void
     {
@@ -25,6 +28,18 @@ return new class extends Migration
             if (! Schema::hasColumn('academic_students', 'class_id')) {
                 $table->unsignedBigInteger('class_id')->nullable();
             }
+            if (! Schema::hasColumn('academic_students', 'stream')) {
+                $table->string('stream')->nullable();
+            }
+            if (! Schema::hasColumn('academic_students', 'house')) {
+                $table->string('house')->nullable();
+            }
+            if (! Schema::hasColumn('academic_students', 'group')) {
+                $table->string('group')->nullable();
+            }
+            if (! Schema::hasColumn('academic_students', 'is_transfer')) {
+                $table->boolean('is_transfer')->default(false);
+            }
         });
     }
 
@@ -39,10 +54,12 @@ return new class extends Migration
 
         Schema::table('academic_students', function (Blueprint $table) {
             $drops = [];
-            foreach (['name','admission_number','class_id'] as $col) {
-                if (Schema::hasColumn('academic_students', $col)) { $drops[] = $col; }
+            foreach (['name', 'admission_number', 'class_id', 'stream', 'house', 'group', 'is_transfer'] as $col) {
+                if (Schema::hasColumn('academic_students', $col)) {
+                    $drops[] = $col;
+                }
             }
-            if (!empty($drops)) {
+            if (! empty($drops)) {
                 $table->dropColumn($drops);
             }
         });
