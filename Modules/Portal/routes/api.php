@@ -1,1 +1,9 @@
-<?phpuse Illuminate\Support\Facades\Route;use Modules\Portal\Http\Controllers\PortalController;Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {    Route::apiResource('portals', PortalController::class)->names('portal.api');});
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Modules\Portal\Http\Controllers\PortalController;
+
+Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {
+    Route::apiResource('portals', PortalController::class)->names('portal.api');
+});
+

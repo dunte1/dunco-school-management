@@ -1,1 +1,9 @@
-<?phpuse Illuminate\Support\Facades\Route;use Modules\API\Http\Controllers\APIController;Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {    Route::apiResource('apis', APIController::class)->names('api');});
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Modules\API\Http\Controllers\APIController;
+
+Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {
+    Route::apiResource('apis', APIController::class)->names('api');
+});
+

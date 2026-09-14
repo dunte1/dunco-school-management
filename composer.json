@@ -19,7 +19,7 @@
         "spatie/laravel-permission": "*",
         "spatie/laravel-backup": "^10.0",
         "sentry/sentry-laravel": "^4.6",
-        "knuckleswtf/scribe": "^4.38",
+        "knuckleswtf/scribe": "^5.0",
         "stancl/tenancy": "^3.9",
         "tightenco/ziggy": "^2.0"
     },

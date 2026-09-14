@@ -6,6 +6,13 @@
       0 => 'Inertia\\ServiceProvider',
     ),
   ),
+  'knuckleswtf/scribe' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Knuckles\\Scribe\\ScribeServiceProvider',
+    ),
+  ),
   'laravel/pail' => 
   array (
     'providers' => 
@@ -53,6 +60,36 @@
     'providers' => 
     array (
       0 => 'Pest\\Laravel\\PestServiceProvider',
+    ),
+  ),
+  'sentry/sentry-laravel' => 
+  array (
+    'aliases' => 
+    array (
+      'Sentry' => 'Sentry\\Laravel\\Facade',
+    ),
+    'providers' => 
+    array (
+      0 => 'Sentry\\Laravel\\ServiceProvider',
+      1 => 'Sentry\\Laravel\\Tracing\\ServiceProvider',
+    ),
+  ),
+  'spatie/laravel-backup' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Spatie\\Backup\\BackupServiceProvider',
+    ),
+  ),
+  'spatie/laravel-signal-aware-command' => 
+  array (
+    'aliases' => 
+    array (
+      'Signal' => 'Spatie\\SignalAwareCommand\\Facades\\Signal',
+    ),
+    'providers' => 
+    array (
+      0 => 'Spatie\\SignalAwareCommand\\SignalAwareCommandServiceProvider',
     ),
   ),
   'tightenco/ziggy' => 

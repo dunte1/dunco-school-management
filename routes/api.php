@@ -30,7 +30,6 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     Route::get('/attendance/analytics/student', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'getStudentAnalytics']);
     Route::get('/attendance/analytics/staff', [\Modules\HR\Http\Controllers\AttendanceController::class, 'getStaffAnalytics']);
-    Route::apiResource('attendance/session-templates', \App\Http\Controllers\Modules\Attendance\Http\Controllers\SessionTemplateController::class);
     Route::get('/attendance/past-records', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'getPastRecords']);
     Route::put('/attendance/past-records/{id}', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'updatePastRecord']);
     Route::get('/attendance/past-records/{id}/audit-log', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'getAuditLog']);

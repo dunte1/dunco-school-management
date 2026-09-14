@@ -1,1 +1,9 @@
-<?phpuse Illuminate\Support\Facades\Route;use Modules\HR\Http\Controllers\HRController;Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {    Route::apiResource('hrs', HRController::class)->names('hr.api');});
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Modules\HR\Http\Controllers\HRController;
+
+Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {
+    Route::apiResource('hrs', HRController::class)->names('hr.api');
+});
+

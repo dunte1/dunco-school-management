@@ -14,7 +14,7 @@
     <!-- Scripts: disable Vite in tests to avoid manifest error -->
     @php($isTesting = app()->environment('testing'))
     @if(!$isTesting)
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite('resources/js/app.ts')
     @endif
 </head>
 <body class="font-sans antialiased">

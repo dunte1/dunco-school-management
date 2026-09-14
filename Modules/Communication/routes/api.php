@@ -1,1 +1,11 @@
-<?phpuse Illuminate\Support\Facades\Route;use Modules\Communication\Http\Controllers\CommunicationController;use Modules\Communication\Http\Controllers\MessageController;Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {    Route::apiResource('communications', CommunicationController::class)->names('communication.api');    Route::apiResource('messages', MessageController::class)->names('messages.api');});
+<?php
+
+use Illuminate\Support\Facades\Route;
+use Modules\Communication\Http\Controllers\CommunicationController;
+use Modules\Communication\Http\Controllers\MessageController;
+
+Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {
+    Route::apiResource('communications', CommunicationController::class)->names('communication.api');
+    Route::apiResource('messages', MessageController::class)->names('messages.api');
+});
+
