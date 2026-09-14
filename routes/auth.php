@@ -42,6 +42,7 @@ Route::middleware('guest')->group(function () {
     Route::post('magic-link', [MagicLinkController::class, 'send'])
         ->name('magic.link.send');
     Route::get('magic-link/verify', [MagicLinkController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
         ->name('magic.link.verify');
 });
 

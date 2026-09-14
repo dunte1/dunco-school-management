@@ -15,29 +15,33 @@ use Modules\HR\Http\Controllers\DepartmentController;
 
 Route::middleware(['web', 'auth'])->prefix('hr')->group(function () {
     Route::get('/', [HRController::class, 'index'])->name('hr.index');
-    
-    Route::resource('staff', StaffController::class)->names('hr.staff');
-    Route::resource('roles', RoleController::class)->names('hr.roles');
-    Route::resource('permissions', PermissionController::class)->names('hr.permissions');
-    Route::resource('departments', DepartmentController::class)->names('hr.departments');
 
+    // Employee self-service
     Route::resource('attendance', AttendanceController::class)->except(['show']);
     Route::post('attendance/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
     Route::post('attendance/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
-    Route::get('attendance-report', [AttendanceController::class, 'report'])->name('attendance.report');
-
     Route::resource('leave', LeaveController::class)->names('hr.leave');
-    Route::post('leave/{id}/approve', [LeaveController::class, 'approve'])->name('hr.leave.approve');
-    Route::post('leave/{id}/reject', [LeaveController::class, 'reject'])->name('hr.leave.reject');
-    Route::get('leave-balances', [LeaveController::class, 'balances'])->name('hr.leave.balances');
-    
-    Route::resource('leave-type', LeaveTypeController::class)->names('hr.leave-type');
-    Route::post('leave-type/{id}/toggle-status', [LeaveTypeController::class, 'toggleStatus'])->name('hr.leave-type.toggle-status');
 
-    Route::resource('payroll', PayrollController::class)->names('hr.payroll');
-    Route::post('payroll/{id}/mark-paid', [PayrollController::class, 'markPaid'])->name('hr.payroll.markPaid');
+    // HR administration (admin only)
+    Route::middleware('admin')->group(function () {
+        Route::resource('staff', StaffController::class)->names('hr.staff');
+        Route::resource('roles', RoleController::class)->names('hr.roles');
+        Route::resource('permissions', PermissionController::class)->names('hr.permissions');
+        Route::resource('departments', DepartmentController::class)->names('hr.departments');
 
-    Route::resource('contract', ContractController::class)->names('hr.contract');
-    Route::resource('performance-reviews', PerformanceReviewController::class)->names('hr.performance_reviews');
-}); 
+        Route::get('attendance-report', [AttendanceController::class, 'report'])->name('attendance.report');
 
+        Route::post('leave/{id}/approve', [LeaveController::class, 'approve'])->name('hr.leave.approve');
+        Route::post('leave/{id}/reject', [LeaveController::class, 'reject'])->name('hr.leave.reject');
+        Route::get('leave-balances', [LeaveController::class, 'balances'])->name('hr.leave.balances');
+
+        Route::resource('leave-type', LeaveTypeController::class)->names('hr.leave-type');
+        Route::post('leave-type/{id}/toggle-status', [LeaveTypeController::class, 'toggleStatus'])->name('hr.leave-type.toggle-status');
+
+        Route::resource('payroll', PayrollController::class)->names('hr.payroll');
+        Route::post('payroll/{id}/mark-paid', [PayrollController::class, 'markPaid'])->name('hr.payroll.markPaid');
+
+        Route::resource('contract', ContractController::class)->names('hr.contract');
+        Route::resource('performance-reviews', PerformanceReviewController::class)->names('hr.performance_reviews');
+    });
+});

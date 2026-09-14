@@ -9,8 +9,8 @@ use Modules\Core\Http\Controllers\PermissionController;
 use Modules\Core\Http\Controllers\AuditLogController;
 use Modules\Core\Http\Controllers\SchoolSettingController;
 
-// All core routes are protected by 'web' (for session) and 'auth' (must be logged in)
-Route::middleware(['web', 'auth'])->prefix('core')->group(function () {
+// All core routes are protected by 'web' (for session), 'auth' and admin-only.
+Route::middleware(['web', 'auth', 'admin'])->prefix('core')->group(function () {
     Route::get('/', [CoreController::class, 'index'])->name('core.dashboard');
     Route::resource('schools', SchoolController::class)->names('core.schools');
     Route::resource('users', UserController::class)->names('core.users');

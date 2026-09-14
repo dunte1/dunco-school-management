@@ -10,7 +10,6 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        $this->middleware('role:admin');
         $query = AuditLog::with('user');
         if ($request->filled('action')) {
             $query->where('action', $request->action);

@@ -10,6 +10,21 @@ use Modules\Academic\Models\EnrollmentHistory;
 
 class StudentController extends Controller
 {
+    /**
+     * Find a student scoped to the current user's school (prevents cross-school IDOR).
+     */
+    protected function findStudentOrFail($id): Student
+    {
+        $query = Student::query();
+
+        $schoolId = auth()->user()?->school_id;
+        if ($schoolId !== null) {
+            $query->where('school_id', $schoolId);
+        }
+
+        return $query->findOrFail($id);
+    }
+
     public function index()
     {
         $students = Student::with('class')->get();
@@ -238,7 +253,7 @@ class StudentController extends Controller
 
     public function edit($id)
     {
-        $student = Student::findOrFail($id);
+        $student = $this->findStudentOrFail($id);
         $allParents = \App\Models\User::whereHas('roles', function($q) {
             $q->where('name', 'parent');
         })->get();
@@ -248,7 +263,7 @@ class StudentController extends Controller
 
     public function update(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
+        $student = $this->findStudentOrFail($id);
         $data = $request->validate([
             'student_id' => 'required|string|unique:academic_students,student_id,' . $id,
             'name' => 'required|string|max:255',
@@ -292,7 +307,7 @@ class StudentController extends Controller
 
     public function destroy($id)
     {
-        $student = Student::findOrFail($id);
+        $student = $this->findStudentOrFail($id);
         $student->delete();
         return redirect()->route('academic.students.index')->with('success', 'Student deleted successfully.');
     }
@@ -496,7 +511,7 @@ class StudentController extends Controller
 
     public function addParent(Request $request, $studentId)
     {
-        $student = Student::findOrFail($studentId);
+        $student = $this->findStudentOrFail($studentId);
         $data = $request->validate([
             'parent_id' => 'required|exists:users,id',
             'relationship' => 'required|string|max:255',
@@ -511,14 +526,14 @@ class StudentController extends Controller
 
     public function removeParent($studentId, $parentId)
     {
-        $student = Student::findOrFail($studentId);
+        $student = $this->findStudentOrFail($studentId);
         $student->parents()->detach($parentId);
         return redirect()->route('academic.students.edit', $studentId)->with('success', 'Parent/Guardian removed.');
     }
 
     public function uploadDocument(Request $request, $studentId)
     {
-        $student = Student::findOrFail($studentId);
+        $student = $this->findStudentOrFail($studentId);
         $data = $request->validate([
             'type' => 'required|string',
             'document' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
@@ -534,7 +549,7 @@ class StudentController extends Controller
 
     public function deleteDocument($studentId, $docId)
     {
-        $student = Student::findOrFail($studentId);
+        $student = $this->findStudentOrFail($studentId);
         $doc = $student->documents()->findOrFail($docId);
         \Storage::disk('public')->delete($doc->file_path);
         $doc->delete();
@@ -543,7 +558,8 @@ class StudentController extends Controller
 
     public function verifyDocument(Request $request, $studentId, $docId)
     {
-        $doc = \Modules\Academic\Models\StudentDocument::findOrFail($docId);
+        $student = $this->findStudentOrFail($studentId);
+        $doc = $student->documents()->findOrFail($docId);
         $action = $request->input('action');
         $note = $request->input('review_note');
         if ($action === 'verify') {
@@ -558,7 +574,8 @@ class StudentController extends Controller
 
     public function recordPayment(Request $request, $studentId, $feeId)
     {
-        $fee = \Modules\Academic\Models\StudentFee::findOrFail($feeId);
+        $student = $this->findStudentOrFail($studentId);
+        $fee = $student->fees()->findOrFail($feeId);
         $data = $request->validate([
             'amount' => 'required|numeric|min:1',
             'payment_date' => 'required|date',

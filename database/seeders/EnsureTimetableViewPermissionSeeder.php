@@ -22,13 +22,21 @@ class EnsureTimetableViewPermissionSeeder extends Seeder
         } else {
             $permissionId = $permission->id;
         }
-        // Assign to System Administrator
-        $role = DB::table('roles')->where('name', 'System Administrator')->first();
+        // Assign to the admin role (role name is 'admin'; 'System Administrator'
+        // is only its display name). Uses the app's custom permission_role pivot.
+        $role = DB::table('roles')->where('name', 'admin')->first();
         if ($role && $permissionId) {
-            DB::table('role_has_permissions')->updateOrInsert([
-                'role_id' => $role->id,
-                'permission_id' => $permissionId,
-            ]);
+            DB::table('permission_role')->updateOrInsert(
+                [
+                    'role_id' => $role->id,
+                    'permission_id' => $permissionId,
+                    'school_id' => null,
+                ],
+                [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
         }
     }
 } 

@@ -27,7 +27,7 @@ class EmailVerificationNotification extends VerifyEmail
      *
      * @return array<int, string>
      */
-    public function via(object $notifiable): array
+    public function via($notifiable)
     {
         return ['mail'];
     }
@@ -35,7 +35,7 @@ class EmailVerificationNotification extends VerifyEmail
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
         $verificationUrl = $this->verificationUrl($notifiable);
 
