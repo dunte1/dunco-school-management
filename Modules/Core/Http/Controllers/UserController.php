@@ -55,6 +55,7 @@ class UserController extends Controller
         $data['is_active'] = $request->has('is_active');
         $data['force_password_reset'] = $request->has('force_password_reset');
         $data['primary_role_id'] = $request->input('primary_role_id');
+        $data['email_verified_at'] = now(); // accounts are admin-managed / active on creation
         if ($request->hasFile('avatar')) {
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }

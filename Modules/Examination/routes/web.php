@@ -144,7 +144,7 @@ Route::prefix('examination')->name('examination.')->middleware(['auth', 'verifie
 
     // Add this route for online exam creation
     Route::get('exams/online/create', [ExamController::class, 'createOnline'])->name('online-exams.create');
-    Route::post('exam-types', [ExamTypeController::class, 'store'])->name('exam-types.store');
+    Route::resource('exam-types', ExamTypeController::class)->names('exam-types');
 });
 
 // API Routes for real-time features

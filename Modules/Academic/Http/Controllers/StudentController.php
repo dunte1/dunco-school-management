@@ -92,6 +92,8 @@ class StudentController extends Controller
             'email' => $email,
             'password' => bcrypt('password123'),
             'school_id' => $data['school_id'],
+            'is_active' => true,
+            'email_verified_at' => now(),
         ]);
         if (method_exists($user, 'roles')) {
             $studentRole = \App\Models\Role::where('name', 'student')->first();

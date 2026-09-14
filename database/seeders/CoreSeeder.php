@@ -250,6 +250,7 @@ class CoreSeeder extends Seeder
                 'password' => $seedPassword,
                 'school_id' => $school->id,
                 'is_active' => true,
+                'email_verified_at' => now(),
                 'force_password_reset' => $generatedPassword,
             ]
         );

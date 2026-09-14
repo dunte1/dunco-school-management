@@ -4,12 +4,15 @@ namespace Modules\Examination\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Examination\Models\ExamType;
 
 class ExamTypeController extends Controller
 {
     public function index()
     {
-        return view('examination::type.index');
+        $types = ExamType::orderBy('name')->get();
+
+        return view('examination::type.index', compact('types'));
     }
 
     public function create()
@@ -19,29 +22,50 @@ class ExamTypeController extends Controller
 
     public function store(Request $request)
     {
-        // Exam type creation logic
-        return redirect()->route('examination.type.index');
+        ExamType::create($this->validated($request));
+
+        return redirect()->route('examination.exam-types.index')->with('success', 'Exam type created.');
     }
 
     public function show($id)
     {
-        return view('examination::type.show');
+        $type = ExamType::findOrFail($id);
+
+        return view('examination::type.show', compact('type'));
     }
 
     public function edit($id)
     {
-        return view('examination::type.edit');
+        $type = ExamType::findOrFail($id);
+
+        return view('examination::type.edit', compact('type'));
     }
 
     public function update(Request $request, $id)
     {
-        // Exam type update logic
-        return redirect()->route('examination.type.index');
+        $type = ExamType::findOrFail($id);
+        $type->update($this->validated($request, $type->id));
+
+        return redirect()->route('examination.exam-types.index')->with('success', 'Exam type updated.');
     }
 
     public function destroy($id)
     {
-        // Exam type delete logic
-        return redirect()->route('examination.type.index');
+        ExamType::findOrFail($id)->delete();
+
+        return redirect()->route('examination.exam-types.index')->with('success', 'Exam type deleted.');
+    }
+
+    protected function validated(Request $request, ?int $ignoreId = null): array
+    {
+        $unique = 'unique:exam_types,code'.($ignoreId ? ','.$ignoreId : '');
+
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|'.$unique,
+            'description' => 'nullable|string',
+            'is_online' => 'boolean',
+            'is_active' => 'boolean',
+        ]);
     }
 }
