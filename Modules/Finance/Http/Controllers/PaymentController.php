@@ -50,7 +50,9 @@ class PaymentController extends Controller
 
     public function edit($id)
     {
-        return view('finance::payments.edit');
+        $payment = Payment::findOrFail($id);
+
+        return view('finance::payments.edit', compact('payment'));
     }
 
     public function update(Request $request, $id)

@@ -35,12 +35,16 @@ class FinanceRoleController extends Controller
 
     public function show($id)
     {
-        return view('finance::roles.show');
+        $role = FinanceRole::findOrFail($id);
+
+        return view('finance::roles.show', compact('role'));
     }
 
     public function edit($id)
     {
-        return view('finance::roles.edit');
+        $role = FinanceRole::findOrFail($id);
+
+        return view('finance::roles.edit', compact('role'));
     }
 
     public function update(Request $request, $id)

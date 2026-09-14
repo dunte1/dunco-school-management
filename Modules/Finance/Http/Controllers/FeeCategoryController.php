@@ -42,7 +42,9 @@ class FeeCategoryController extends Controller
 
     public function show($id)
     {
-        return view('finance::fee_categories.show');
+        $category = FeeCategory::findOrFail($id);
+
+        return view('finance::fee_categories.show', compact('category'));
     }
 
     public function edit($id)

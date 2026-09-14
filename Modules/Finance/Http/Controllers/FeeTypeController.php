@@ -42,7 +42,9 @@ class FeeTypeController extends Controller
 
     public function show($id)
     {
-        return view('finance::fee_types.show');
+        $type = FeeType::findOrFail($id);
+
+        return view('finance::fee_types.show', compact('type'));
     }
 
     public function edit($id)

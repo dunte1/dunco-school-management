@@ -35,12 +35,16 @@ class BillingController extends Controller
 
     public function show($id)
     {
-        return view('finance::billing.show');
+        $invoice = Invoice::findOrFail($id);
+
+        return view('finance::billing.show', compact('invoice'));
     }
 
     public function edit($id)
     {
-        return view('finance::billing.edit');
+        $invoice = Invoice::findOrFail($id);
+
+        return view('finance::billing.edit', compact('invoice'));
     }
 
     public function update(Request $request, $id)

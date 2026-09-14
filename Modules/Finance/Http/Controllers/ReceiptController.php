@@ -35,12 +35,16 @@ class ReceiptController extends Controller
 
     public function show($id)
     {
-        return view('finance::receipts.show');
+        $receipt = Payment::findOrFail($id);
+
+        return view('finance::receipts.show', compact('receipt'));
     }
 
     public function edit($id)
     {
-        return view('finance::receipts.edit');
+        $receipt = Payment::findOrFail($id);
+
+        return view('finance::receipts.edit', compact('receipt'));
     }
 
     public function update(Request $request, $id)
