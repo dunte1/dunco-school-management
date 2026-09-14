@@ -36,7 +36,7 @@ class FeeTypeController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        FeeType::create($request->all());
+        FeeType::create($request->validated());
         return redirect()->route('finance.fee-types.index')->with('success', 'Fee type created successfully.');
     }
 
@@ -58,7 +58,7 @@ class FeeTypeController extends Controller
         ]);
 
         $type = FeeType::findOrFail($id);
-        $type->update($request->all());
+        $type->update($request->validated());
         return redirect()->route('finance.fee-types.index')->with('success', 'Fee type updated successfully.');
     }
 

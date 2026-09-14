@@ -64,6 +64,8 @@ class StudentController extends Controller
             'doctor_phone' => 'nullable|string|max:32',
             'insurance_provider' => 'nullable|string|max:255',
             'insurance_number' => 'nullable|string|max:64',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
         $data['school_id'] = auth()->user()->school_id;
         $data['admission_number'] = $this->generateAdmissionNumber($data['school_id']);
@@ -318,17 +320,60 @@ class StudentController extends Controller
                 $zip = new \ZipArchive;
                 $zipPath = $request->file('documents_zip')->getRealPath();
                 $extractPath = storage_path('app/tmp/bulk_docs_' . uniqid());
-                mkdir($extractPath, 0777, true);
+                mkdir($extractPath, 0755, true);
                 if ($zip->open($zipPath) === true) {
-                    $zip->extractTo($extractPath);
+                    $extractReal = realpath($extractPath);
+
+                    // Safe extraction: reject path traversal and absolute entries.
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $entryName = $zip->getNameIndex($i);
+                        if ($entryName === false) {
+                            continue;
+                        }
+
+                        $normalized = str_replace('\\', '/', $entryName);
+                        if (str_contains($normalized, '..')
+                            || str_starts_with($normalized, '/')
+                            || preg_match('#^[A-Za-z]:#', $normalized)) {
+                            continue; // skip unsafe entry
+                        }
+
+                        $target = $extractPath . DIRECTORY_SEPARATOR . $normalized;
+                        $targetDir = dirname($target);
+                        if (!is_dir($targetDir)) {
+                            mkdir($targetDir, 0755, true);
+                        }
+
+                        // Ensure the resolved directory is still inside the sandbox.
+                        $realTargetDir = realpath($targetDir);
+                        if ($realTargetDir === false || $extractReal === false
+                            || !str_starts_with($realTargetDir, $extractReal)) {
+                            continue;
+                        }
+
+                        $stream = $zip->getStream($entryName);
+                        if ($stream === false) {
+                            continue;
+                        }
+                        $out = fopen($target, 'wb');
+                        if ($out !== false) {
+                            stream_copy_to_stream($stream, $out);
+                            fclose($out);
+                        }
+                        fclose($stream);
+                    }
                     $zip->close();
-                    // Map files by student_id and doc type
-                    foreach (scandir($extractPath) as $file) {
-                        if (in_array($file, ['.', '..'])) continue;
-                        if (preg_match('/^(.*?)_(.*?)\.(.+)$/', $file, $m)) {
-                            $sid = $m[1];
-                            $dtype = $m[2];
-                            $docMap[$sid][$dtype] = $extractPath . '/' . $file;
+
+                    // Map files by student_id and doc type (recursive).
+                    $iterator = new \RecursiveIteratorIterator(
+                        new \RecursiveDirectoryIterator($extractPath, \FilesystemIterator::SKIP_DOTS)
+                    );
+                    foreach ($iterator as $fileInfo) {
+                        if (!$fileInfo->isFile()) {
+                            continue;
+                        }
+                        if (preg_match('/^(.*?)_(.*?)\.(.+)$/', $fileInfo->getFilename(), $m)) {
+                            $docMap[$m[1]][$m[2]] = $fileInfo->getPathname();
                         }
                     }
                 }
@@ -476,7 +521,7 @@ class StudentController extends Controller
         $student = Student::findOrFail($studentId);
         $data = $request->validate([
             'type' => 'required|string',
-            'document' => 'required|file|max:4096',
+            'document' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
         $filePath = $request->file('document')->store('student_documents', 'public');
         $student->documents()->create([

@@ -101,8 +101,8 @@ class SettingsController extends Controller
 
     public function global()
     {
-        // Get global settings from database
-        $settings = Setting::where('type', 'global')->pluck('value', 'key')->toArray();
+        // Get global settings from database (use models so encrypted secrets decrypt)
+        $settings = Setting::where('type', 'global')->get()->pluck('value', 'key')->toArray();
         
         // Define available languages
         $languages = [
@@ -183,6 +183,11 @@ class SettingsController extends Controller
 
         // Save settings to database
         foreach ($request->except(['_token', 'logo', 'favicon', 'delete_logo', 'delete_favicon']) as $key => $value) {
+            // A blank secret field means "keep the current value" - never overwrite with empty.
+            if (in_array($key, Setting::SECRET_KEYS, true) && ($value === null || $value === '')) {
+                continue;
+            }
+
             Setting::updateOrCreate(
                 ['key' => $key, 'type' => 'global'],
                 ['value' => $value, 'description' => 'Global setting: ' . $key]

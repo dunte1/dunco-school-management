@@ -22,7 +22,6 @@ class CardPaymentService
             'card_number' => substr($cardNumber, -4),
             'amount' => $amount,
             'reference' => $reference,
-            'api_key' => $this->apiKey,
         ]);
         // Simulate a successful response
         return [

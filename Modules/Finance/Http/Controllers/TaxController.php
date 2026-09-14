@@ -37,7 +37,7 @@ class TaxController extends Controller
             'active' => 'boolean',
         ]);
 
-        Tax::create($request->all());
+        Tax::create($request->validated());
         return redirect()->route('finance.taxes.index')->with('success', 'Tax rule created successfully.');
     }
 
@@ -61,7 +61,7 @@ class TaxController extends Controller
         ]);
 
         $tax = Tax::findOrFail($id);
-        $tax->update($request->all());
+        $tax->update($request->validated());
         return redirect()->route('finance.taxes.index')->with('success', 'Tax rule updated successfully.');
     }
 

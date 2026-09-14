@@ -16,7 +16,8 @@ class GeminiService
 
     public function __construct()
     {
-        $this->apiKey = env('GEMINI_API_KEY') ?: 'AIzaSyDk73BVWhZ5AOhkTU4l4Ovzaf3Y08OFu2w';
+        // No hardcoded fallback: configure GEMINI_API_KEY in the environment.
+        $this->apiKey = env('GEMINI_API_KEY');
     }
 
     /**
@@ -34,7 +35,7 @@ class GeminiService
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
             ])->withOptions([
-                'verify' => false,
+                'verify' => true,
                 'timeout' => 30,
             ])->post($this->baseUrl . '/' . $this->model . ':generateContent?key=' . $this->apiKey, [
                 'contents' => $messages,

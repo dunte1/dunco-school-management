@@ -36,9 +36,10 @@ class PaymentController extends Controller
             'payment_date' => 'required|date',
             'method' => 'required|string|max:255',
             'status' => 'required|string|max:255',
+            'reference' => 'nullable|string|max:255',
         ]);
 
-        Payment::create($request->all());
+        Payment::create($request->validated());
         return redirect()->route('finance.payments.index')->with('success', 'Payment recorded successfully.');
     }
 
@@ -60,10 +61,11 @@ class PaymentController extends Controller
             'payment_date' => 'required|date',
             'method' => 'required|string|max:255',
             'status' => 'required|string|max:255',
+            'reference' => 'nullable|string|max:255',
         ]);
 
         $payment = Payment::findOrFail($id);
-        $payment->update($request->all());
+        $payment->update($request->validated());
         return redirect()->route('finance.payments.index')->with('success', 'Payment updated successfully.');
     }
 

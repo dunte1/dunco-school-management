@@ -87,6 +87,8 @@ class MessageController extends Controller
             'recipients' => 'required|array',
             'subject' => 'nullable|string|max:255',
             'body' => 'required|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt,csv,zip|max:10240',
         ]);
         $message = Message::create([
             'sender_id' => Auth::id(),
@@ -121,7 +123,7 @@ class MessageController extends Controller
         $settings = Setting::whereIn('key', [
             'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_encryption', 'smtp_from_address',
             'fcm_server_key', 'africastalking_username', 'africastalking_api_key',
-        ])->pluck('value', 'key');
+        ])->get()->pluck('value', 'key');
 
         // Get recipient users
         $recipients = \App\Models\User::whereIn('id', $request->recipients)->get();
@@ -358,6 +360,8 @@ class MessageController extends Controller
 
         $request->validate([
             'body' => 'required|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt,csv,zip|max:10240',
         ]);
 
         $message = Message::create([
@@ -435,6 +439,8 @@ class MessageController extends Controller
         $recipient = MessageRecipient::with('message')->where('id', $id)->where('recipient_id', $userId)->firstOrFail();
         $request->validate([
             'body' => 'required|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt,csv,zip|max:10240',
         ]);
         $reply = Message::create([
             'sender_id' => $userId,
@@ -504,6 +510,8 @@ class MessageController extends Controller
             'target_type' => 'required|in:all,role,class,group,individual',
             'target_data' => 'nullable|array',
             'scheduled_at' => 'nullable|date|after:now',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt,csv,zip|max:10240',
         ]);
 
         $broadcast = Broadcast::create([

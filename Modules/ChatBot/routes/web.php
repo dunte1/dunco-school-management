@@ -29,7 +29,7 @@ Route::middleware(['web', 'auth'])->prefix('chatbot')->group(function () {
 });
 
 // Admin routes
-Route::middleware(['web', 'auth'])->prefix('chatbot/admin')->group(function () {
+Route::middleware(['web', 'auth', 'admin'])->prefix('chatbot/admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('chatbot.admin.dashboard');
     Route::get('/settings', [AdminController::class, 'settings'])->name('chatbot.admin.settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('chatbot.admin.settings.update');

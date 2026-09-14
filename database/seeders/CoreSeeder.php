@@ -228,13 +228,29 @@ class CoreSeeder extends Seeder
             );
         }
 
-        // Create admin user if it doesn't exist
+        // Create admin user if it doesn't exist.
+        // Production: never ship a default password - use SEED_ADMIN_PASSWORD or
+        // generate a random one and force a reset on first login.
+        $seedPassword = env('SEED_ADMIN_PASSWORD');
+        $generatedPassword = false;
+
+        if (!$seedPassword) {
+            if (app()->environment('production')) {
+                $seedPassword = \Illuminate\Support\Str::password(16);
+                $generatedPassword = true;
+            } else {
+                $seedPassword = 'password';
+            }
+        }
+
         $adminUser = User::firstOrCreate(
             ['email' => 'admin@dunco.com'],
             [
                 'name' => 'System Administrator',
-                'password' => bcrypt('password'),
+                'password' => $seedPassword,
                 'school_id' => $school->id,
+                'is_active' => true,
+                'force_password_reset' => $generatedPassword,
             ]
         );
 
@@ -311,7 +327,11 @@ class CoreSeeder extends Seeder
         );
 
         $this->command->info('Core data seeded successfully!');
-        $this->command->info('Admin user: admin@dunco.com / password');
+        if ($generatedPassword) {
+            $this->command->warn('Generated admin password (store securely, reset on first login): ' . $seedPassword);
+        } else {
+            $this->command->info('Admin user: admin@dunco.com / ' . $seedPassword);
+        }
         $this->command->info('Total roles created: ' . count($roles));
     }
 } 

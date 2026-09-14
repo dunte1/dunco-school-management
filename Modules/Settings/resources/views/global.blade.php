@@ -95,7 +95,7 @@
         </div>
         <div class="mb-3">
             <label for="smtp_pass" class="form-label">SMTP Password</label>
-            <input type="password" name="smtp_pass" id="smtp_pass" class="form-control" value="{{ old('smtp_pass', $settings['smtp_pass'] ?? '') }}">
+            <input type="password" name="smtp_pass" id="smtp_pass" class="form-control" value="" placeholder="Leave blank to keep current" autocomplete="new-password">
         </div>
         <div class="mb-3">
             <label for="smtp_encryption" class="form-label">SMTP Encryption</label>
@@ -116,7 +116,7 @@
         </div>
         <div class="mb-3">
             <label for="sms_api_key" class="form-label">SMS API Key</label>
-            <input type="text" name="sms_api_key" id="sms_api_key" class="form-control" value="{{ old('sms_api_key', $settings['sms_api_key'] ?? '') }}">
+            <input type="text" name="sms_api_key" id="sms_api_key" class="form-control" value="" placeholder="Leave blank to keep current" autocomplete="off">
         </div>
         <div class="mb-3">
             <label for="sms_sender_id" class="form-label">SMS Sender ID</label>
@@ -125,12 +125,12 @@
         <h4>API Token</h4>
         <div class="mb-3">
             <label for="api_token" class="form-label">API Token</label>
-            <input type="text" name="api_token" id="api_token" class="form-control" value="{{ old('api_token', $settings['api_token'] ?? '') }}">
+            <input type="text" name="api_token" id="api_token" class="form-control" value="" placeholder="Leave blank to keep current" autocomplete="off">
         </div>
         <h4>Push Notification Settings</h4>
         <div class="mb-3">
             <label for="fcm_server_key" class="form-label">FCM Server Key</label>
-            <input type="text" name="fcm_server_key" id="fcm_server_key" class="form-control" value="{{ old('fcm_server_key', $settings['fcm_server_key'] ?? '') }}">
+            <input type="text" name="fcm_server_key" id="fcm_server_key" class="form-control" value="" placeholder="Leave blank to keep current" autocomplete="off">
         </div>
         <h4>SMS Provider: Africa's Talking</h4>
         <div class="mb-3">
@@ -139,7 +139,7 @@
         </div>
         <div class="mb-3">
             <label for="africastalking_api_key" class="form-label">Africa's Talking API Key</label>
-            <input type="text" name="africastalking_api_key" id="africastalking_api_key" class="form-control" value="{{ old('africastalking_api_key', $settings['africastalking_api_key'] ?? '') }}">
+            <input type="text" name="africastalking_api_key" id="africastalking_api_key" class="form-control" value="" placeholder="Leave blank to keep current" autocomplete="off">
         </div>
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-success">Save Settings</button>

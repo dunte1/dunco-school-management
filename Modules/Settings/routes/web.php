@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Settings\Http\Controllers\SettingsController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('settings', SettingsController::class)->names('settings');
     Route::get('settings-global', [SettingsController::class, 'global'])->name('settings.global');
     Route::post('settings-global', [SettingsController::class, 'updateGlobal'])->name('settings.global.update');

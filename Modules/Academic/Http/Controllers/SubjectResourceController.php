@@ -26,7 +26,7 @@ class SubjectResourceController extends Controller
             'type' => 'required|in:file,link',
             'title' => 'required|string|max:255',
             'url' => 'nullable|url',
-            'file' => 'nullable|file|max:10240', // 10MB max
+            'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip|max:10240', // 10MB max
         ]);
 
         $data = [

@@ -23,8 +23,8 @@
                                 <div class="mb-3">
                                     <label for="openai_api_key" class="form-label">OpenAI API Key</label>
                                     <input type="password" class="form-control" id="openai_api_key" name="openai_api_key" 
-                                           value="{{ env('OPENAI_API_KEY') }}" placeholder="sk-...">
-                                    <div class="form-text">Your OpenAI API key for authentication</div>
+                                           value="" placeholder="sk-... (leave blank to keep current)" autocomplete="new-password">
+                                    <div class="form-text">Your OpenAI API key for authentication. The stored value is never shown.</div>
                                 </div>
                             </div>
                             <div class="col-md-6">

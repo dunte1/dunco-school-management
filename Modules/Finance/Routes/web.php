@@ -19,15 +19,17 @@ use Modules\Finance\Http\Controllers\SettingsController;
 use Modules\Finance\Http\Controllers\FinanceController;
 
 
-// Payment Gateway Routes (must be outside the admin group for portal access)
-Route::post('finance/payment/pay/{fee_id}', [PaymentController::class, 'pay'])->name('finance.payment.pay');
-Route::get('finance/payment/success', [PaymentController::class, 'success'])->name('finance.payment.success');
-Route::get('finance/payment/cancel', [PaymentController::class, 'cancel'])->name('finance.payment.cancel');
-Route::post('finance/payment/mpesa-stk/{fee_id}', [PaymentController::class, 'mpesaStkPush'])->name('finance.payment.mpesa-stk');
-Route::post('finance/payment/mpesa-callback', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.mpesa-callback');
-Route::post('finance/payment/bank-transfer/{fee_id}', [PaymentController::class, 'submitBankTransfer'])->name('finance.payment.bank-transfer');
+// Payment Gateway Routes (authenticated users / portal access)
+Route::middleware('auth')->group(function () {
+    Route::post('finance/payment/pay/{fee_id}', [PaymentController::class, 'pay'])->name('finance.payment.pay');
+    Route::get('finance/payment/success', [PaymentController::class, 'success'])->name('finance.payment.success');
+    Route::get('finance/payment/cancel', [PaymentController::class, 'cancel'])->name('finance.payment.cancel');
+    Route::post('finance/payment/mpesa-stk/{fee_id}', [PaymentController::class, 'mpesaStkPush'])->name('finance.payment.mpesa-stk');
+    Route::post('finance/payment/mpesa-callback', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.mpesa-callback');
+    Route::post('finance/payment/bank-transfer/{fee_id}', [PaymentController::class, 'submitBankTransfer'])->name('finance.payment.bank-transfer');
+});
 
-Route::prefix('finance')->name('finance.')->group(function () {
+Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
     // Main Finance Dashboard
     Route::get('/', [FinanceController::class, 'index'])->name('index');
     

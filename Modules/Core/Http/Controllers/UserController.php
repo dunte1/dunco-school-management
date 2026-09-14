@@ -108,8 +108,11 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $oldValues = $user->toArray();
             
-            // Log the incoming request data for debugging
-            \Log::info('User update request data:', $request->all());
+            // Log only the field names (never values such as passwords/tokens).
+            \Log::info('User update request received.', [
+                'user_id' => $id,
+                'fields' => array_keys($request->except(['password', 'password_confirmation', '_token', '_method'])),
+            ]);
             
             $request->validate([
                 'name' => 'required|string|max:255',

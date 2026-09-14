@@ -25,6 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', App\Http\Middleware\CheckUserActive::class);
         $middleware->appendToGroup('web', App\Http\Middleware\PerformanceMonitor::class);
         $middleware->appendToGroup('api', App\Http\Middleware\PerformanceMonitor::class);
+
+        // Route middleware aliases (previously undefined, causing 500s / no authz)
+        $middleware->alias([
+            'role' => App\Http\Middleware\EnsureUserHasRole::class,
+            'permission' => App\Http\Middleware\CheckPermission::class,
+            'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Basic exception handling configuration

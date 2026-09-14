@@ -35,7 +35,7 @@ class OpenAIService
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->withOptions([
-                'verify' => false, // Disable SSL verification for development
+                'verify' => true,
                 'timeout' => 30,
             ])->post($this->baseUrl . '/chat/completions', [
                 'model' => $this->model,
@@ -376,7 +376,7 @@ class OpenAIService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
             ])->withOptions([
-                'verify' => false, // Disable SSL verification for development
+                'verify' => true,
                 'timeout' => 10,
             ])->get($this->baseUrl . '/models');
 
@@ -407,7 +407,7 @@ class OpenAIService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
             ])->withOptions([
-                'verify' => false, // Disable SSL verification for development
+                'verify' => true,
                 'timeout' => 10,
             ])->get($this->baseUrl . '/models');
 
@@ -437,7 +437,7 @@ class OpenAIService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
             ])->withOptions([
-                'verify' => false, // Disable SSL verification for development
+                'verify' => true,
                 'timeout' => 10,
             ])->get($this->baseUrl . '/usage', [
                 'date' => $date
@@ -469,7 +469,7 @@ class OpenAIService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
             ])->withOptions([
-                'verify' => false, // Disable SSL verification for development
+                'verify' => true,
                 'timeout' => 10,
             ])->get($this->baseUrl . '/models');
 

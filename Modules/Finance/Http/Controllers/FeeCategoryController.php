@@ -36,7 +36,7 @@ class FeeCategoryController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        FeeCategory::create($request->all());
+        FeeCategory::create($request->validated());
         return redirect()->route('finance.fee-categories.index')->with('success', 'Fee category created successfully.');
     }
 
@@ -58,7 +58,7 @@ class FeeCategoryController extends Controller
         ]);
 
         $category = FeeCategory::findOrFail($id);
-        $category->update($request->all());
+        $category->update($request->validated());
         return redirect()->route('finance.fee-categories.index')->with('success', 'Fee category updated successfully.');
     }
 

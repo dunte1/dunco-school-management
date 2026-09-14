@@ -31,7 +31,7 @@ class PerformanceReviewController extends Controller
             'comments' => 'nullable|string',
             'review_date' => 'required|date',
         ]);
-        PerformanceReview::create($request->all());
+        PerformanceReview::create($request->validated());
         return redirect()->route('hr.performance_reviews.index')->with('success', 'Performance review created successfully.');
     }
 
@@ -53,7 +53,7 @@ class PerformanceReviewController extends Controller
             'comments' => 'nullable|string',
             'review_date' => 'required|date',
         ]);
-        $review->update($request->all());
+        $review->update($request->validated());
         return redirect()->route('hr.performance_reviews.index')->with('success', 'Performance review updated successfully.');
     }
 

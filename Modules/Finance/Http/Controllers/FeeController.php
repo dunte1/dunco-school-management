@@ -51,7 +51,7 @@ class FeeController extends Controller
             'fee_type_id' => 'nullable|exists:fee_types,id',
         ]);
 
-        Fee::create($request->all());
+        Fee::create($request->validated());
         return redirect()->route('finance.fees.index')->with('success', 'Fee created successfully.');
     }
 
@@ -89,7 +89,7 @@ class FeeController extends Controller
         ]);
 
         $fee = Fee::findOrFail($id);
-        $fee->update($request->all());
+        $fee->update($request->validated());
         return redirect()->route('finance.fees.index')->with('success', 'Fee updated successfully.');
     }
 
