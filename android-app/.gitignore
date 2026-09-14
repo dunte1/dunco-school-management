@@ -1,0 +1,15 @@
+# Local SDK path — machine-specific, must not be committed
+local.properties
+
+# Gradle
+.gradle/
+build/
+app/build/
+
+# IDE
+.idea/
+*.iml
+
+# Keystore files (never commit real signing keys)
+*.jks
+*.keystore
