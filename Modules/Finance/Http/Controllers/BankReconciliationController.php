@@ -20,12 +20,12 @@ class BankReconciliationController extends Controller
             $transactions = collect();
         }
         
-        return view('finance::bank-reconciliation.index', compact('transactions'));
+        return view('finance::bank_reconciliation.index', compact('transactions'));
     }
 
     public function create()
     {
-        return view('finance::bank-reconciliation.create');
+        return view('finance::bank_reconciliation.create');
     }
 
     public function store(Request $request)
@@ -36,12 +36,12 @@ class BankReconciliationController extends Controller
 
     public function show($id)
     {
-        return view('finance::bank-reconciliation.show');
+        return view('finance::bank_reconciliation.show');
     }
 
     public function edit($id)
     {
-        return view('finance::bank-reconciliation.edit');
+        return view('finance::bank_reconciliation.edit');
     }
 
     public function update(Request $request, $id)
@@ -58,11 +58,11 @@ class BankReconciliationController extends Controller
 
     public function reconcile($id)
     {
-        return view('finance::bank-reconciliation.reconcile');
+        return view('finance::bank_reconciliation.reconcile');
     }
 
     public function report()
     {
-        return view('finance::bank-reconciliation.report');
+        return view('finance::bank_reconciliation.report');
     }
 }

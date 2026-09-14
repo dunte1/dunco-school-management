@@ -25,7 +25,7 @@ class MultiBankController extends Controller
 
     public function create()
     {
-        return view('finance::multi-bank.create');
+        return view('finance::banks.create');
     }
 
     public function store(Request $request)
@@ -35,12 +35,12 @@ class MultiBankController extends Controller
 
     public function show($id)
     {
-        return view('finance::multi-bank.show');
+        return view('finance::banks.show');
     }
 
     public function edit($id)
     {
-        return view('finance::multi-bank.edit');
+        return view('finance::banks.edit');
     }
 
     public function update(Request $request, $id)

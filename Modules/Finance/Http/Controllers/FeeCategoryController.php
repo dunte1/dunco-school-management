@@ -21,12 +21,12 @@ class FeeCategoryController extends Controller
             $categories = collect();
         }
         
-        return view('finance::fee-categories.index', compact('categories'));
+        return view('finance::fee_categories.index', compact('categories'));
     }
 
     public function create()
     {
-        return view('finance::fee-categories.create');
+        return view('finance::fee_categories.create');
     }
 
     public function store(Request $request)
@@ -42,12 +42,12 @@ class FeeCategoryController extends Controller
 
     public function show($id)
     {
-        return view('finance::fee-categories.show');
+        return view('finance::fee_categories.show');
     }
 
     public function edit($id)
     {
-        return view('finance::fee-categories.edit');
+        return view('finance::fee_categories.edit');
     }
 
     public function update(Request $request, $id)

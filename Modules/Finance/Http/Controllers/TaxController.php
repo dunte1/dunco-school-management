@@ -25,7 +25,7 @@ class TaxController extends Controller
 
     public function create()
     {
-        return view('finance::tax.create');
+        return view('finance::taxes.create');
     }
 
     public function store(Request $request)
@@ -43,12 +43,12 @@ class TaxController extends Controller
 
     public function show($id)
     {
-        return view('finance::tax.show');
+        return view('finance::taxes.show');
     }
 
     public function edit($id)
     {
-        return view('finance::tax.edit');
+        return view('finance::taxes.edit');
     }
 
     public function update(Request $request, $id)
