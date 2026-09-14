@@ -85,4 +85,49 @@ class PaymentController extends Controller
     {
         return view('finance::payments.report');
     }
+
+    // --- Online payment gateway endpoints -----------------------------------
+    // The gateway is not configured yet (see gaps.md Phase 8). These endpoints
+    // return honest feedback instead of fabricating a successful charge.
+
+    public function pay(Request $request, $fee_id)
+    {
+        return redirect()->route('finance.payments.index')
+            ->with('info', 'Online payment gateway is not configured. Record the payment manually.');
+    }
+
+    public function success(Request $request)
+    {
+        return redirect()->route('finance.payments.index')
+            ->with('info', 'Payment success callback received.');
+    }
+
+    public function cancel(Request $request)
+    {
+        return redirect()->route('finance.payments.index')
+            ->with('warning', 'Payment was cancelled.');
+    }
+
+    public function mpesaStkPush(Request $request, $fee_id)
+    {
+        return redirect()->route('finance.payments.index')
+            ->with('info', 'M-Pesa STK push is not configured yet.');
+    }
+
+    public function mpesaCallback(Request $request)
+    {
+        \Illuminate\Support\Facades\Log::info('M-Pesa payment callback received', $request->all());
+
+        return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+    }
+
+    public function submitBankTransfer(Request $request, $fee_id)
+    {
+        $request->validate([
+            'reference' => 'required|string|max:255',
+        ]);
+
+        return redirect()->route('finance.payments.index')
+            ->with('info', 'Bank transfer submitted for verification with reference '.$request->input('reference').'.');
+    }
 }

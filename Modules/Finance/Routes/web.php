@@ -27,6 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::post('finance/payment/mpesa-stk/{fee_id}', [PaymentController::class, 'mpesaStkPush'])->name('finance.payment.mpesa-stk');
     Route::post('finance/payment/mpesa-callback', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.mpesa-callback');
     Route::post('finance/payment/bank-transfer/{fee_id}', [PaymentController::class, 'submitBankTransfer'])->name('finance.payment.bank-transfer');
+
+    // M-Pesa C2B endpoints (URLs are displayed in Finance > Settings).
+    Route::post('finance/payment/c2b-confirmation', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.c2b-confirmation');
+    Route::post('finance/payment/c2b-validation', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.c2b-validation');
 });
 
 Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {

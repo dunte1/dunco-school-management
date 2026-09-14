@@ -9,7 +9,15 @@ class ForecastingController extends Controller
 {
     public function index()
     {
-        return view('finance::forecasting.index');
+        $budgets = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('budgets')) {
+                $budgets = \Modules\Finance\Models\Budget::all();
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return view('finance::forecasting.index', compact('budgets'));
     }
 
     public function create()
@@ -40,5 +48,10 @@ class ForecastingController extends Controller
     public function destroy($id)
     {
         return redirect()->route('finance.forecasting.index');
+    }
+
+    public function variance()
+    {
+        return view('finance::forecasting.variance');
     }
 }

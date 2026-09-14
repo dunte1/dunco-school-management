@@ -65,4 +65,50 @@ class BankReconciliationController extends Controller
     {
         return view('finance::bank_reconciliation.report');
     }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $path = $request->file('file')->getRealPath();
+        $handle = fopen($path, 'r');
+
+        $count = 0;
+        if ($handle !== false) {
+            fgetcsv($handle); // skip header
+            while (($row = fgetcsv($handle)) !== false) {
+                BankTransaction::create([
+                    'date' => $row[0] ?? now()->toDateString(),
+                    'amount' => is_numeric($row[1] ?? null) ? $row[1] : 0,
+                    'description' => $row[2] ?? null,
+                    'reference' => $row[3] ?? null,
+                    'status' => 'unmatched',
+                ]);
+                $count++;
+            }
+            fclose($handle);
+        }
+
+        return back()->with('success', $count.' bank transactions imported.');
+    }
+
+    public function match(Request $request, $transaction)
+    {
+        BankTransaction::findOrFail($transaction)->update(['status' => 'matched']);
+
+        return back()->with('success', 'Transaction matched.');
+    }
+
+    public function updateStatus(Request $request, $transaction)
+    {
+        $data = $request->validate([
+            'status' => 'required|string|max:50',
+        ]);
+
+        BankTransaction::findOrFail($transaction)->update($data);
+
+        return back()->with('success', 'Transaction status updated.');
+    }
 }
