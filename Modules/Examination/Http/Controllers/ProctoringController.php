@@ -67,7 +67,9 @@ class ProctoringController extends Controller
 
     public function monitor($examId)
     {
-        return view('examination::proctoring.monitor');
+        $exam = \Modules\Examination\Models\Exam::find($examId);
+
+        return view('examination::proctoring.monitor', compact('exam', 'examId'));
     }
 
     public function logs($examId)
@@ -119,7 +121,9 @@ class ProctoringController extends Controller
 
     public function liveMonitoring($exam)
     {
-        return view('examination::proctoring.live');
+        $examModel = \Modules\Examination\Models\Exam::find($exam);
+
+        return view('examination::proctoring.live', compact('examModel', 'exam'));
     }
 
     public function resolveLog($log)

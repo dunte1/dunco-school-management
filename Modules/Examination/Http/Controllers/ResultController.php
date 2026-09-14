@@ -4,96 +4,16 @@ namespace Modules\Examination\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Examination\Models\ExamResult;
 
 class ResultController extends Controller
 {
     public function index()
     {
-        $results = collect([
-            (object)[
-                'id' => 1,
-                'exam' => (object)[
-                    'name' => 'Mathematics Final',
-                    'examType' => (object)['name' => 'Final']
-                ],
-                'student' => (object)[
-                    'name' => 'John Doe',
-                    'email' => 'john.doe@example.com'
-                ],
-                'score' => 85,
-                'total_marks' => 100,
-                'percentage' => 85,
-                'grade' => 'A',
-                'is_published' => true,
-                'created_at' => \Carbon\Carbon::parse('2024-12-15')
-            ],
-            (object)[
-                'id' => 2,
-                'exam' => (object)[
-                    'name' => 'Physics Midterm',
-                    'examType' => (object)['name' => 'Midterm']
-                ],
-                'student' => (object)[
-                    'name' => 'Jane Smith',
-                    'email' => 'jane.smith@example.com'
-                ],
-                'score' => 78,
-                'total_marks' => 100,
-                'percentage' => 78,
-                'grade' => 'B',
-                'is_published' => false,
-                'created_at' => \Carbon\Carbon::parse('2024-12-14')
-            ],
-            (object)[
-                'id' => 3,
-                'exam' => (object)[
-                    'name' => 'English Literature',
-                    'examType' => (object)['name' => 'Final']
-                ],
-                'student' => (object)[
-                    'name' => 'Mike Johnson',
-                    'email' => 'mike.johnson@example.com'
-                ],
-                'score' => 92,
-                'total_marks' => 100,
-                'percentage' => 92,
-                'grade' => 'A',
-                'is_published' => true,
-                'created_at' => \Carbon\Carbon::parse('2024-12-13')
-            ],
-            (object)[
-                'id' => 4,
-                'exam' => (object)[
-                    'name' => 'Chemistry Final',
-                    'examType' => (object)['name' => 'Final']
-                ],
-                'student' => (object)[
-                    'name' => 'Sarah Wilson',
-                    'email' => 'sarah.wilson@example.com'
-                ],
-                'score' => 65,
-                'total_marks' => 100,
-                'percentage' => 65,
-                'grade' => 'C',
-                'is_published' => false,
-                'created_at' => \Carbon\Carbon::parse('2024-12-12')
-            ]
-        ]);
-        
-        // Create a paginated collection
-        $perPage = 10;
-        $currentPage = request()->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
-        $paginatedResults = $results->slice($offset, $perPage);
-        
-        $results = new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedResults->values(),
-            $results->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'pageName' => 'page']
-        );
-        
+        $results = ExamResult::with(['exam', 'student'])
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
         return view('examination::results.index', compact('results'));
     }
 
@@ -104,46 +24,120 @@ class ResultController extends Controller
 
     public function store(Request $request)
     {
-        return redirect()->route('examination.results.index');
+        $data = $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'student_id' => 'required|exists:users,id',
+            'exam_attempt_id' => 'nullable|exists:exam_attempts,id',
+            'total_marks' => 'required|numeric|min:0',
+            'obtained_marks' => 'required|numeric|min:0',
+            'grade' => 'nullable|string|max:10',
+            'remarks' => 'nullable|string',
+        ]);
+
+        $data['percentage'] = $data['total_marks'] > 0
+            ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 2)
+            : 0;
+
+        ExamResult::create($data);
+
+        return redirect()->route('examination.results.index')->with('success', 'Result recorded.');
     }
 
     public function show($id)
     {
-        return view('examination::results.show');
+        $result = ExamResult::with(['exam', 'student'])->findOrFail($id);
+
+        return view('examination::results.show', compact('result'));
     }
 
     public function edit($id)
     {
-        return view('examination::results.edit');
+        $result = ExamResult::with(['exam', 'student'])->findOrFail($id);
+
+        return view('examination::results.edit', compact('result'));
     }
 
     public function update(Request $request, $id)
     {
-        return redirect()->route('examination.results.index');
+        $result = ExamResult::findOrFail($id);
+
+        $data = $request->validate([
+            'total_marks' => 'required|numeric|min:0',
+            'obtained_marks' => 'required|numeric|min:0',
+            'grade' => 'nullable|string|max:10',
+            'remarks' => 'nullable|string',
+            'is_published' => 'boolean',
+        ]);
+
+        $data['percentage'] = $data['total_marks'] > 0
+            ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 2)
+            : 0;
+
+        $result->update($data);
+
+        return redirect()->route('examination.results.index')->with('success', 'Result updated.');
     }
 
     public function destroy($id)
     {
-        return redirect()->route('examination.results.index');
+        ExamResult::findOrFail($id)->delete();
+
+        return redirect()->route('examination.results.index')->with('success', 'Result deleted.');
     }
 
     public function publishResults($exam)
     {
-        return redirect()->back()->with('success', 'Results published successfully');
+        ExamResult::where('exam_id', $exam)->update([
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Results published successfully.');
     }
 
     public function transcript($student)
     {
-        return view('examination::results.transcript');
+        $results = ExamResult::with('exam')
+            ->where('student_id', $student)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $studentUser = \App\Models\User::find($student);
+
+        return view('examination::results.transcript', compact('results', 'studentUser'));
     }
 
     public function rankings($exam)
     {
-        return view('examination::results.rankings');
+        $results = ExamResult::with('student')
+            ->where('exam_id', $exam)
+            ->orderByDesc('percentage')
+            ->get();
+
+        $examModel = \Modules\Examination\Models\Exam::find($exam);
+
+        return view('examination::results.rankings', compact('results', 'examModel'));
     }
 
     public function analytics()
     {
-        return view('examination::results.analytics');
+        $stats = [
+            'total' => ExamResult::count(),
+            'published' => ExamResult::where('is_published', true)->count(),
+            'average' => round((float) ExamResult::avg('percentage'), 2),
+            'pass' => ExamResult::where('result_status', 'pass')->count(),
+        ];
+
+        return view('examination::results.analytics', compact('stats'));
+    }
+
+    public function studentResults()
+    {
+        $results = ExamResult::with('exam')
+            ->where('student_id', auth()->id())
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        return view('examination::results.index', compact('results'));
     }
 }
