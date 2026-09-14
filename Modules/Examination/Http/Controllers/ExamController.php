@@ -102,12 +102,17 @@ class ExamController extends Controller
 
     public function show($id)
     {
-        return view('examination::exams.show');
+        $exam = \Modules\Examination\Models\Exam::with('type')->findOrFail($id);
+
+        return view('examination::exams.show', compact('exam'));
     }
 
     public function edit($id)
     {
-        return view('examination::exams.edit');
+        $exam = \Modules\Examination\Models\Exam::findOrFail($id);
+        $examTypes = \Modules\Examination\Models\ExamType::orderBy('name')->get();
+
+        return view('examination::exams.edit', compact('exam', 'examTypes'));
     }
 
     public function update(Request $request, $id)
@@ -154,17 +159,59 @@ class ExamController extends Controller
 
     public function results($exam)
     {
-        return view('examination::exams.results');
+        $results = \Modules\Examination\Models\ExamResult::with('student')->where('exam_id', $exam)->get();
+        $examModel = \Modules\Examination\Models\Exam::find($exam);
+
+        return view('examination::exams.results', compact('results', 'examModel'));
     }
 
     public function exportResults($exam)
     {
-        return response()->download('path/to/results.csv');
+        $results = \Modules\Examination\Models\ExamResult::with('student')->where('exam_id', $exam)->get();
+        $examModel = \Modules\Examination\Models\Exam::find($exam);
+
+        $filename = 'exam-results-'.($examModel->code ?? $exam).'.csv';
+
+        $callback = function () use ($results) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Student', 'Obtained Marks', 'Total Marks', 'Percentage', 'Grade', 'Status']);
+            foreach ($results as $result) {
+                fputcsv($out, [
+                    optional($result->student)->name,
+                    $result->obtained_marks,
+                    $result->total_marks,
+                    $result->percentage,
+                    $result->grade,
+                    $result->result_status,
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->streamDownload($callback, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function createOnline()
     {
-        return view('examination::exams.online-create');
+        try {
+            $examTypes = \Modules\Examination\Models\ExamType::orderBy('name')->get();
+        } catch (\Throwable $e) {
+            $examTypes = collect();
+        }
+
+        try {
+            $classes = \Modules\Academic\Models\AcademicClass::orderBy('name')->get();
+        } catch (\Throwable $e) {
+            $classes = collect();
+        }
+
+        try {
+            $subjects = \Modules\Academic\Models\Subject::orderBy('name')->get();
+        } catch (\Throwable $e) {
+            $subjects = collect();
+        }
+
+        return view('examination::exams.online-create', compact('examTypes', 'classes', 'subjects'));
     }
 
     public function studentExams()
@@ -219,6 +266,6 @@ class ExamController extends Controller
 
     public function backup()
     {
-        return response()->download('path/to/backup.zip');
+        return view('examination::admin.backup');
     }
 }

@@ -29,7 +29,9 @@ class QuestionController extends Controller
 
     public function edit($id)
     {
-        return view('examination::questions.edit');
+        $question = \Modules\Examination\Models\Question::findOrFail($id);
+
+        return view('examination::questions.edit', compact('question'));
     }
 
     public function update(Request $request, $id)

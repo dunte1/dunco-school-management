@@ -138,6 +138,9 @@ class ProctoringController extends Controller
 
     public function dashboard()
     {
-        return view('examination::proctoring.dashboard');
+        $exams = \Modules\Examination\Models\Exam::withCount('attempts')->orderByDesc('start_date')->limit(10)->get();
+        $recentLogs = \Modules\Examination\Models\ProctoringLog::with('attempt')->latest()->limit(10)->get();
+
+        return view('examination::proctoring.dashboard', compact('exams', 'recentLogs'));
     }
 }
