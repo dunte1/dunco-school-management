@@ -35,7 +35,45 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Basic exception handling configuration
+        // Return JSON for API routes on common exceptions
+        $exceptions->renderable(function (\Throwable $e) {
+            $request = request();
+            if (! $request->expectsJson() && ! str_starts_with($request->path(), 'api')) {
+                return null; // Let Laravel handle web responses normally
+            }
+
+            $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            if ($status === 404) {
+                return response()->json(['message' => 'Resource not found.'], 404);
+            }
+
+            if ($status === 403) {
+                return response()->json(['message' => 'Forbidden.'], 403);
+            }
+
+            if ($status === 401) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
+            if ($status === 405) {
+                return response()->json(['message' => 'Method not allowed.'], 405);
+            }
+
+            if ($status === 429) {
+                return response()->json(['message' => 'Too many requests.'], 429);
+            }
+
+            $message = config('app.debug') ? $e->getMessage() : 'Internal server error.';
+            return response()->json(['message' => $message], 500);
+        });
     })
     ->withProviders([
         // Essential Laravel Framework Service Providers for Laravel 12

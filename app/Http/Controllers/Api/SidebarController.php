@@ -953,6 +953,10 @@ class SidebarController extends Controller
      */
     public function checkPermission(Request $request)
     {
+        $request->validate([
+            'permission' => 'required|string|max:255',
+        ]);
+
         $user = Auth::user();
         $permission = $request->input('permission');
         
@@ -988,6 +992,10 @@ class SidebarController extends Controller
      */
     public function triggerUpdate(Request $request)
     {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
         $user = Auth::user();
         
         if (!$user) {
