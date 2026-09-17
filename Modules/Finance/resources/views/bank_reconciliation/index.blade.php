@@ -8,7 +8,7 @@
         <label class="block mb-2">Import Bank Statement (CSV/Excel):</label>
         <input type="file" name="statement" class="mb-2">
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Import</button>
-        <span class="ml-2 text-gray-500">(Import feature coming soon)</span>
+        <span class="ml-2 text-gray-500">(Import feature available in the next release)</span>
     </form>
     <table class="min-w-full bg-white rounded shadow">
         <thead>

@@ -2,7 +2,7 @@
 
 @section('content')
 <h2>Leave Balances</h2>
-<p class="text-muted">(Feature coming soon: This will show remaining leave days per staff and leave type.)</p>
+<p class="text-muted">(Feature available in the next release: This will show remaining leave days per staff and leave type.)</p>
 <table class="table table-bordered table-hover">
     <thead class="table-light">
         <tr>

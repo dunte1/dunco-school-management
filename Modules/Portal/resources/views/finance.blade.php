@@ -209,7 +209,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Online payment gateway integration is coming soon. Please contact the school office to make a payment.</p>
+                <p>Online payment gateway integration is available in the next release. Please contact the school office to make a payment.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

@@ -73,22 +73,22 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-primary btn-block" onclick="alert('Profile module coming soon!')">
+                            <a href="/dashboard" class="btn btn-primary btn-block" >
                                 <i class="fas fa-user me-2"></i>My Profile
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-success btn-block" onclick="alert('Communication module coming soon!')">
+                            <a href="/dashboard" class="btn btn-success btn-block" >
                                 <i class="fas fa-comments me-2"></i>Messages
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-warning btn-block" onclick="alert('Settings module coming soon!')">
+                            <a href="/dashboard" class="btn btn-warning btn-block" >
                                 <i class="fas fa-cog me-2"></i>Settings
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-info btn-block" onclick="alert('Help module coming soon!')">
+                            <a href="/dashboard" class="btn btn-info btn-block" >
                                 <i class="fas fa-question-circle me-2"></i>Help
                             </a>
                         </div>

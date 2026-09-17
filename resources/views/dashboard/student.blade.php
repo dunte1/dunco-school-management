@@ -94,44 +94,44 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-primary btn-block" onclick="alert('Academics module coming soon!')">
+                            <a href="/academic" class="btn btn-primary btn-block" >
                                 <i class="fas fa-book me-2"></i>My Academics
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-success btn-block" onclick="alert('Schedule module coming soon!')">
+                            <a href="/academic" class="btn btn-success btn-block" >
                                 <i class="fas fa-calendar me-2"></i>My Schedule
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-warning btn-block" onclick="alert('Study Materials module coming soon!')">
+                            <a href="/academic" class="btn btn-warning btn-block" >
                                 <i class="fas fa-file-pdf me-2"></i>Study Materials
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-info btn-block" onclick="alert('Assignments module coming soon!')">
+                            <a href="/academic" class="btn btn-info btn-block" >
                                 <i class="fas fa-tasks me-2"></i>Assignments
                             </a>
                         </div>
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-secondary btn-block" onclick="alert('Finance module coming soon!')">
+                            <a href="/academic" class="btn btn-secondary btn-block" >
                                 <i class="fas fa-dollar-sign me-2"></i>Finance
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-dark btn-block" onclick="alert('Communication module coming soon!')">
+                            <a href="/academic" class="btn btn-dark btn-block" >
                                 <i class="fas fa-comments me-2"></i>Communication
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-outline-primary btn-block" onclick="alert('Profile module coming soon!')">
+                            <a href="/academic" class="btn btn-outline-primary btn-block" >
                                 <i class="fas fa-user me-2"></i>My Profile
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-outline-success btn-block" onclick="alert('Results module coming soon!')">
+                            <a href="/academic" class="btn btn-outline-success btn-block" >
                                 <i class="fas fa-chart-line me-2"></i>My Results
                             </a>
                         </div>
