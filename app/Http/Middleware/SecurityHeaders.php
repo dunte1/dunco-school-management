@@ -14,7 +14,8 @@ class SecurityHeaders
         $response = $next($request);
 
         // Basic, safe defaults. Tune CSP as needed for your frontend assets.
-        $contentSecurityPolicy = "default-src 'self'; img-src 'self' data:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'";
+        // Allow inline styles (Tailwind) but block inline scripts
+        $contentSecurityPolicy = "default-src 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self';";
 
         $response->headers->set('Content-Security-Policy', $contentSecurityPolicy, false);
         $response->headers->set('X-Frame-Options', 'DENY', false);
