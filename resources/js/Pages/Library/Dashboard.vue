@@ -27,34 +27,34 @@
       </div>
       <!-- Quick Access -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <inertia-link href="/library/books" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        <a href="/library/books" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-book text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Books</span>
-        </inertia-link>
-        <inertia-link href="/library/categories" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        </a>
+        <a href="/library/categories" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-tags text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Categories</span>
-        </inertia-link>
-        <inertia-link href="/library/authors" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        </a>
+        <a href="/library/authors" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-user-edit text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Authors</span>
-        </inertia-link>
-        <inertia-link href="/library/publishers" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        </a>
+        <a href="/library/publishers" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-building text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Publishers</span>
-        </inertia-link>
-        <inertia-link href="/library/members" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        </a>
+        <a href="/library/members" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-users text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Members</span>
-        </inertia-link>
-        <inertia-link href="/library/borrows" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        </a>
+        <a href="/library/borrows" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-exchange-alt text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Borrows</span>
-        </inertia-link>
-        <inertia-link href="/library/reports/borrowed" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
+        </a>
+        <a href="/library/reports/borrowed" class="flex flex-col items-center justify-center bg-gradient-to-br from-navy-900 to-blue-700 rounded-xl shadow-md py-6 hover:scale-105 transition-transform border-2 border-blue-500">
           <i class="fas fa-chart-bar text-2xl text-blue-500 mb-2"></i>
           <span class="text-blue-600 font-bold text-lg">Reports</span>
-        </inertia-link>
+        </a>
       </div>
     </div>
   </LibraryLayout>

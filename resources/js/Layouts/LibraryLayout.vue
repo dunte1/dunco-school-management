@@ -6,30 +6,30 @@
         <span class="app-title">Library</span>
       </div>
       <nav class="sidebar-nav">
-        <inertia-link href="/library" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '') === 'library' }">
+        <a href="/library" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '') === 'library' }">
           <i class="fas fa-tachometer-alt"></i> Dashboard
-        </inertia-link>
-        <inertia-link href="/library/books" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/books') }">
+        </a>
+        <a href="/library/books" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/books') }">
           <i class="fas fa-book"></i> Books
-        </inertia-link>
-        <inertia-link href="/library/categories" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/categories') }">
+        </a>
+        <a href="/library/categories" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/categories') }">
           <i class="fas fa-tags"></i> Categories
-        </inertia-link>
-        <inertia-link href="/library/authors" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/authors') }">
+        </a>
+        <a href="/library/authors" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/authors') }">
           <i class="fas fa-user-edit"></i> Authors
-        </inertia-link>
-        <inertia-link href="/library/publishers" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/publishers') }">
+        </a>
+        <a href="/library/publishers" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/publishers') }">
           <i class="fas fa-building"></i> Publishers
-        </inertia-link>
-        <inertia-link href="/library/members" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/members') }">
+        </a>
+        <a href="/library/members" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/members') }">
           <i class="fas fa-users"></i> Members
-        </inertia-link>
-        <inertia-link href="/library/borrows" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/borrows') }">
+        </a>
+        <a href="/library/borrows" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/borrows') }">
           <i class="fas fa-exchange-alt"></i> Borrows
-        </inertia-link>
-        <inertia-link href="/library/reports/borrowed" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/reports') }">
+        </a>
+        <a href="/library/reports/borrowed" class="sidebar-link" :class="{ active: page.url.replace(/^\//, '').startsWith('library/reports') }">
           <i class="fas fa-chart-bar"></i> Reports
-        </inertia-link>
+        </a>
       </nav>
     </aside>
     <div class="main-content">
