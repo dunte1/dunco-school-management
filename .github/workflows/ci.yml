@@ -70,9 +70,6 @@ jobs:
   migrate-mysql:
     name: Fresh migrate (mysql)
     runs-on: ubuntu-latest
-    # NOTE: Non-blocking until Phase 4 (database consolidation) removes the
-    # duplicate/conflicting migrations and foreign-key ordering issues.
-    continue-on-error: true
     services:
       mysql:
         image: mysql:8.0
