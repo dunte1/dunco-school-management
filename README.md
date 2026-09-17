@@ -40,7 +40,7 @@ A comprehensive, modular school management system built with Laravel that provid
 ## 🚀 Quick Start
 
 ### Prerequisites
-- PHP 8.1 or higher
+- PHP 8.2 or higher
 - Composer
 - MySQL 8.0 or higher
 - Node.js and NPM (for frontend assets)
@@ -125,7 +125,7 @@ Modules/
 ```
 
 ### Technology Stack
-- **Backend**: Laravel 10.x (PHP)
+- **Backend**: Laravel 12.x (PHP)
 - **Frontend**: Blade templates, Bootstrap 5, Alpine.js
 - **Database**: MySQL/PostgreSQL
 - **Cache**: Redis (optional)
@@ -598,7 +598,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Lines of Code**: 50,000+
 - **Database Tables**: 100+
 - **API Endpoints**: 200+
-- **Test Coverage**: 85%+
+- **Test Coverage**: Core auth/profile/Finance/Examination/API (51 tests, expanding)
 
 ---
 
