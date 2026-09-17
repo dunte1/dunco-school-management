@@ -15,7 +15,6 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->timestamps();
 
-            $table->foreign('hostel_id')->references('id')->on('hostels')->onDelete('cascade');
         });
     }
 

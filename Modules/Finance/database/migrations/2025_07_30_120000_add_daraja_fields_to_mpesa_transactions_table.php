@@ -69,8 +69,6 @@ return new class extends Migration
             $table->index(['transaction_type', 'status']);
             $table->index(['checkout_request_id']);
             $table->index(['mpesa_receipt_number']);
-            $table->index(['account_reference']);
-            $table->index(['phone_number']);
             $table->index(['user_id']);
             $table->index(['fee_id']);
             $table->index(['completed_at']);
@@ -87,8 +85,6 @@ return new class extends Migration
             $table->dropIndex(['transaction_type', 'status']);
             $table->dropIndex(['checkout_request_id']);
             $table->dropIndex(['mpesa_receipt_number']);
-            $table->dropIndex(['account_reference']);
-            $table->dropIndex(['phone_number']);
             $table->dropIndex(['user_id']);
             $table->dropIndex(['fee_id']);
             $table->dropIndex(['completed_at']);

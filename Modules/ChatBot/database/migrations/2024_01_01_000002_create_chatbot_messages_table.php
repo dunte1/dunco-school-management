@@ -21,7 +21,6 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
 
-            $table->foreign('conversation_id')->references('id')->on('chatbot_conversations')->onDelete('cascade');
             $table->index(['conversation_id', 'created_at']);
             $table->index('role');
         });

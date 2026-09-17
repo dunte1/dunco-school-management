@@ -13,8 +13,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('program_id');
             $table->timestamps();
 
-            $table->foreign('fee_id')->references('id')->on('fees')->onDelete('cascade');
-            $table->foreign('program_id')->references('id')->on('programs')->onDelete('cascade');
         });
     }
 

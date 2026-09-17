@@ -16,7 +16,6 @@ return new class extends Migration {
             $table->enum('role', ['warden', 'security_guard'])->default('warden');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
-            $table->foreign('hostel_id')->references('id')->on('hostels')->onDelete('cascade');
             // user_id should reference users table in main app
         });
     }

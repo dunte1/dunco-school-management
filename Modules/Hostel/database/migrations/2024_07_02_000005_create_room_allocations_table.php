@@ -21,7 +21,6 @@ return new class extends Migration {
                 $table->string('document')->nullable();
                 $table->timestamps();
 
-                $table->foreign('bed_id')->references('id')->on('beds')->onDelete('cascade');
                 // student_id and allocated_by should reference users table in main app
             });
         }

@@ -20,8 +20,6 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->timestamps();
 
-            $table->foreign('class_id')->references('id')->on('academic_classes')->onDelete('cascade');
-            $table->foreign('session_template_id')->references('id')->on('session_templates')->onDelete('cascade');
         });
     }
 

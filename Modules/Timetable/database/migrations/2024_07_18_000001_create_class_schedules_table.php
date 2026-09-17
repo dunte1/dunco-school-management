@@ -19,10 +19,6 @@ return new class extends Migration
             $table->time('end_time');
             $table->timestamps();
 
-            $table->foreign('academic_class_id')->references('id')->on('academic_classes')->onDelete('cascade');
-            $table->foreign('teacher_id')->references('id')->on('teachers')->onDelete('cascade');
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
-            $table->foreign('timetable_id')->references('id')->on('timetables')->onDelete('cascade');
         });
     }
 

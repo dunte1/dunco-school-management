@@ -22,8 +22,6 @@ return new class extends Migration {
             $table->text('resolution_notes')->nullable();
             $table->timestamps();
 
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('set null');
-            $table->foreign('bed_id')->references('id')->on('beds')->onDelete('set null');
             // student_id, reported_by, assigned_to should reference users table in main app
         });
     }

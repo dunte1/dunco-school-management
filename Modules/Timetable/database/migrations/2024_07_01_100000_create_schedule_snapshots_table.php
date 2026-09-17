@@ -17,9 +17,6 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->timestamps();
 
-            $table->foreign('schedule_id')->references('id')->on('class_schedules')->nullOnDelete();
-            $table->foreign('timetable_id')->references('id')->on('timetables')->nullOnDelete();
-            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 

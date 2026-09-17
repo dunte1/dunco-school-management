@@ -15,11 +15,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('student_id');
             $table->string('image_hash');
-            $table->timestamp('scanned_at');
+            $table->timestamp('scanned_at')->useCurrent();
             $table->string('status');
             $table->timestamps();
 
-            $table->foreign('student_id')->references('id')->on('academic_students')->onDelete('cascade');
         });
     }
 

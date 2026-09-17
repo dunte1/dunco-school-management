@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('academic_attendance_records', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->foreignId('school_id')->unsignedBigInteger('school_id')->onDelete('cascade');
             $table->foreignId('student_id')->constrained('academic_students')->onDelete('cascade');
             $table->foreignId('class_id')->constrained('academic_classes')->onDelete('cascade');
             $table->date('date');

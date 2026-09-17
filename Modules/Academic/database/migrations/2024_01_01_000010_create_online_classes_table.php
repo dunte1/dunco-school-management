@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('online_classes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->foreignId('school_id')->unsignedBigInteger('school_id')->onDelete('cascade');
             $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
             $table->foreignId('academic_class_id')->constrained('academic_classes')->onDelete('cascade');
-            $table->foreignId('subject_id')->nullable()->constrained('subjects')->onDelete('set null');
+            $table->foreignId('subject_id')->nullable()->unsignedBigInteger('subject_id')->onDelete('set null');
             $table->dateTime('start_time');
             $table->dateTime('end_time');
             $table->string('meeting_link');

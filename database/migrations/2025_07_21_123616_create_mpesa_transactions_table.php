@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('status')->default('pending'); // pending, completed, failed
             $table->timestamps();
 
-            $table->foreign('student_fee_id')->references('id')->on('student_fees')->onDelete('cascade');
         });
     }
 

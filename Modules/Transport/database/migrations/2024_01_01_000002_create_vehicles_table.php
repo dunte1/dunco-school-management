@@ -29,8 +29,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('driver_id')->references('id')->on('drivers')->onDelete('set null');
-            $table->foreign('school_id')->references('id')->on('schools')->onDelete('cascade');
         });
     }
 

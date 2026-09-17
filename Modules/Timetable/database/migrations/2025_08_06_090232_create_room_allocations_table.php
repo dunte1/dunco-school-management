@@ -19,8 +19,6 @@ return new class extends Migration
                 $table->date('allocation_date');
                 $table->timestamps();
 
-                $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
-                $table->foreign('class_schedule_id')->references('id')->on('class_schedules')->onDelete('cascade');
             });
         }
     }

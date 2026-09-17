@@ -22,9 +22,6 @@ return new class extends Migration {
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->foreign('hostel_id')->references('id')->on('hostels')->onDelete('cascade');
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('set null');
-            $table->foreign('bed_id')->references('id')->on('beds')->onDelete('set null');
             // student_id should reference users table in main app
         });
     }

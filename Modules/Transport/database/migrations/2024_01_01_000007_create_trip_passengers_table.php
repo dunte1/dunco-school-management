@@ -18,8 +18,6 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             
             $table->unique(['trip_id', 'student_id']);
         });

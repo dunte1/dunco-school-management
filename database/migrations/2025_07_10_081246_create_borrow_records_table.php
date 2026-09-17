@@ -15,14 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('book_id');
             $table->unsignedBigInteger('member_id');
-            $table->timestamp('borrowed_at');
-            $table->timestamp('due_at');
+            $table->timestamp('borrowed_at')->useCurrent();
+            $table->timestamp('due_at')->useCurrent();
             $table->timestamp('returned_at')->nullable();
             $table->enum('status', ['borrowed', 'returned', 'overdue'])->default('borrowed');
             $table->decimal('fine', 8, 2)->default(0);
             $table->timestamps();
-            $table->foreign('book_id')->references('id')->on('books')->onDelete('cascade');
-            $table->foreign('member_id')->references('id')->on('members')->onDelete('cascade');
         });
     }
 

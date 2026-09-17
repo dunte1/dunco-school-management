@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->enum('audience', ['all', 'residents', 'staff'])->default('all');
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
-            $table->foreign('hostel_id')->references('id')->on('hostels')->onDelete('cascade');
             // warden_id should reference users table in main app
         });
     }

@@ -29,8 +29,6 @@ return new class extends Migration
             $table->boolean('is_processed')->default(false);
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('conversation_id')->references('id')->on('chatbot_conversations')->onDelete('cascade');
             $table->index(['user_id', 'is_processed']);
             $table->index('file_type');
         });

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('academic_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->foreignId('school_id')->unsignedBigInteger('school_id')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('academic_subjects')->onDelete('cascade');
             $table->text('question_text');
             $table->enum('question_type', ['multiple_choice', 'true_false', 'short_answer', 'essay'])->default('multiple_choice');

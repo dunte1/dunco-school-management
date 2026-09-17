@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->timestamps();
 
-            $table->foreign('session_template_id')->references('id')->on('session_templates')->onDelete('cascade');
         });
     }
 

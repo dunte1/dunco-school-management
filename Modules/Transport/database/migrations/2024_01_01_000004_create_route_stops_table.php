@@ -20,7 +20,6 @@ return new class extends Migration
             $table->decimal('longitude', 11, 8)->nullable();
             $table->timestamps();
 
-            $table->foreign('route_id')->references('id')->on('routes')->onDelete('cascade');
         });
     }
 

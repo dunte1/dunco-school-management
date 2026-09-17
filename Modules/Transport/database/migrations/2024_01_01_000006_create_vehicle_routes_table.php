@@ -14,8 +14,6 @@ return new class extends Migration
             $table->unsignedBigInteger('route_id');
             $table->timestamps();
 
-            $table->foreign('vehicle_id')->references('id')->on('vehicles')->onDelete('cascade');
-            $table->foreign('route_id')->references('id')->on('routes')->onDelete('cascade');
             
             $table->unique(['vehicle_id', 'route_id']);
         });

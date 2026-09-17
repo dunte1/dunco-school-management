@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->timestamps();
 
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
         });
     }
 

@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('channel')->nullable();
             $table->timestamps();
 
-            $table->foreign('attendance_record_id')->references('id')->on('academic_attendance_records')->onDelete('cascade');
-            $table->foreign('parent_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
