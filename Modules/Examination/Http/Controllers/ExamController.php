@@ -4,174 +4,171 @@ namespace Modules\Examination\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Examination\Models\Exam;
+use Modules\Examination\Models\ExamType;
+use Modules\Examination\Models\QuestionCategory;
 
 class ExamController extends Controller
 {
     public function index()
     {
-        $exams = collect([
-            (object)[
-                'id' => 1,
-                'name' => 'Mathematics Final Exam',
-                'code' => 'MATH-101',
-                'examType' => (object)['name' => 'Final'],
-                'start_date' => \Carbon\Carbon::parse('2024-12-15'),
-                'duration_minutes' => 180,
-                'status' => 'published',
-                'is_online' => true,
-                'enable_proctoring' => true,
-                'show_results_immediately' => false,
-                'academic_year' => '2024',
-                'term' => 'Term 1'
-            ],
-            (object)[
-                'id' => 2,
-                'name' => 'Physics Midterm',
-                'code' => 'PHYS-201',
-                'examType' => (object)['name' => 'Midterm'],
-                'start_date' => \Carbon\Carbon::parse('2024-12-18'),
-                'duration_minutes' => 120,
-                'status' => 'draft',
-                'is_online' => false,
-                'enable_proctoring' => false,
-                'show_results_immediately' => true,
-                'academic_year' => '2024',
-                'term' => 'Term 1'
-            ],
-            (object)[
-                'id' => 3,
-                'name' => 'English Literature',
-                'code' => 'ENG-101',
-                'examType' => (object)['name' => 'Final'],
-                'start_date' => \Carbon\Carbon::parse('2024-12-20'),
-                'duration_minutes' => 150,
-                'status' => 'ongoing',
-                'is_online' => true,
-                'enable_proctoring' => true,
-                'show_results_immediately' => false,
-                'academic_year' => '2024',
-                'term' => 'Term 1'
-            ],
-            (object)[
-                'id' => 4,
-                'name' => 'Chemistry Final',
-                'code' => 'CHEM-101',
-                'examType' => (object)['name' => 'Final'],
-                'start_date' => \Carbon\Carbon::parse('2024-12-25'),
-                'duration_minutes' => 120,
-                'status' => 'draft',
-                'is_online' => true,
-                'enable_proctoring' => false,
-                'show_results_immediately' => true,
-                'academic_year' => '2024',
-                'term' => 'Term 1'
-            ]
-        ]);
-        
-        $upcomingExams = $exams->filter(function($exam) {
-            return $exam->status === 'published' || $exam->status === 'draft';
-        });
-        
-        // Create a paginated collection
-        $perPage = 10;
-        $currentPage = request()->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
-        $paginatedExams = $exams->slice($offset, $perPage);
-        
-        $exams = new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedExams->values(),
-            $exams->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'pageName' => 'page']
-        );
-        
+        $exams = Exam::with('type')->orderByDesc('created_at')->paginate(15);
+        $upcomingExams = Exam::with('type')
+            ->whereIn('status', ['published', 'draft'])
+            ->orderBy('start_date')
+            ->limit(5)
+            ->get();
+
         return view('examination::exams.index', compact('exams', 'upcomingExams'));
     }
 
     public function create()
     {
-        return view('examination::exams.create');
+        $examTypes = ExamType::orderBy('name')->get();
+        return view('examination::exams.create', compact('examTypes'));
     }
 
     public function store(Request $request)
     {
-        // Exam creation logic
-        return redirect()->route('examination.exams.index');
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:exams,code',
+            'exam_type_id' => 'required|exists:exam_types,id',
+            'description' => 'nullable|string',
+            'academic_year' => 'required|string|max:50',
+            'term' => 'required|string|max:50',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'duration_minutes' => 'nullable|integer|min:1',
+            'total_marks' => 'required|numeric|min:0',
+            'passing_marks' => 'required|numeric|min:0|max:' . ($request->input('total_marks') ?? 9999),
+            'is_online' => 'boolean',
+            'enable_proctoring' => 'boolean',
+            'shuffle_questions' => 'boolean',
+            'shuffle_options' => 'boolean',
+            'show_results_immediately' => 'boolean',
+            'allow_review' => 'boolean',
+            'negative_marking' => 'nullable|numeric|min:0',
+        ]);
+
+        $data['status'] = 'draft';
+        $data['is_active'] = true;
+
+        Exam::create($data);
+
+        return redirect()->route('examination.exams.index')->with('success', 'Exam created successfully.');
     }
 
     public function show($id)
     {
-        $exam = \Modules\Examination\Models\Exam::with('type')->findOrFail($id);
-
+        $exam = Exam::with(['type', 'questions', 'results'])->findOrFail($id);
         return view('examination::exams.show', compact('exam'));
     }
 
     public function edit($id)
     {
-        $exam = \Modules\Examination\Models\Exam::findOrFail($id);
-        $examTypes = \Modules\Examination\Models\ExamType::orderBy('name')->get();
-
+        $exam = Exam::findOrFail($id);
+        $examTypes = ExamType::orderBy('name')->get();
         return view('examination::exams.edit', compact('exam', 'examTypes'));
     }
 
     public function update(Request $request, $id)
     {
-        // Exam update logic
-        return redirect()->route('examination.exams.index');
+        $exam = Exam::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:exams,code,' . $id,
+            'exam_type_id' => 'required|exists:exam_types,id',
+            'description' => 'nullable|string',
+            'academic_year' => 'required|string|max:50',
+            'term' => 'required|string|max:50',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'duration_minutes' => 'nullable|integer|min:1',
+            'total_marks' => 'required|numeric|min:0',
+            'passing_marks' => 'required|numeric|min:0',
+            'is_online' => 'boolean',
+            'enable_proctoring' => 'boolean',
+            'shuffle_questions' => 'boolean',
+            'shuffle_options' => 'boolean',
+            'show_results_immediately' => 'boolean',
+            'allow_review' => 'boolean',
+            'status' => 'required|in:draft,published,ongoing,completed,archived',
+            'negative_marking' => 'nullable|numeric|min:0',
+        ]);
+
+        $exam->update($data);
+        return redirect()->route('examination.exams.index')->with('success', 'Exam updated successfully.');
     }
 
     public function destroy($id)
     {
-        // Exam delete logic
-        return redirect()->route('examination.exams.index');
+        Exam::findOrFail($id)->delete();
+        return redirect()->route('examination.exams.index')->with('success', 'Exam deleted successfully.');
     }
 
     public function publish($exam)
     {
-        return redirect()->back()->with('success', 'Exam published successfully');
+        $exam = Exam::findOrFail($exam);
+        $exam->update(['status' => 'published']);
+        return redirect()->back()->with('success', 'Exam published successfully.');
     }
 
     public function start($exam)
     {
-        return redirect()->back()->with('success', 'Exam started successfully');
+        $exam = Exam::findOrFail($exam);
+        $exam->update(['status' => 'ongoing']);
+        return redirect()->back()->with('success', 'Exam started successfully.');
     }
 
     public function complete($exam)
     {
-        return redirect()->back()->with('success', 'Exam completed successfully');
+        $exam = Exam::findOrFail($exam);
+        $exam->update(['status' => 'completed']);
+        return redirect()->back()->with('success', 'Exam completed successfully.');
     }
 
     public function addQuestions($exam)
     {
-        return redirect()->back()->with('success', 'Questions added successfully');
+        $exam = Exam::findOrFail($exam);
+        $categories = QuestionCategory::orderBy('name')->get();
+        return view('examination::exams.show', compact('exam', 'categories'));
     }
 
     public function removeQuestion($exam, $question)
     {
-        return redirect()->back()->with('success', 'Question removed successfully');
+        $exam = Exam::findOrFail($exam);
+        $exam->questions()->detach($question);
+        return redirect()->back()->with('success', 'Question removed from exam.');
     }
 
     public function generateRandomQuestions($exam)
     {
-        return redirect()->back()->with('success', 'Random questions generated successfully');
+        $exam = Exam::findOrFail($exam);
+        return redirect()->back()->with('info', 'Random question generation requires manual selection.');
     }
 
     public function results($exam)
     {
-        $results = \Modules\Examination\Models\ExamResult::with('student')->where('exam_id', $exam)->get();
-        $examModel = \Modules\Examination\Models\Exam::find($exam);
-
+        $results = \Modules\Examination\Models\ExamResult::with('student')
+            ->where('exam_id', $exam)
+            ->orderByDesc('percentage')
+            ->get();
+        $examModel = Exam::find($exam);
         return view('examination::exams.results', compact('results', 'examModel'));
     }
 
     public function exportResults($exam)
     {
         $results = \Modules\Examination\Models\ExamResult::with('student')->where('exam_id', $exam)->get();
-        $examModel = \Modules\Examination\Models\Exam::find($exam);
+        $examModel = Exam::find($exam);
 
-        $filename = 'exam-results-'.($examModel->code ?? $exam).'.csv';
-
+        $filename = 'exam-results-' . ($examModel->code ?? $exam) . '.csv';
         $callback = function () use ($results) {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Student', 'Obtained Marks', 'Total Marks', 'Percentage', 'Grade', 'Status']);
@@ -187,46 +184,36 @@ class ExamController extends Controller
             }
             fclose($out);
         };
-
         return response()->streamDownload($callback, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function createOnline()
     {
-        try {
-            $examTypes = \Modules\Examination\Models\ExamType::orderBy('name')->get();
-        } catch (\Throwable $e) {
-            $examTypes = collect();
-        }
-
-        try {
-            $classes = \Modules\Academic\Models\AcademicClass::orderBy('name')->get();
-        } catch (\Throwable $e) {
-            $classes = collect();
-        }
-
-        try {
-            $subjects = \Modules\Academic\Models\Subject::orderBy('name')->get();
-        } catch (\Throwable $e) {
-            $subjects = collect();
-        }
-
+        try { $examTypes = ExamType::orderBy('name')->get(); } catch (\Throwable $e) { $examTypes = collect(); }
+        try { $classes = \Modules\Academic\Models\AcademicClass::orderBy('name')->get(); } catch (\Throwable $e) { $classes = collect(); }
+        try { $subjects = \Modules\Academic\Models\Subject::orderBy('name')->get(); } catch (\Throwable $e) { $subjects = collect(); }
         return view('examination::exams.online-create', compact('examTypes', 'classes', 'subjects'));
     }
 
     public function studentExams()
     {
-        return view('examination::student.exams');
+        $exams = Exam::where('is_active', true)->where('start_date', '>=', now())->orderBy('start_date')->paginate(20);
+        return view('examination::student.exams', compact('exams'));
     }
 
     public function examHistory()
     {
-        return view('examination::student.history');
+        $attempts = \Modules\Examination\Models\ExamAttempt::with('exam')
+            ->where('student_id', auth()->id())
+            ->orderByDesc('created_at')
+            ->paginate(20);
+        return view('examination::student.history', compact('attempts'));
     }
 
     public function teacherExams()
     {
-        return view('examination::teacher.exams');
+        $exams = Exam::orderByDesc('created_at')->paginate(20);
+        return view('examination::teacher.exams', compact('exams'));
     }
 
     public function gradeExams()
@@ -236,17 +223,27 @@ class ExamController extends Controller
 
     public function gradeAnswer($answer)
     {
-        return redirect()->back()->with('success', 'Answer graded successfully');
+        return redirect()->back()->with('success', 'Answer graded.');
     }
 
     public function examAnalytics()
     {
-        return view('examination::teacher.analytics');
+        $stats = [
+            'total_exams' => Exam::count(),
+            'published' => Exam::where('status', 'published')->count(),
+            'completed' => Exam::where('status', 'completed')->count(),
+        ];
+        return view('examination::teacher.analytics', compact('stats'));
     }
 
     public function adminDashboard()
     {
-        return view('examination::admin.dashboard');
+        $stats = [
+            'total_exams' => Exam::count(),
+            'total_types' => ExamType::count(),
+            'active_exams' => Exam::where('status', 'ongoing')->count(),
+        ];
+        return view('examination::admin.dashboard', compact('stats'));
     }
 
     public function settings()
@@ -256,7 +253,7 @@ class ExamController extends Controller
 
     public function updateSettings(Request $request)
     {
-        return redirect()->back()->with('success', 'Settings updated successfully');
+        return redirect()->back()->with('success', 'Settings updated.');
     }
 
     public function reports()

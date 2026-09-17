@@ -22,31 +22,11 @@ class FinanceController extends Controller
      */
     public function index()
     {
-        // Use hardcoded data for now to avoid database issues
-        $stats = [
-            'total_fees_collected' => 0,
-            'outstanding_balances' => 0,
-            'active_students' => 0,
-            'bank_accounts' => 0,
-            'total_fees' => 0,
-            'fee_categories' => 0,
-            'fee_types' => 0,
-            'total_taxes' => 0,
-            'monthly_revenue' => 0,
-            'pending_payments' => 0,
-        ];
-        
-        $recentPayments = collect();
-        $recentFees = collect();
-        $outstandingFees = collect();
-        $quickActions = [
-            'fee_categories' => 0,
-            'fee_types' => 0,
-            'pending_payments' => 0,
-            'bank_accounts' => 0,
-            'taxes' => 0,
-            'settings' => 0,
-        ];
+        $stats = $this->getFinanceStats();
+        $recentPayments = $this->getRecentPayments();
+        $recentFees = $this->getRecentFees();
+        $outstandingFees = $this->getOutstandingFees();
+        $quickActions = $this->getQuickActions();
         
         return view('finance::index', compact(
             'stats',

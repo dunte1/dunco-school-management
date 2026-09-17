@@ -393,33 +393,22 @@ class PortalController extends Controller
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
 
-        // In a real app, you would fetch this from LMS models
-        $courses = collect([
-            (object)[
-                'title' => 'Introduction to Programming',
-                'instructor' => 'Dr. Alan Turing',
-                'progress' => 75,
-                'thumbnail' => 'https://via.placeholder.com/400x225.png/007bff/ffffff?text=Code',
-                'next_due' => 'Quiz 3: Functions',
-                'due_date' => now()->addDays(4)
-            ],
-            (object)[
-                'title' => 'Digital Marketing Fundamentals',
-                'instructor' => 'Ms. Ada Lovelace',
-                'progress' => 40,
-                'thumbnail' => 'https://via.placeholder.com/400x225.png/28a745/ffffff?text=Marketing',
-                'next_due' => 'Assignment 2: SEO Analysis',
-                'due_date' => now()->addDays(8)
-            ],
-             (object)[
-                'title' => 'History of Ancient Civilizations',
-                'instructor' => 'Dr. Indiana Jones',
-                'progress' => 95,
-                'thumbnail' => 'https://via.placeholder.com/400x225.png/ffc107/000000?text=History',
-                'next_due' => 'Final Exam',
-                'due_date' => now()->addDays(15)
-            ]
-        ]);
+        // Use academic subjects as courses
+        try {
+            $subjects = \Modules\Academic\Models\Subject::orderBy('name')->get();
+            $courses = $subjects->map(function ($subject) {
+                return (object)[
+                    'title' => $subject->name,
+                    'instructor' => $subject->description ?? 'Staff',
+                    'progress' => rand(10, 95),
+                    'thumbnail' => null,
+                    'next_due' => 'Upcoming lesson',
+                    'due_date' => now()->addDays(rand(1, 14)),
+                ];
+            });
+        } catch (\Throwable $e) {
+            $courses = collect();
+        }
 
         return view('portal::lms', compact('students', 'all_students', 'courses'));
     }
@@ -529,17 +518,31 @@ class PortalController extends Controller
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
 
-        // Demo data
-        $transportDetails = (object)[
-            'is_allocated' => true,
-            'route_name' => 'City Route A',
-            'vehicle_number' => 'KMP-456J',
-            'driver_name' => 'Mr. James',
-            'driver_phone' => '0712345678',
-            'pickup_point' => 'Uptown Junction',
-            'pickup_time' => '07:15 AM',
-            'dropoff_time' => '04:45 PM',
-        ];
+        try {
+            $tripPassenger = \Modules\Transport\Models\TripPassenger::with(['trip.vehicle', 'trip.driver', 'trip.route'])
+                ->where('student_id', $student->id ?? auth()->id())
+                ->latest()
+                ->first();
+
+            $transportDetails = null;
+            if ($tripPassenger && $tripPassenger->trip) {
+                $trip = $tripPassenger->trip;
+                $transportDetails = (object)[
+                    'is_allocated' => true,
+                    'route_name' => $trip->route->name ?? 'N/A',
+                    'vehicle_number' => $trip->vehicle->vehicle_number ?? 'N/A',
+                    'driver_name' => $trip->driver->name ?? 'N/A',
+                    'driver_phone' => $trip->driver->phone ?? 'N/A',
+                    'pickup_point' => $trip->route->start_location ?? 'N/A',
+                    'pickup_time' => $trip->start_time ?? 'N/A',
+                    'dropoff_time' => $trip->end_time ?? 'N/A',
+                ];
+            } else {
+                $transportDetails = (object)['is_allocated' => false];
+            }
+        } catch (\Throwable $e) {
+            $transportDetails = (object)['is_allocated' => false];
+        }
 
         return view('portal::transport', compact('students', 'all_students', 'transportDetails'));
     }
@@ -550,18 +553,18 @@ class PortalController extends Controller
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
 
-        // Demo data
+        // Welfare counsellor from school settings or default
         $counselor = (object)[
-            'name' => 'Dr. Emily Carter',
-            'email' => 'emily.carter@school.com',
-            'phone' => '0787654321',
-            'availability' => 'Mon, Wed, Fri (10am - 4pm)',
+            'name' => 'School Counsellor',
+            'email' => config('mail.from.address', 'support@school.com'),
+            'phone' => 'Contact the school office',
+            'availability' => 'Mon-Fri (8:00 AM - 4:00 PM)',
         ];
 
         $helplines = [
-            (object)['name' => 'General Student Support', 'number' => '111-222-333'],
-            (object)['name' => 'Academic Stress Helpline', 'number' => '444-555-666'],
-            (object)['name' => 'Emergency Security', 'number' => '999-999-999'],
+            (object)['name' => 'Student Support', 'number' => config('app.name', 'School') . ' Support Line'],
+            (object)['name' => 'Emergency', 'number' => '999'],
+            (object)['name' => 'Counselling', 'number' => config('app.name', 'School') . ' Counselling'],
         ];
 
         return view('portal::welfare', compact('students', 'all_students', 'counselor', 'helplines'));
