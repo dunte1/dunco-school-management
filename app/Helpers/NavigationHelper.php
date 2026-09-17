@@ -105,36 +105,53 @@ class NavigationHelper
         if (!$user) return [];
 
         return Cache::remember("nav:user:{$user->id}:modules", 300, function () use ($user) {
-            // Check modules_statuses.json directly first
-            $statusFile = base_path('modules_statuses.json');
-            if (file_exists($statusFile)) {
-                $statuses = json_decode(file_get_contents($statusFile), true);
-                if ($statuses) {
-                    $enabledModules = [];
-                    foreach ($statuses as $module => $enabled) {
-                        if ($enabled === true) {
-                            $enabledModules[] = strtolower($module);
-                        }
-                    }
-                    // For admin, return all functional modules
-                    if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-                        return [
-                            'core','academic','examination','finance','hr','library','hostel','transport','timetable','attendance','communication','portal','document','notification','settings','api','chatbot'
-                        ];
-                    }
-                    // For non-admin, filter by access
-                    $visible = [];
-                    foreach ($enabledModules as $module) {
-                        if (self::canAccessModule($module)) {
-                            $visible[] = $module;
-                        }
-                    }
-                    return $visible;
+            $allModules = [
+                'core','academic','examination','finance','hr','library','hostel','transport',
+                'timetable','attendance','communication','portal','document','notification',
+                'settings','api','chatbot'
+            ];
+
+            // Admin gets everything
+            if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+                return $allModules;
+            }
+
+            // Role-based default modules
+            $roleModules = [
+                'teacher'           => ['core','academic','examination','attendance','timetable','library','communication','notification','portal'],
+                'student'           => ['core','academic','examination','library','hostel','transport','attendance','portal','notification'],
+                'parent'            => ['core','academic','examination','library','hostel','finance','portal','notification'],
+                'finance_manager'   => ['core','finance','notification'],
+                'hr_manager'        => ['core','hr','attendance','notification'],
+                'librarian'         => ['core','library','notification'],
+                'timetable_manager' => ['core','timetable','academic','notification'],
+                'hostel_manager'    => ['core','hostel','notification'],
+            ];
+
+            $userRoles = $user->roles->pluck('name')->toArray();
+            $visible = [];
+
+            foreach ($userRoles as $roleName) {
+                if (isset($roleModules[$roleName])) {
+                    $visible = array_merge($visible, $roleModules[$roleName]);
                 }
             }
 
-            // Fallback
-            return [];
+            // Fallback: check permissions
+            if (empty($visible)) {
+                foreach ($allModules as $module) {
+                    if (self::canAccessModule($module)) {
+                        $visible[] = $module;
+                    }
+                }
+            }
+
+            // Always show core for authenticated users
+            if (!in_array('core', $visible)) {
+                $visible[] = 'core';
+            }
+
+            return array_values(array_unique($visible));
         });
     }
 
