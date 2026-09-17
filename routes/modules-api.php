@@ -38,8 +38,13 @@ if (is_dir($modulesPath)) {
             }
         }
 
-        if ($routesDir !== null && file_exists($routesDir . DIRECTORY_SEPARATOR . 'api.php')) {
-            require $routesDir . DIRECTORY_SEPARATOR . 'api.php';
+        if ($routesDir !== null) {
+            if (file_exists($routesDir . DIRECTORY_SEPARATOR . 'api.php')) {
+                require $routesDir . DIRECTORY_SEPARATOR . 'api.php';
+            }
+            if (file_exists($routesDir . DIRECTORY_SEPARATOR . 'mobile.php')) {
+                require $routesDir . DIRECTORY_SEPARATOR . 'mobile.php';
+            }
         }
     }
 }
