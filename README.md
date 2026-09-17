@@ -446,25 +446,40 @@ Access the ChatBot admin panel at `/chatbot/admin` to:
 
 ## 🚀 Deployment
 
+### ⚠️ CRITICAL: Build Locally, Deploy Build Artifacts Only
+
+**NEVER run `npm install`, `npm run build`, or any Node.js build process on the production server.** This can exhaust process slots and take down the server. All frontend assets must be built locally and only the compiled `public/build/` files deployed.
+
+See `DEPLOYMENT_RULES.md` for full details.
+
 ### Production Deployment
-1. **Server Setup**
+
+1. **Build Locally (on your development machine)**
    ```bash
-   # Install required packages
-   sudo apt update
-   sudo apt install nginx mysql-server php8.1-fpm php8.1-mysql
+   composer install --no-dev --optimize-autoloader
+   npm ci
+   npm run build
    ```
 
-2. **Application Deployment**
+2. **Deploy to Server** (copy these to the server, do NOT run npm/node):
    ```bash
-   # Clone repository
-   git clone https://github.com/dunte1/dunco-school-management.git
-   cd dunco-school-management
-   
-   # Install dependencies
-   composer install --optimize-autoloader --no-dev
-   npm install && npm run build
-   
-   # Set permissions
+   # Copy everything except node_modules, package files, and source assets
+   # The server only needs: public/build/, vendor/, and PHP source files
+   ```
+
+3. **Server Setup**
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   # Do NOT run: npm install, npm run build, npx vite build
+   php artisan migrate --force
+   php artisan db:seed --force
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+
+4. **Permissions**
+   ```bash
    sudo chown -R www-data:www-data storage bootstrap/cache
    sudo chmod -R 775 storage bootstrap/cache
    ```
