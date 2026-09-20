@@ -229,7 +229,7 @@
         <div class="modules-grid section-animate">
             @forelse($publicModules as $module)
             <a href="/features/{{ $module->slug }}" class="module-card">
-                <div class="module-icon">{!! $module->icon !!}</div>
+                <div class="module-icon"><i class="fas {{ $module->icon }}"></i></div>
                 <h3>{{ $module->name }}</h3>
                 <p>{{ $module->short_description }}</p>
             </a>
