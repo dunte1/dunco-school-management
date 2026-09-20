@@ -29,8 +29,9 @@ class PublicController extends Controller
         $pricingPlans = PricingPlan::active()->ordered()->with('features')->get();
         $settings = PublicSetting::getAll();
         $activeAdmissionCycle = AdmissionCycle::active()->open()->first();
+        $publicModules = PublicModule::active()->ordered()->get();
 
-        return view('welcome', compact('testimonials', 'faqs', 'pricingPlans', 'settings', 'activeAdmissionCycle'));
+        return view('welcome', compact('testimonials', 'faqs', 'pricingPlans', 'settings', 'activeAdmissionCycle', 'publicModules'));
     }
 
     public function features()
