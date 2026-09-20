@@ -14,6 +14,7 @@ use App\Models\Faq;
 use App\Models\Lead;
 use App\Models\PricingPlan;
 use App\Models\PublicSetting;
+use App\Models\PublicModule;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -115,6 +116,13 @@ class PublicController extends Controller
         session()->flash('success', 'Your demo request has been submitted! Reference: ' . $reference . '. Our team will contact you within 24 hours to confirm your demo schedule.');
 
         return redirect()->route('public.demo');
+    }
+
+    public function moduleDetail($slug)
+    {
+        $module = PublicModule::where('slug', $slug)->active()->firstOrFail();
+
+        return view('public.module-detail', compact('module'));
     }
 
     public function admissions()

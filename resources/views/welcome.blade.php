@@ -223,10 +223,17 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="section-header section-animate">
             <span class="section-tag">Modules</span>
-            <h2 class="section-title">17 Powerful Modules</h2>
+            <h2 class="section-title">{{ $publicModules->count() }} Powerful Modules</h2>
             <p class="section-subtitle">Each module is fully integrated and works seamlessly with the others.</p>
         </div>
         <div class="modules-grid section-animate">
+            @forelse($publicModules as $module)
+            <a href="/features/{{ $module->slug }}" class="module-card">
+                <div class="module-icon">{!! $module->icon !!}</div>
+                <h3>{{ $module->name }}</h3>
+                <p>{{ $module->short_description }}</p>
+            </a>
+            @empty
             <div class="module-card">
                 <div class="module-icon"><svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
                 <h3>Academic</h3>
@@ -307,6 +314,7 @@
                 <h3>Core / Admin</h3>
                 <p>Users, roles, permissions, audit</p>
             </div>
+            @endforelse
         </div>
     </div>
 </section>

@@ -45,6 +45,9 @@ Route::prefix('admin/cms')->name('admin.cms.')->middleware(['web', 'auth', 'admi
     Route::post('admissions/documents', [\App\Http\Controllers\Admin\Cms\AdmissionFieldController::class, 'storeDocument'])->name('admissions.documents.store');
     Route::delete('admissions/documents/{admissionDocumentType}', [\App\Http\Controllers\Admin\Cms\AdmissionFieldController::class, 'destroyDocument'])->name('admissions.documents.destroy');
 
+    // Public Modules
+    Route::resource('modules', \App\Http\Controllers\Admin\Cms\ModuleController::class);
+
     // Admission Applications
     Route::get('admissions/applications', [\App\Http\Controllers\Admin\Cms\AdmissionApplicationController::class, 'index'])->name('admissions.applications.index');
     Route::get('admissions/applications/{admissionApplication}', [\App\Http\Controllers\Admin\Cms\AdmissionApplicationController::class, 'show'])->name('admissions.applications.show');

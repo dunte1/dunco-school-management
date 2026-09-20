@@ -22,6 +22,7 @@ Route::get('/request-demo', [PublicController::class, 'demo'])->name('public.dem
 Route::post('/request-demo', [PublicController::class, 'demoSubmit'])->name('public.demo.submit');
 Route::get('/admissions', [PublicController::class, 'admissions'])->name('public.admissions');
 Route::post('/admissions', [PublicController::class, 'admissionsSubmit'])->name('public.admissions.submit');
+Route::get('/features/{slug}', [PublicController::class, 'moduleDetail'])->name('public.module-detail');
 
 // Authenticated user routes
 Route::middleware('auth')->group(function () {
