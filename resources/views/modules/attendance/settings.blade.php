@@ -96,19 +96,19 @@
         <form id="advanced-features-form">
             <div class="mb-2">
                 <input type="checkbox" id="enable-biometric"> <label for="enable-biometric">Enable Biometric Attendance</label>
-                <a href="#" class="ms-2">View Biometric Logs</a>
+                <a href="{{ route('attendance.biometric_logs') }}" class="ms-2">View Biometric Logs</a>
             </div>
             <div class="mb-2">
                 <input type="checkbox" id="enable-qr"> <label for="enable-qr">Enable QR Code Attendance</label>
-                <a href="#" class="ms-2">View QR Logs</a>
+                <a href="{{ route('attendance.qr_logs') }}" class="ms-2">View QR Logs</a>
             </div>
             <div class="mb-2">
                 <input type="checkbox" id="enable-face"> <label for="enable-face">Enable Face Recognition Attendance</label>
-                <a href="#" class="ms-2">View Face Logs</a>
+                <a href="{{ route('attendance.face_logs') }}" class="ms-2">View Face Logs</a>
             </div>
             <div class="mb-2">
                 <input type="checkbox" id="enable-parent-ack"> <label for="enable-parent-ack">Enable Parent Acknowledgment</label>
-                <a href="#" class="ms-2">View Acknowledgments</a>
+                <a href="{{ route('attendance.acknowledgment_logs') }}" class="ms-2">View Acknowledgments</a>
             </div>
             <button type="submit" class="btn btn-primary mt-2">Save Advanced Settings</button>
         </form>

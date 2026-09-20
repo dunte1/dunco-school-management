@@ -12,8 +12,8 @@ class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->routes(function () {
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
+            // Note: web.php is already loaded by bootstrap/app.php withRouting(web:).
+            // Only load API routes here to avoid duplicate registration.
 
             Route::prefix('api')
                 ->middleware('api')

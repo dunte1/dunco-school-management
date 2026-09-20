@@ -28,11 +28,11 @@ class Fee extends Model
 
     public function programs()
     {
-        return $this->belongsToMany(\Modules\Academic\app\Models\Program::class, 'fee_program');
+        return $this->belongsToMany(\Modules\Academic\Models\Subject::class, 'fee_program');
     }
 
     public function students()
     {
-        return $this->belongsToMany(\Modules\Academic\app\Models\Student::class, 'fee_student')->withPivot('paid');
+        return $this->belongsToMany(\Modules\Academic\Models\Student::class, 'fee_student')->withPivot('paid');
     }
 } 

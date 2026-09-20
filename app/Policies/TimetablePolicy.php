@@ -12,26 +12,43 @@ class TimetablePolicy
 
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasPermission('timetable.view')
+            || $this->hasRole($user, ['timetable_manager', 'academic_admin']);
     }
 
     public function view(User $user, Timetable $timetable): bool
     {
-        return true;
+        if ($timetable->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('timetable.view')
+            || $this->hasRole($user, ['timetable_manager', 'academic_admin']);
     }
 
     public function create(User $user): bool
     {
-        return $this->hasRole($user, ['timetable_manager', 'academic_admin']);
+        return $user->hasPermission('timetable.create')
+            || $this->hasRole($user, ['timetable_manager', 'academic_admin']);
     }
 
     public function update(User $user, Timetable $timetable): bool
     {
-        return $this->hasRole($user, ['timetable_manager', 'academic_admin']);
+        if ($timetable->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('timetable.edit')
+            || $this->hasRole($user, ['timetable_manager', 'academic_admin']);
     }
 
     public function delete(User $user, Timetable $timetable): bool
     {
-        return $this->hasRole($user, ['timetable_manager', 'academic_admin']);
+        if ($timetable->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('timetable.delete')
+            || $this->hasRole($user, ['timetable_manager', 'academic_admin']);
     }
 }

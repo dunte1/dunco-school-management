@@ -3,88 +3,101 @@
 namespace Modules\Library\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Modules\Library\Models\Member;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
-    public function index() {
-        $members = collect([
-            (object)[
-                'id' => 1,
-                'name' => 'John Doe',
-                'email' => 'john.doe@example.com',
-                'phone' => '+1234567890',
-                'membership_number' => 'MEM001',
-                'status' => 'active',
-                'join_date' => '2024-01-15'
-            ],
-            (object)[
-                'id' => 2,
-                'name' => 'Jane Smith',
-                'email' => 'jane.smith@example.com',
-                'phone' => '+1234567891',
-                'membership_number' => 'MEM002',
-                'status' => 'active',
-                'join_date' => '2024-02-20'
-            ],
-            (object)[
-                'id' => 3,
-                'name' => 'Mike Johnson',
-                'email' => 'mike.johnson@example.com',
-                'phone' => '+1234567892',
-                'membership_number' => 'MEM003',
-                'status' => 'inactive',
-                'join_date' => '2024-03-10'
-            ]
-        ]);
+    public function index(Request $request)
+    {
+        $query = Member::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('membership_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $members = $query->withCount('borrowRecords')->orderBy('name')->paginate(15)->withQueryString();
 
         return view('library::members.index', compact('members'));
     }
 
-    public function create() {
+    public function create()
+    {
         return view('library::members.create');
     }
 
-    public function store(Request $request) {
-        // Validation and storage logic would go here
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:members,email',
+            'phone' => 'nullable|string|max:20',
+            'membership_number' => 'required|string|max:50|unique:members,membership_number',
+            'status' => 'required|in:active,inactive,suspended',
+            'join_date' => 'required|date',
+            'address' => 'nullable|string',
+            'user_id' => 'nullable|exists:users,id',
+        ]);
+
+        Member::create($validated);
+
         return redirect()->route('library.members.index')->with('success', 'Member created successfully!');
     }
 
-    public function show($id) {
-        $member = (object)[
-            'id' => $id,
-            'name' => 'John Doe',
-            'email' => 'john.doe@example.com',
-            'phone' => '+1234567890',
-            'membership_number' => 'MEM001',
-            'status' => 'active',
-            'join_date' => '2024-01-15'
-        ];
+    public function show(Member $member)
+    {
+        $member->load(['borrowRecords.book', 'user']);
+        $member->loadCount('borrowRecords');
 
-        return view('library::members.show', compact('member'));
+        $activeBorrows = $member->borrowRecords()->whereNull('returned_at')->count();
+        $totalBorrows = $member->borrowRecords()->count();
+
+        return view('library::members.show', compact('member', 'activeBorrows', 'totalBorrows'));
     }
 
-    public function edit($id) {
-        $member = (object)[
-            'id' => $id,
-            'name' => 'John Doe',
-            'email' => 'john.doe@example.com',
-            'phone' => '+1234567890',
-            'membership_number' => 'MEM001',
-            'status' => 'active',
-            'join_date' => '2024-01-15'
-        ];
-
+    public function edit(Member $member)
+    {
         return view('library::members.edit', compact('member'));
     }
 
-    public function update(Request $request, $id) {
-        // Validation and update logic would go here
+    public function update(Request $request, Member $member)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:members,email,' . $member->id,
+            'phone' => 'nullable|string|max:20',
+            'membership_number' => 'required|string|max:50|unique:members,membership_number,' . $member->id,
+            'status' => 'required|in:active,inactive,suspended',
+            'join_date' => 'required|date',
+            'address' => 'nullable|string',
+            'user_id' => 'nullable|exists:users,id',
+        ]);
+
+        $member->update($validated);
+
         return redirect()->route('library.members.index')->with('success', 'Member updated successfully!');
     }
 
-    public function destroy($id) {
-        // Delete logic would go here
+    public function destroy(Member $member)
+    {
+        $activeBorrows = $member->borrowRecords()->whereNull('returned_at')->count();
+        if ($activeBorrows > 0) {
+            return redirect()->route('library.members.index')
+                ->with('error', 'Cannot delete member with active borrows. Return all books first.');
+        }
+
+        $member->delete();
+
         return redirect()->route('library.members.index')->with('success', 'Member deleted successfully!');
     }
-} 
+}

@@ -11,5 +11,6 @@ class Budget extends Model
         'period',
         'amount',
         'type',
+        'description',
     ];
 } 

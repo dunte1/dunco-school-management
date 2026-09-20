@@ -25,15 +25,15 @@ Route::middleware('auth')->group(function () {
     Route::get('finance/payment/success', [PaymentController::class, 'success'])->name('finance.payment.success');
     Route::get('finance/payment/cancel', [PaymentController::class, 'cancel'])->name('finance.payment.cancel');
     Route::post('finance/payment/mpesa-stk/{fee_id}', [PaymentController::class, 'mpesaStkPush'])->name('finance.payment.mpesa-stk');
-    Route::post('finance/payment/mpesa-callback', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.mpesa-callback');
     Route::post('finance/payment/bank-transfer/{fee_id}', [PaymentController::class, 'submitBankTransfer'])->name('finance.payment.bank-transfer');
-
-    // M-Pesa C2B endpoints (URLs are displayed in Finance > Settings).
-    Route::post('finance/payment/c2b-confirmation', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.c2b-confirmation');
-    Route::post('finance/payment/c2b-validation', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.c2b-validation');
 });
 
-Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
+// M-Pesa callback routes - public (called by Safaricom servers, not authenticated)
+Route::post('finance/payment/mpesa-callback', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.mpesa-callback');
+Route::post('finance/payment/c2b-confirmation', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.c2b-confirmation');
+Route::post('finance/payment/c2b-validation', [PaymentController::class, 'mpesaCallback'])->name('finance.payment.c2b-validation');
+
+Route::prefix('finance')->name('finance.')->middleware(['auth', 'admin'])->group(function () {
     // Main Finance Dashboard
     Route::get('/', [FinanceController::class, 'index'])->name('index');
     
@@ -66,12 +66,26 @@ Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function
     ]);
     Route::resource('payments', PaymentController::class);
     Route::get('bank-reconciliation', [BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
+    Route::get('bank-reconciliation/create', [BankReconciliationController::class, 'create'])->name('bank-reconciliation.create');
+    Route::post('bank-reconciliation', [BankReconciliationController::class, 'store'])->name('bank-reconciliation.store');
+    Route::get('bank-reconciliation/{id}', [BankReconciliationController::class, 'show'])->name('bank-reconciliation.show');
+    Route::get('bank-reconciliation/{id}/edit', [BankReconciliationController::class, 'edit'])->name('bank-reconciliation.edit');
+    Route::put('bank-reconciliation/{id}', [BankReconciliationController::class, 'update'])->name('bank-reconciliation.update');
+    Route::delete('bank-reconciliation/{id}', [BankReconciliationController::class, 'destroy'])->name('bank-reconciliation.destroy');
+    Route::get('bank-reconciliation/reconcile', [BankReconciliationController::class, 'reconcile'])->name('bank-reconciliation.reconcile');
+    Route::post('bank-reconciliation/reconcile', [BankReconciliationController::class, 'reconcile'])->name('bank-reconciliation.reconcile.post');
+    Route::get('bank-reconciliation/report', [BankReconciliationController::class, 'report'])->name('bank-reconciliation.report');
     Route::post('bank-reconciliation/import', [BankReconciliationController::class, 'import'])->name('bank-reconciliation.import');
     Route::post('bank-reconciliation/{transaction}/match', [BankReconciliationController::class, 'match'])->name('bank-reconciliation.match');
     Route::patch('bank-reconciliation/{transaction}/status', [BankReconciliationController::class, 'updateStatus'])->name('bank-reconciliation.update-status');
     Route::get('ledger', [LedgerController::class, 'index'])->name('ledger.index');
     Route::get('gl', [GLController::class, 'index'])->name('gl.index');
+    Route::get('gl/create', [GLController::class, 'create'])->name('gl.create');
+    Route::post('gl', [GLController::class, 'store'])->name('gl.store');
     Route::get('gl/{entry}', [GLController::class, 'show'])->name('gl.show');
+    Route::get('gl/{entry}/edit', [GLController::class, 'edit'])->name('gl.edit');
+    Route::put('gl/{entry}', [GLController::class, 'update'])->name('gl.update');
+    Route::delete('gl/{entry}', [GLController::class, 'destroy'])->name('gl.destroy');
     Route::resource('multi-banks', MultiBankController::class)->names([
         'index'   => 'banks.index',
         'create'  => 'banks.create',
@@ -84,6 +98,10 @@ Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function
     Route::get('forecasting', [ForecastingController::class, 'index'])->name('forecasting.index');
     Route::get('forecasting/create', [ForecastingController::class, 'create'])->name('forecasting.create');
     Route::post('forecasting', [ForecastingController::class, 'store'])->name('forecasting.store');
+    Route::get('forecasting/{id}', [ForecastingController::class, 'show'])->name('forecasting.show');
+    Route::get('forecasting/{id}/edit', [ForecastingController::class, 'edit'])->name('forecasting.edit');
+    Route::put('forecasting/{id}', [ForecastingController::class, 'update'])->name('forecasting.update');
+    Route::delete('forecasting/{id}', [ForecastingController::class, 'destroy'])->name('forecasting.destroy');
     Route::get('forecasting/variance', [ForecastingController::class, 'variance'])->name('forecasting.variance');
     Route::get('online-payments/mpesa', [OnlinePaymentController::class, 'mpesa'])->name('online-payments.mpesa');
     Route::post('online-payments/mpesa/callback', [OnlinePaymentController::class, 'mpesaCallback'])->name('online-payments.mpesa.callback');
@@ -94,6 +112,13 @@ Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function
     Route::get('reports/fee-collection', [ReportController::class, 'feeCollection'])->name('reports.fee-collection');
     Route::get('reports/outstanding-balances', [ReportController::class, 'outstandingBalances'])->name('reports.outstanding-balances');
     Route::get('reports/income-expense', [ReportController::class, 'incomeExpense'])->name('reports.income-expense');
+    Route::get('reports/fees', [ReportController::class, 'feeReport'])->name('reports.fees');
+    Route::get('reports/payments', [ReportController::class, 'paymentReport'])->name('reports.payments');
+    Route::get('reports/income', [ReportController::class, 'incomeReport'])->name('reports.income');
+    Route::get('reports/expenses', [ReportController::class, 'expenseReport'])->name('reports.expenses');
+    Route::get('reports/balance-sheet', [ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    Route::get('reports/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+    Route::get('reports/cash-flow', [ReportController::class, 'cashFlow'])->name('reports.cash-flow');
     Route::resource('receipts', ReceiptController::class);
     Route::resource('taxes', TaxController::class);
     Route::resource('roles', \Modules\Finance\Http\Controllers\FinanceRoleController::class)->names([

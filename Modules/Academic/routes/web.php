@@ -5,6 +5,7 @@ use Modules\Academic\Http\Controllers\AcademicController;
 use Modules\Academic\Http\Controllers\ClassController;
 use Modules\Academic\Http\Controllers\SubjectController;
 use Modules\Academic\Http\Controllers\SubjectResourceController;
+use Modules\Academic\Http\Controllers\SubjectCustomFieldController;
 use Modules\Academic\Http\Controllers\SubjectCalendarEventController;
 use Modules\Academic\Http\Controllers\AttendanceController;
 use Modules\Academic\Http\Controllers\OnlineClassController;
@@ -115,6 +116,15 @@ Route::middleware(['auth'])->prefix('academic')->name('academic.')->group(functi
         Route::get('/', [SubjectResourceController::class, 'index'])->name('academic.subjects.resources.index');
         Route::post('/', [SubjectResourceController::class, 'store'])->name('academic.subjects.resources.store');
         Route::delete('/{resourceId}', [SubjectResourceController::class, 'destroy'])->name('academic.subjects.resources.destroy');
+    });
+
+    // Subject Custom Fields
+    Route::prefix('subjects/{subjectId}/custom-fields')->name('subjects.custom-fields.')->group(function () {
+        Route::get('/', [\Modules\Academic\Http\Controllers\SubjectCustomFieldController::class, 'index'])->name('index');
+        Route::post('/', [\Modules\Academic\Http\Controllers\SubjectCustomFieldController::class, 'store'])->name('store');
+        Route::get('/{fieldId}', [\Modules\Academic\Http\Controllers\SubjectCustomFieldController::class, 'show'])->name('show');
+        Route::put('/{fieldId}', [\Modules\Academic\Http\Controllers\SubjectCustomFieldController::class, 'update'])->name('update');
+        Route::delete('/{fieldId}', [\Modules\Academic\Http\Controllers\SubjectCustomFieldController::class, 'destroy'])->name('destroy');
     });
 
     // Subject Calendar Events

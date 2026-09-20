@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->prefix('library')->name('library.')->gr
     Route::resource('categories', \Modules\Library\Http\Controllers\CategoryController::class);
     Route::resource('authors', \Modules\Library\Http\Controllers\AuthorController::class);
     Route::resource('publishers', \Modules\Library\Http\Controllers\PublisherController::class);
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/borrowed', [ReportController::class, 'borrowed'])->name('reports.borrowed');
     Route::get('reports/overdue', [ReportController::class, 'overdue'])->name('reports.overdue');
     Route::get('reports/most-borrowed', [ReportController::class, 'mostBorrowed'])->name('reports.most_borrowed');

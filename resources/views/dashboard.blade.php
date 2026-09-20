@@ -60,15 +60,15 @@
                 <div class="col-12">
                     <div class="row g-3">
                         @foreach ([
-                            ['icon' => 'school', 'color' => 'primary', 'title' => 'Schools', 'desc' => 'Manage all schools, their settings, and details.', 'link' => '/schools'],
-                            ['icon' => 'users', 'color' => 'success', 'title' => 'Users', 'desc' => 'View, add, and manage users and their roles.', 'link' => '/users'],
-                            ['icon' => 'user-tag', 'color' => 'warning', 'title' => 'Roles', 'desc' => 'Define and assign roles to users for access control.', 'link' => '/roles'],
-                            ['icon' => 'key', 'color' => 'info', 'title' => 'Permissions', 'desc' => 'Manage permissions and access rights for roles.', 'link' => '/permissions'],
-                            ['icon' => 'history', 'color' => 'secondary', 'title' => 'Audit Logs', 'desc' => 'Track all system activities and changes for security.', 'link' => '/audit-logs'],
-                            ['icon' => 'file-alt', 'color' => 'primary', 'title' => 'Examinations', 'desc' => 'Manage exams, schedules, and results for students.', 'link' => '/examinations'],
-                            ['icon' => 'calendar-check', 'color' => 'success', 'title' => 'Attendance', 'desc' => 'Monitor and manage student and staff attendance records.', 'link' => '/attendance'],
-                            ['icon' => 'money-bill-wave', 'color' => 'warning', 'title' => 'Finance', 'desc' => 'Oversee school finances, fees, and transactions.', 'link' => '/finance'],
-                            ['icon' => 'book', 'color' => 'primary', 'title' => 'Library', 'desc' => 'Manage books, lending, and library records.', 'link' => '/library'],
+                            ['icon' => 'school', 'color' => 'primary', 'title' => 'Schools', 'desc' => 'Manage all schools, their settings, and details.', 'link' => url('/schools')],
+                            ['icon' => 'users', 'color' => 'success', 'title' => 'Users', 'desc' => 'View, add, and manage users and their roles.', 'link' => url('/users')],
+                            ['icon' => 'user-tag', 'color' => 'warning', 'title' => 'Roles', 'desc' => 'Define and assign roles to users for access control.', 'link' => url('/roles')],
+                            ['icon' => 'key', 'color' => 'info', 'title' => 'Permissions', 'desc' => 'Manage permissions and access rights for roles.', 'link' => url('/permissions')],
+                            ['icon' => 'history', 'color' => 'secondary', 'title' => 'Audit Logs', 'desc' => 'Track all system activities and changes for security.', 'link' => route('audit_logs.index')],
+                            ['icon' => 'file-alt', 'color' => 'primary', 'title' => 'Examinations', 'desc' => 'Manage exams, schedules, and results for students.', 'link' => route('examination.dashboard')],
+                            ['icon' => 'calendar-check', 'color' => 'success', 'title' => 'Attendance', 'desc' => 'Monitor and manage student and staff attendance records.', 'link' => url('/attendance')],
+                            ['icon' => 'money-bill-wave', 'color' => 'warning', 'title' => 'Finance', 'desc' => 'Oversee school finances, fees, and transactions.', 'link' => url('/finance')],
+                            ['icon' => 'book', 'color' => 'primary', 'title' => 'Library', 'desc' => 'Manage books, lending, and library records.', 'link' => route('library.dashboard')],
                         ] as $module)
                         <div class="col-6 col-md-4 col-lg-3">
                             <a href="{{ $module['link'] }}" class="card module-card border-0 shadow-sm text-decoration-none h-100 glassmorphism p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 140px;">
@@ -121,7 +121,7 @@
                                 @endforeach
                             @endif
                         </ul>
-                        <a href="/activity" class="activity-feed-viewall">View All</a>
+                        <a href="{{ route('audit_logs.index') }}" class="activity-feed-viewall">View All</a>
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@ namespace Modules\Academic\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Academic\app\Models\Exam;
+use Modules\Academic\Models\Exam;
 use Modules\Academic\Models\Subject;
 use Modules\Academic\Models\AcademicClass;
 use Illuminate\Support\Facades\Auth;

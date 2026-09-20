@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Modules\Academic\Models\Student;
-use Modules\HR\Models\Employee;
+use Modules\HR\Models\Staff;
 use Carbon\Carbon;
 
 class AuthController extends Controller
@@ -458,9 +458,7 @@ class AuthController extends Controller
                         'date_of_birth' => $student->date_of_birth?->toDateString(),
                         'gender' => $student->gender,
                         'address' => $student->address,
-                        'parent_id' => $student->parent_id,
-                        'class_id' => $student->class_id,
-                        'section_id' => $student->section_id
+                        'class_id' => $student->class_id
                     ]);
                 }
                 break;
@@ -474,23 +472,20 @@ class AuthController extends Controller
                         'admission_number' => $child->admission_number,
                         'class_id' => $child->class_id,
                         'class_name' => $child->class->name ?? null,
-                        'section_id' => $child->section_id,
-                        'section_name' => $child->section->name ?? null,
-                        'parent_id' => $child->parent_id,
-                        'parent_name' => $child->parent->name ?? null,
+                        'parent_id' => $child->id,
                         'is_active' => $child->is_active
                     ];
                 });
                 break;
                 
             case 'teacher':
-                $employee = Employee::where('user_id', $user->id)->first();
-                if ($employee) {
+                $staff = Staff::where('user_id', $user->id)->first();
+                if ($staff) {
                     $userData = array_merge($userData, [
-                        'employee_id' => $employee->employee_id,
-                        'department' => $employee->department,
-                        'qualification' => $employee->qualification,
-                        'joining_date' => $employee->joining_date?->toDateString()
+                        'staff_id' => $staff->staff_id,
+                        'department_id' => $staff->department_id,
+                        'job_title' => $staff->job_title,
+                        'dob' => $staff->dob?->toDateString()
                     ]);
                 }
                 break;
@@ -513,7 +508,6 @@ class AuthController extends Controller
         return [
             'academic_info' => [
                 'class' => $student->class->name ?? null,
-                'section' => $student->section->name ?? null,
                 'admission_number' => $student->admission_number
             ],
             'recent_grades' => [], // Will be populated by AcademicController
@@ -537,7 +531,6 @@ class AuthController extends Controller
                     'name' => $child->name,
                     'admission_number' => $child->admission_number,
                     'class' => $child->class->name ?? null,
-                    'section' => $child->section->name ?? null
                 ];
             }),
             'fee_summary' => [], // Will be populated by FinanceController
@@ -565,7 +558,7 @@ class AuthController extends Controller
     {
         return [
             'total_students' => Student::count(),
-            'total_teachers' => Employee::where('role', 'teacher')->count(),
+            'total_teachers' => Staff::count(),
             'total_classes' => 0, // Will be populated by AcademicController
             'recent_activities' => [] // Will be populated by various controllers
         ];

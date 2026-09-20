@@ -25,6 +25,7 @@ class RouteServiceProvider extends ServiceProvider
     public function map(): void
     {
         $this->mapApiRoutes();
+        $this->mapMobileRoutes();
         $this->mapWebRoutes();
     }
 
@@ -46,5 +47,18 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapApiRoutes(): void
     {
         Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->name, '/routes/api.php'));
+    }
+
+    /**
+     * Define the mobile API routes for the application.
+     *
+     * These routes are stateless and use auth:sanctum middleware.
+     */
+    protected function mapMobileRoutes(): void
+    {
+        $mobilePath = module_path($this->name, '/routes/mobile.php');
+        if (file_exists($mobilePath)) {
+            Route::middleware('api')->prefix('api')->name('api.mobile.')->group($mobilePath);
+        }
     }
 }

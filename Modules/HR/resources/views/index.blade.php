@@ -82,7 +82,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="{{ route('hr.contract.index') }}" class="card h-100 shadow-sm border-0 text-decoration-none">
+                <a href="{{ route('hr.contracts.index') }}" class="card h-100 shadow-sm border-0 text-decoration-none">
                     <div class="card-body text-center">
                         <i class="fas fa-file-contract fa-2x mb-2 text-dark"></i>
                         <h5 class="card-title">Contracts & Job Info</h5>
@@ -91,7 +91,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="{{ route('hr.roles.index') }}" class="card h-100 shadow-sm border-0 text-decoration-none">
+                <a href="{{ route('core.roles.index') }}" class="card h-100 shadow-sm border-0 text-decoration-none">
                     <div class="card-body text-center">
                         <i class="fas fa-user-shield fa-2x mb-2 text-secondary"></i>
                         <h5 class="card-title">Roles</h5>
@@ -100,7 +100,7 @@
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="{{ route('hr.permissions.index') }}" class="card h-100 shadow-sm border-0 text-decoration-none">
+                <a href="{{ route('core.permissions.index') }}" class="card h-100 shadow-sm border-0 text-decoration-none">
                     <div class="card-body text-center">
                         <i class="fas fa-key fa-2x mb-2 text-info"></i>
                         <h5 class="card-title">Permissions</h5>
@@ -114,12 +114,12 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body d-flex flex-wrap gap-2 justify-content-center">
                         <a href="{{ route('hr.staff.index') }}" class="btn btn-primary mb-2"><i class="fas fa-users me-1"></i> Staff</a>
-                        <a href="{{ route('hr.roles.index') }}" class="btn btn-secondary mb-2"><i class="fas fa-user-shield me-1"></i> Roles</a>
-                        <a href="{{ route('hr.permissions.index') }}" class="btn btn-info mb-2"><i class="fas fa-key me-1"></i> Permissions</a>
+                        <a href="{{ route('core.roles.index') }}" class="btn btn-secondary mb-2"><i class="fas fa-user-shield me-1"></i> Roles</a>
+                        <a href="{{ route('core.permissions.index') }}" class="btn btn-info mb-2"><i class="fas fa-key me-1"></i> Permissions</a>
                         <a href="{{ route('attendance.index') }}" class="btn btn-success mb-2"><i class="fas fa-calendar-check me-1"></i> Attendance</a>
                         <a href="{{ route('hr.leave.index') }}" class="btn btn-warning mb-2"><i class="fas fa-plane-departure me-1"></i> Leave</a>
                         <a href="{{ route('hr.payroll.index') }}" class="btn btn-success mb-2"><i class="fas fa-money-check-alt me-1"></i> Payroll</a>
-                        <a href="{{ route('hr.contract.index') }}" class="btn btn-dark mb-2"><i class="fas fa-file-contract me-1"></i> Contracts</a>
+                        <a href="{{ route('hr.contracts.index') }}" class="btn btn-dark mb-2"><i class="fas fa-file-contract me-1"></i> Contracts</a>
                         <a href="{{ route('hr.performance_reviews.index') }}" class="btn btn-warning mb-2"><i class="fas fa-star-half-alt me-1"></i> Performance</a>
                         <a href="{{ route('hr.departments.index') }}" class="btn btn-info mb-2"><i class="fas fa-building me-1"></i> Departments</a>
                     </div>

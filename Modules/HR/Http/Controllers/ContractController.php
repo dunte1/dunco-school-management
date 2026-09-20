@@ -54,6 +54,6 @@ class ContractController extends Controller
             'transfer_to_department' => 'nullable|integer',
         ]);
         Contract::create($data);
-        return redirect()->route('hr.contract.index')->with('success', 'Contract created.');
+        return redirect()->route('hr.contracts.index')->with('success', 'Contract created.');
     }
 } 

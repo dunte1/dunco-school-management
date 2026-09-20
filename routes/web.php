@@ -2,22 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PublicController;
 
 // Root route - show welcome page (must be first to avoid conflicts)
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
+Route::get('/', [PublicController::class, 'welcome'])->name('welcome');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/search', [DashboardController::class, 'globalSearch'])->name('global.search')->middleware('auth');
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\Config\RequiredDocumentController;
 use App\Http\Controllers\Admin\Config\FeeConfigurationController;
 
+// Public marketing pages
+Route::get('/features', [PublicController::class, 'features'])->name('public.features');
+Route::get('/contact', [PublicController::class, 'contact'])->name('public.contact');
+Route::post('/contact', [PublicController::class, 'contactSubmit'])->name('public.contact.submit');
+Route::get('/request-demo', [PublicController::class, 'demo'])->name('public.demo');
+Route::post('/request-demo', [PublicController::class, 'demoSubmit'])->name('public.demo.submit');
+Route::get('/admissions', [PublicController::class, 'admissions'])->name('public.admissions');
+Route::post('/admissions', [PublicController::class, 'admissionsSubmit'])->name('public.admissions.submit');
+
 // Authenticated user routes
 Route::middleware('auth')->group(function () {
     // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -48,9 +58,9 @@ Route::prefix('admin/config')->middleware(['web', 'auth', 'admin'])->group(funct
 // Audit logs
 Route::get('/audit-logs', [\App\Http\Controllers\AuditLogController::class, 'index'])->middleware(['auth', 'admin'])->name('audit_logs.index');
 
-// Debug route for permission checking
+// Debug route for permission checking - admin only
 Route::get('/debug/permissions', [App\Http\Controllers\DebugController::class, 'permissions'])
-    ->middleware(['auth'])
+    ->middleware(['auth', 'admin'])
     ->name('debug.permissions');
 
 // Performance routes
@@ -66,3 +76,6 @@ require __DIR__.'/auth.php';
 
 // Load module routes
 require __DIR__.'/modules.php';
+
+// Load CMS routes
+require __DIR__.'/cms.php';

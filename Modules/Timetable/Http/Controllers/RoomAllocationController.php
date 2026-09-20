@@ -134,14 +134,85 @@ class RoomAllocationController extends Controller
     }
 
     /**
-     * Auto-allocate rooms for class schedules (stub)
-     * Params: class_schedule_ids[]
-     * Returns: JSON message (not implemented)
+     * Auto-allocate rooms for class schedules.
+     * Assigns the best available room to each schedule based on capacity and availability.
      */
     public function autoAllocate(Request $request)
     {
-        // Stub: In a real implementation, this would auto-allocate rooms
-        return response()->json(['message' => 'Auto-allocation of rooms is not implemented yet.']);
+        try {
+            if (!Schema::hasTable('room_allocations') || !Schema::hasTable('class_schedules')) {
+                return response()->json(['error' => 'Required tables do not exist.'], 500);
+            }
+
+            $scheduleIds = $request->input('class_schedule_ids', []);
+
+            // If no specific IDs, allocate all unassigned schedules
+            $query = \DB::table('class_schedules')->whereNull('room_id');
+            if (!empty($scheduleIds)) {
+                $query->whereIn('id', $scheduleIds);
+            }
+            $schedules = $query->get();
+
+            if ($schedules->isEmpty()) {
+                return response()->json([
+                    'message' => 'No unassigned class schedules found.',
+                    'allocated' => 0,
+                ]);
+            }
+
+            $rooms = Room::orderBy('capacity', 'desc')->get();
+            if ($rooms->isEmpty()) {
+                return response()->json(['error' => 'No rooms available for allocation.'], 404);
+            }
+
+            $allocated = 0;
+            $conflicts = 0;
+
+            foreach ($schedules as $schedule) {
+                $dayOfWeek = $schedule->day_of_week;
+                $startTime = $schedule->start_time;
+                $endTime = $schedule->end_time;
+
+                foreach ($rooms as $room) {
+                    // Check if this room is already allocated to another schedule at the same time
+                    $hasConflict = \DB::table('room_allocations')
+                        ->join('class_schedules', 'room_allocations.class_schedule_id', '=', 'class_schedules.id')
+                        ->where('room_allocations.room_id', $room->id)
+                        ->where('class_schedules.day_of_week', $dayOfWeek)
+                        ->where('class_schedules.start_time', '<', $endTime)
+                        ->where('class_schedules.end_time', '>', $startTime)
+                        ->exists();
+
+                    if (!$hasConflict) {
+                        // Create the allocation
+                        \DB::table('room_allocations')->insert([
+                            'room_id' => $room->id,
+                            'class_schedule_id' => $schedule->id,
+                            'allocation_date' => now()->toDateString(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        // Update the schedule's room_id
+                        \DB::table('class_schedules')->where('id', $schedule->id)->update([
+                            'room_id' => $room->id,
+                            'updated_at' => now(),
+                        ]);
+
+                        $allocated++;
+                        break;
+                    }
+                }
+            }
+
+            return response()->json([
+                'message' => "Auto-allocation complete. {$allocated} schedules allocated.",
+                'allocated' => $allocated,
+                'total_checked' => $schedules->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Auto-allocation failed: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

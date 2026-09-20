@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\NavigationHelper;
 
 class DashboardController extends Controller
@@ -216,6 +218,166 @@ class DashboardController extends Controller
         $accessibleModules = NavigationHelper::getUserModules();
         
         return view('dashboard.default', compact('accessibleModules'));
+    }
+
+    /**
+     * Global search across students, staff, books, fees, invoices, and payments.
+     * Accessible via GET /search?q=keyword (web) or GET /api/v1/mobile/search?q=keyword (API).
+     */
+    public function globalSearch(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'q'     => 'required|string|min:2|max:100',
+            'type'  => 'nullable|string|in:students,staff,books,fees,invoices,payments,all',
+            'limit' => 'nullable|integer|min:1|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $query = $request->input('q');
+        $type  = $request->input('type', 'all');
+        $limit = $request->input('limit', 10);
+
+        try {
+            $results = [];
+
+            if (in_array($type, ['all', 'students'], true)) {
+                $results['students'] = $this->searchStudentsGlobal($query, $limit);
+            }
+            if (in_array($type, ['all', 'staff'], true)) {
+                $results['staff'] = $this->searchStaffGlobal($query, $limit);
+            }
+            if (in_array($type, ['all', 'books'], true)) {
+                $results['books'] = $this->searchBooksGlobal($query, $limit);
+            }
+            if (in_array($type, ['all', 'fees'], true)) {
+                $results['fees'] = $this->searchFeesGlobal($query, $limit);
+            }
+            if (in_array($type, ['all', 'invoices'], true)) {
+                $results['invoices'] = $this->searchInvoicesGlobal($query, $limit);
+            }
+            if (in_array($type, ['all', 'payments'], true)) {
+                $results['payments'] = $this->searchPaymentsGlobal($query, $limit);
+            }
+
+            $totalCount = 0;
+            foreach ($results as $items) {
+                $totalCount += is_array($items) ? count($items) : $items->count();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Search completed successfully',
+                'data'    => [
+                    'query'   => $query,
+                    'type'    => $type,
+                    'total'   => $totalCount,
+                    'results' => $results,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Search failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function searchStudentsGlobal(string $query, int $limit): \Illuminate\Support\Collection
+    {
+        try {
+            return \Modules\Academic\Models\Student::with(['class', 'section'])
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'like', "%{$query}%")
+                      ->orWhere('admission_number', 'like', "%{$query}%")
+                      ->orWhere('student_id', 'like', "%{$query}%")
+                      ->orWhere('phone', 'like', "%{$query}%")
+                      ->orWhere('email', 'like', "%{$query}%");
+                })
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
+    }
+
+    private function searchStaffGlobal(string $query, int $limit): \Illuminate\Support\Collection
+    {
+        try {
+            return \Modules\HR\Models\Staff::with(['department', 'role'])
+                ->where(function ($q) use ($query) {
+                    $q->where('first_name', 'like', "%{$query}%")
+                      ->orWhere('last_name', 'like', "%{$query}%")
+                      ->orWhere('other_names', 'like', "%{$query}%")
+                      ->orWhere('email', 'like', "%{$query}%")
+                      ->orWhere('phone', 'like', "%{$query}%")
+                      ->orWhere('staff_id', 'like', "%{$query}%");
+                })
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
+    }
+
+    private function searchBooksGlobal(string $query, int $limit): \Illuminate\Support\Collection
+    {
+        try {
+            return \App\Models\Modules\Library\Models\Book::with(['author', 'category'])
+                ->where(function ($q) use ($query) {
+                    $q->where('title', 'like', "%{$query}%")
+                      ->orWhere('isbn', 'like', "%{$query}%")
+                      ->orWhereHas('author', fn ($aq) => $aq->where('name', 'like', "%{$query}%"));
+                })
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
+    }
+
+    private function searchFeesGlobal(string $query, int $limit): \Illuminate\Support\Collection
+    {
+        try {
+            return \Modules\Finance\Models\Fee::with(['category', 'type'])
+                ->where('name', 'like', "%{$query}%")
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
+    }
+
+    private function searchInvoicesGlobal(string $query, int $limit): \Illuminate\Support\Collection
+    {
+        try {
+            return \Modules\Finance\Models\Invoice::with(['student'])
+                ->where('invoice_number', 'like', "%{$query}%")
+                ->orWhereHas('student', fn ($sq) => $sq->where('name', 'like', "%{$query}%"))
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
+    }
+
+    private function searchPaymentsGlobal(string $query, int $limit): \Illuminate\Support\Collection
+    {
+        try {
+            return \Modules\Finance\Models\Payment::with(['invoice', 'invoice.student'])
+                ->where('reference_number', 'like', "%{$query}%")
+                ->orWhereHas('invoice', fn ($iq) => $iq->where('invoice_number', 'like', "%{$query}%"))
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
     }
 
     private function calculateAttendanceRate($student)

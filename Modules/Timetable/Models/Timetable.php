@@ -6,10 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class Timetable extends Model
 {
-    protected $table = 'timetables'; // Adjust if your table name is different
+    protected $table = 'timetables';
+
     protected $fillable = [
         'name',
-        // add other fillable fields as needed
+        'status',
+        'approved_by',
+        'approved_at',
+        'rejected_by',
+        'rejected_at',
+        'rejection_reason',
     ];
-    // Add fillable, relationships, etc. as needed
+
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+    ];
+
+    public function schedules()
+    {
+        return $this->hasMany(ClassSchedule::class, 'timetable_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'approved_by');
+    }
 } 

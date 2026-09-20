@@ -19,15 +19,6 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         return $request->user();
     });
 
-    // Sidebar API routes
-    Route::prefix('sidebar')->group(function () {
-        Route::get('/data', [\App\Http\Controllers\Api\SidebarController::class, 'getSidebarData']);
-        Route::post('/check-permission', [\App\Http\Controllers\Api\SidebarController::class, 'checkPermission']);
-        Route::get('/user-permissions', [\App\Http\Controllers\Api\SidebarController::class, 'getUserPermissions']);
-        Route::post('/trigger-update', [\App\Http\Controllers\Api\SidebarController::class, 'triggerUpdate']);
-        Route::get('/last-update', [\App\Http\Controllers\Api\SidebarController::class, 'getLastUpdate']);
-    });
-
     Route::get('/attendance/analytics/student', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'getStudentAnalytics']);
     Route::get('/attendance/analytics/staff', [\Modules\HR\Http\Controllers\AttendanceController::class, 'getStaffAnalytics']);
     Route::get('/attendance/past-records', [\Modules\Academic\Http\Controllers\AttendanceController::class, 'getPastRecords']);
@@ -43,4 +34,16 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/attendance/qr-logs', [\Modules\Attendance\Http\Controllers\AdvancedAttendanceController::class, 'getQrLogs']);
     Route::get('/attendance/face-logs', [\Modules\Attendance\Http\Controllers\AdvancedAttendanceController::class, 'getFaceLogs']);
     Route::get('/attendance/acknowledgment-logs', [\Modules\Attendance\Http\Controllers\AdvancedAttendanceController::class, 'getAcknowledgmentLogs']);
-}); 
+});
+
+// Sidebar API routes - use session auth (web middleware) since admin panel uses session, not Sanctum
+Route::middleware(['web', 'auth'])->prefix('sidebar')->group(function () {
+    Route::get('/data', [\App\Http\Controllers\Api\SidebarController::class, 'getSidebarData']);
+    Route::post('/check-permission', [\App\Http\Controllers\Api\SidebarController::class, 'checkPermission']);
+    Route::get('/user-permissions', [\App\Http\Controllers\Api\SidebarController::class, 'getUserPermissions']);
+    Route::post('/trigger-update', [\App\Http\Controllers\Api\SidebarController::class, 'triggerUpdate']);
+    Route::get('/last-update', [\App\Http\Controllers\Api\SidebarController::class, 'getLastUpdate']);
+});
+
+// Mobile API Routes
+require __DIR__.'/../Modules/API/routes/mobile.php';

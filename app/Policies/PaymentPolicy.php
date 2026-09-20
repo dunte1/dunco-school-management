@@ -12,26 +12,43 @@ class PaymentPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->hasRole($user, ['finance_manager', 'accountant', 'finance_officer']);
+        return $user->hasPermission('payment.view')
+            || $this->hasRole($user, ['finance_manager', 'accountant', 'finance_officer']);
     }
 
     public function view(User $user, Payment $payment): bool
     {
-        return $this->hasRole($user, ['finance_manager', 'accountant', 'finance_officer']);
+        if ($payment->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('payment.view')
+            || $this->hasRole($user, ['finance_manager', 'accountant', 'finance_officer']);
     }
 
     public function create(User $user): bool
     {
-        return $this->hasRole($user, ['finance_manager', 'accountant', 'finance_officer']);
+        return $user->hasPermission('payment.create')
+            || $this->hasRole($user, ['finance_manager', 'accountant', 'finance_officer']);
     }
 
     public function update(User $user, Payment $payment): bool
     {
-        return $this->hasRole($user, ['finance_manager']);
+        if ($payment->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('payment.edit')
+            || $this->hasRole($user, ['finance_manager']);
     }
 
     public function delete(User $user, Payment $payment): bool
     {
-        return false; // admin only
+        if ($payment->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('payment.delete')
+            || $this->hasRole($user, ['finance_manager']);
     }
 }

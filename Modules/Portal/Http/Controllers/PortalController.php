@@ -10,7 +10,7 @@ use Carbon\CarbonPeriod;
 use Modules\Portal\Models\Message;
 use Modules\Portal\Notifications\GeneralAnnouncement;
 use App\Models\User;
-use App\Models\Modules\Library\Models\Book;
+use Modules\Library\Models\Book;
 use Modules\Finance\Entities\FinanceSetting;
 
 class PortalController extends Controller
@@ -52,7 +52,6 @@ class PortalController extends Controller
 
     public function dashboard(Request $request)
     {
-        // Ensure user is authenticated
         if (!auth()->check()) {
             return redirect()->route('login');
         }
@@ -60,15 +59,49 @@ class PortalController extends Controller
         $studentData = $this->getStudentData($request);
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
-        
+
         $user = auth()->user();
         $student = $students->first();
 
-        // Fetch dashboard-specific data
-        $events = $student ? \Modules\Academic\Models\SubjectCalendarEvent::orderBy('start_time')->where('start_time', '>=', now())->limit(5)->get() : collect();
-        $notifications = $user ? $user->notifications()->latest()->limit(5)->get() : collect();
-        $dueFees = $student ? $student->fees()->where('status', '!=', 'paid')->orderBy('due_date')->get() : collect();
-        $recentGrades = $student ? $student->academicRecords()->latest('exam_date')->limit(5)->get() : collect();
+        $events = collect();
+        $notifications = collect();
+        $dueFees = collect();
+        $recentGrades = collect();
+
+        try {
+            if ($student) {
+                $events = \Modules\Academic\Models\SubjectCalendarEvent::orderBy('start_time')
+                    ->where('start_time', '>=', now())
+                    ->limit(5)
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            $events = collect();
+        }
+
+        try {
+            if ($user) {
+                $notifications = $user->notifications()->latest()->limit(5)->get();
+            }
+        } catch (\Exception $e) {
+            $notifications = collect();
+        }
+
+        try {
+            if ($student) {
+                $dueFees = $student->fees()->where('status', '!=', 'paid')->orderBy('due_date')->get();
+            }
+        } catch (\Exception $e) {
+            $dueFees = collect();
+        }
+
+        try {
+            if ($student) {
+                $recentGrades = $student->academicRecords()->latest('exam_date')->limit(5)->get();
+            }
+        } catch (\Exception $e) {
+            $recentGrades = collect();
+        }
 
         return view('portal::dashboard', compact('students', 'all_students', 'events', 'notifications', 'dueFees', 'recentGrades'));
     }
@@ -80,52 +113,22 @@ class PortalController extends Controller
         $all_students = $studentData['all_students'];
         $student = $students->first();
 
-        $examResults = $student ? $student->academicRecords()->with('subject')->orderByDesc('exam_date')->get() : collect();
-        
-        // Generate Demo Data if none exists
-        if ($examResults->isEmpty()) {
-            $examResults = collect([
-                (object)[
-                    'subject' => (object)['name' => 'Mathematics'],
-                    'exam_type' => 'Final',
-                    'term' => '1',
-                    'academic_year' => date('Y'),
-                    'exam_date' => now()->subMonths(1),
-                    'marks_obtained' => 85,
-                    'total_marks' => 100,
-                    'grade' => 'A',
-                    'remarks' => 'Excellent work.'
-                ],
-                (object)[
-                    'subject' => (object)['name' => 'English'],
-                    'exam_type' => 'Final',
-                    'term' => '1',
-                    'academic_year' => date('Y'),
-                    'exam_date' => now()->subMonths(1),
-                    'marks_obtained' => 78,
-                    'total_marks' => 100,
-                    'grade' => 'B+',
-                    'remarks' => 'Good effort.'
-                ],
-                (object)[
-                    'subject' => (object)['name' => 'Science'],
-                    'exam_type' => 'Midterm',
-                    'term' => '1',
-                    'academic_year' => date('Y'),
-                    'exam_date' => now()->subMonths(3),
-                    'marks_obtained' => 92,
-                    'total_marks' => 100,
-                    'grade' => 'A+',
-                    'remarks' => 'Outstanding performance.'
-                ],
-            ]);
+        $examResults = collect();
+        try {
+            if ($student) {
+                $examResults = $student->academicRecords()->with('subject')->orderByDesc('exam_date')->get();
+            }
+        } catch (\Exception $e) {
+            $examResults = collect();
         }
-        
-        $progressRecords = $examResults->where('academic_year', date('Y'));
-        
+
+        $progressRecords = $examResults->filter(function ($r) {
+            return $r->academic_year == date('Y');
+        });
+
         return view('portal::academics', compact('students', 'all_students', 'progressRecords', 'examResults'));
     }
-    
+
     public function schedule(Request $request)
     {
         $studentData = $this->getStudentData($request);
@@ -134,33 +137,33 @@ class PortalController extends Controller
         $student = $students->first();
 
         $classTimetable = collect();
-        if ($student && $student->currentClass) {
-            $classId = $student->currentClass->id;
-            $classTimetable = \Modules\Timetable\Models\ClassSchedule::where('academic_class_id', $classId)->with(['teacher', 'room', 'subject'])->orderBy('day_of_week')->orderBy('start_time')->get();
-        }
-        
-        $examTimetable = collect();
-        if ($student && $student->currentClass) {
-            $classId = $student->currentClass->id;
-            $examTimetable = \Modules\Academic\Models\Exam::where('exam_type', '!=', 'assignment')->whereHas('classes', function($q) use ($classId) { $q->where('academic_classes.id', $classId); })->with('subjects')->orderBy('start_date')->get();
+        try {
+            if ($student && $student->currentClass) {
+                $classId = $student->currentClass->id;
+                $classTimetable = \Modules\Timetable\Models\ClassSchedule::where('academic_class_id', $classId)
+                    ->with(['teacher', 'room', 'subject'])
+                    ->orderBy('day_of_week')
+                    ->orderBy('start_time')
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            $classTimetable = collect();
         }
 
-        // Generate Demo Data if none exists
-        if ($classTimetable->isEmpty()) {
-            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-            $times = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00'];
-            foreach ($days as $day) {
-                foreach ($times as $time) {
-                    $classTimetable->push((object)[
-                        'day_of_week' => $day,
-                        'start_time' => $time,
-                        'end_time' => Carbon::parse($time)->addHour()->format('H:i'),
-                        'subject' => (object)['name' => 'Sample Subject'],
-                        'teacher' => (object)['name' => 'Sample Teacher'],
-                        'room' => (object)['name' => 'Room ' . rand(101, 105)],
-                    ]);
-                }
+        $examTimetable = collect();
+        try {
+            if ($student && $student->currentClass) {
+                $classId = $student->currentClass->id;
+                $examTimetable = \Modules\Academic\Models\Exam::where('exam_type', '!=', 'assignment')
+                    ->whereHas('classes', function($q) use ($classId) {
+                        $q->where('academic_classes.id', $classId);
+                    })
+                    ->with('subjects')
+                    ->orderBy('start_date')
+                    ->get();
             }
+        } catch (\Exception $e) {
+            $examTimetable = collect();
         }
 
         return view('portal::schedule', compact('students', 'all_students', 'classTimetable', 'examTimetable'));
@@ -174,37 +177,18 @@ class PortalController extends Controller
         $student = $students->first();
 
         $classSubjects = collect();
-        if ($student && $student->currentClass) {
-            $classSubjects = $student->currentClass->subjects()->with('teachers', 'resources')->get();
-        }
-
-        // Generate Demo Data if none exists
-        if ($classSubjects->isEmpty()) {
-            $classSubjects = collect([
-                (object)[
-                    'id' => 1,
-                    'name' => 'Sample Mathematics',
-                    'description' => 'This is a demo mathematics course.',
-                    'teachers' => collect([(object)['name' => 'Mr. Smith']]),
-                    'resources' => collect([
-                        (object)['title' => 'Algebra Notes', 'type' => 'PDF', 'url' => null, 'file_path' => 'demo/algebra_notes.pdf'],
-                        (object)['title' => 'Geometry Videos', 'type' => 'Link', 'url' => '#', 'file_path' => null],
-                    ])
-                ],
-                (object)[
-                    'id' => 2,
-                    'name' => 'Sample English',
-                    'description' => 'This is a demo English course.',
-                    'teachers' => collect([(object)['name' => 'Ms. Doe']]),
-                    'resources' => collect()
-                ],
-            ]);
+        try {
+            if ($student && $student->currentClass) {
+                $classSubjects = $student->currentClass->subjects()->with('teachers', 'resources')->get();
+            }
+        } catch (\Exception $e) {
+            $classSubjects = collect();
         }
 
         $subjectResourcesBySubject = $classSubjects->keyBy('id')->map(function ($subject) {
-            return $subject->resources;
+            return $subject->resources ?? collect();
         });
-        
+
         return view('portal::materials', compact('students', 'all_students', 'classSubjects', 'subjectResourcesBySubject'));
     }
 
@@ -214,31 +198,21 @@ class PortalController extends Controller
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
         $student = $students->first();
-        
-        $assignments = collect();
-        if ($student && $student->currentClass) {
-            $classId = $student->currentClass->id;
-            $assignments = \Modules\Academic\Models\Exam::where('exam_type', 'assignment')->whereHas('classes', function($q) use ($classId) { $q->where('academic_classes.id', $classId); })->with('subjects')->orderByDesc('end_date')->get();
-        }
 
-        // Generate Demo Data if none exists
-        if ($assignments->isEmpty()) {
-            $assignments = collect([
-                (object)[
-                    'name' => 'Sample Algebra Homework',
-                    'subjects' => collect([(object)['name' => 'Mathematics']]),
-                    'end_date' => now()->addDays(3),
-                    'status' => 'ongoing',
-                    'status_color' => 'warning'
-                ],
-                (object)[
-                    'name' => 'Sample English Essay',
-                    'subjects' => collect([(object)['name' => 'English']]),
-                    'end_date' => now()->subDays(5),
-                    'status' => 'completed',
-                    'status_color' => 'success'
-                ],
-            ]);
+        $assignments = collect();
+        try {
+            if ($student && $student->currentClass) {
+                $classId = $student->currentClass->id;
+                $assignments = \Modules\Academic\Models\Exam::where('exam_type', 'assignment')
+                    ->whereHas('classes', function($q) use ($classId) {
+                        $q->where('academic_classes.id', $classId);
+                    })
+                    ->with('subjects')
+                    ->orderByDesc('end_date')
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            $assignments = collect();
         }
 
         return view('portal::assignments', compact('students', 'all_students', 'assignments'));
@@ -251,102 +225,81 @@ class PortalController extends Controller
         $all_students = $studentData['all_students'];
         $student = $students->first();
 
-        $studentFees = $student ? $student->fees()->with('payments')->get() : collect();
-        $studentPayments = $student ? \Modules\Academic\Models\StudentPayment::where('student_id', $student->id)->with('fee')->orderByDesc('payment_date')->get() : collect();
-        $paymentSettings = FinanceSetting::find(1)?->settings ?? [];
-        
-        // Generate Demo Data if none exists
-        if ($studentFees->isEmpty()) {
-            $unpaidFee = (object)[
-                'id' => 1,
-                'category' => 'Tuition Fee',
-                'amount' => 50000,
-                'status' => 'unpaid',
-                'due_date' => now()->addDays(15),
-                'payments' => collect(),
-                'total_paid' => 0,
-                'outstanding_amount' => 50000,
-            ];
-            $paidFee = (object)[
-                'id' => 2,
-                'category' => 'Library Fee',
-                'amount' => 2000,
-                'status' => 'paid',
-                'due_date' => now()->subMonths(1),
-                'payments' => collect([(object)['amount' => 2000]]),
-                'total_paid' => 2000,
-                'outstanding_amount' => 0,
-            ];
-            $studentFees = collect([$unpaidFee, $paidFee]);
+        $studentFees = collect();
+        $studentPayments = collect();
+        $paymentSettings = [];
 
-            $studentPayments = collect([
-                (object)[
-                    'payment_date' => now()->subMonths(1),
-                    'fee' => (object)['category' => 'Library Fee'],
-                    'amount' => 2000,
-                    'method' => 'MPESA',
-                    'reference' => 'ABC123XYZ',
-                    'note' => 'Annual library fee.'
-                ]
-            ]);
+        try {
+            if ($student) {
+                $studentFees = $student->fees()->with('payments')->get();
+            }
+        } catch (\Exception $e) {
+            $studentFees = collect();
         }
-        
+
+        try {
+            if ($student) {
+                $studentPayments = \Modules\Finance\Models\Payment::where('student_id', $student->id)
+                    ->with('fee')
+                    ->orderByDesc('payment_date')
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            $studentPayments = collect();
+        }
+
+        try {
+            $paymentSettings = FinanceSetting::find(1)?->settings ?? [];
+        } catch (\Exception $e) {
+            $paymentSettings = [];
+        }
+
         return view('portal::finance', compact('students', 'all_students', 'studentFees', 'studentPayments', 'paymentSettings'));
     }
-    
+
     public function communication(Request $request)
     {
         $studentData = $this->getStudentData($request);
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
-        
+
         $user = auth()->user();
         $audiences = ['all'];
         if ($user->hasRole('student')) $audiences[] = 'students';
         if ($user->hasRole('parent')) $audiences[] = 'parents';
-        
+
         $announcements = Announcement::where('is_active', true)
             ->where(function($q) use ($audiences) { $q->whereIn('audience', $audiences); })
             ->where(function($q) { $q->whereNull('published_at')->orWhere('published_at', '<=', now()); })
             ->where(function($q) { $q->whereNull('expires_at')->orWhere('expires_at', '>', now()); })
-            ->orderByDesc('published_at')->limit(10)->get();
-            
-        $messages = Message::where('receiver_id', $user->id)->orWhere('sender_id', $user->id)->with('sender')->orderBy('created_at')->get();
-        $admin = User::whereHas('roles', function($q){ $q->where('name', 'admin'); })->first();
+            ->orderByDesc('published_at')
+            ->limit(10)
+            ->get();
 
-        // Generate Demo Data
-        if ($announcements->isEmpty()) {
-            $announcements->push((object)['title' => 'Sample Announcement', 'message' => 'This is a demo announcement.', 'published_at' => now()]);
-        }
-        if ($messages->isEmpty() && $admin) {
-            $messages->push((object)[
-                'sender_id' => $admin->id,
-                'sender' => $admin, 
-                'message' => 'Welcome to the portal! Let us know if you need anything.', 
-                'created_at' => now()
-            ]);
-        }
+        $messages = Message::where('receiver_id', $user->id)
+            ->orWhere('sender_id', $user->id)
+            ->with('sender')
+            ->orderBy('created_at')
+            ->get();
+
+        $admin = User::whereHas('roles', function($q){ $q->where('name', 'admin'); })->first();
 
         return view('portal::communication', compact('students', 'all_students', 'announcements', 'messages', 'admin'));
     }
-    
+
     public function sendMessage(Request $request)
     {
-        $request->validate(['message' => 'required|string']);
+        $request->validate(['message' => 'required|string', 'receiver_id' => 'required|exists:users,id']);
         Message::create([
             'sender_id' => auth()->id(),
             'receiver_id' => $request->input('receiver_id'),
-            'message' => $request->input('message')
+            'message' => $request->input('message'),
         ]);
         return back()->with('success', 'Message sent!');
     }
-    
-    /**
-     * Send a test notification to check all channels
-     */
+
     public function sendTestNotification(Request $request)
     {
-        // Remove test functionality
         return back()->with('info', 'Test notifications are disabled in production.');
     }
 
@@ -355,33 +308,18 @@ class PortalController extends Controller
         $studentData = $this->getStudentData($request);
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
-        
+
         $query = $request->input('query');
         $books = collect();
-        if ($query) {
-            $books = Book::where('title', 'like', "%{$query}%")->orWhere('author', 'like', "%{$query}%")->limit(50)->get();
-        }
-
-        // Generate Demo Data if a search is performed but no results are found
-        if ($query && $books->isEmpty()) {
-            $books = collect([
-                (object)[
-                    'title' => 'Sample Book: The Adventures of Code',
-                    'author' => 'Dev Writer',
-                    'isbn' => '978-3-16-148410-0',
-                    'is_available' => true,
-                    'is_ebook' => true,
-                    'ebook_url' => '#'
-                ],
-                 (object)[
-                    'title' => 'Another Book: Mastering Laravel',
-                    'author' => 'Jane Coder',
-                    'isbn' => '978-1-49-190424-4',
-                    'is_available' => false,
-                    'is_ebook' => false,
-                    'ebook_url' => null
-                ],
-            ]);
+        try {
+            if ($query) {
+                $books = Book::where('title', 'like', "%{$query}%")
+                    ->orWhere('author', 'like', "%{$query}%")
+                    ->limit(50)
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            $books = collect();
         }
 
         return view('portal::library_search', compact('students', 'all_students', 'books', 'query'));
@@ -393,7 +331,7 @@ class PortalController extends Controller
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
 
-        // Use academic subjects as courses
+        $courses = collect();
         try {
             $subjects = \Modules\Academic\Models\Subject::orderBy('name')->get();
             $courses = $subjects->map(function ($subject) {
@@ -420,7 +358,6 @@ class PortalController extends Controller
         $all_students = $studentData['all_students'];
         $student = $students->first();
 
-        // Get real hostel data from the Hostel module
         $hostelDetails = null;
         $hostelFees = collect();
         $hostelIssues = collect();
@@ -429,7 +366,6 @@ class PortalController extends Controller
 
         if ($student) {
             try {
-                // Get room allocation
                 $roomAllocation = \Modules\Hostel\Models\RoomAllocation::where('student_id', $student->id)
                     ->where('status', 'active')
                     ->with(['bed.room.floor.hostel', 'bed.room'])
@@ -441,73 +377,60 @@ class PortalController extends Controller
                         'room_number' => $roomAllocation->bed->room->room_number ?? 'Unknown',
                         'room_type' => $roomAllocation->bed->room->type ?? 'Unknown',
                         'bed_number' => $roomAllocation->bed->bed_number ?? 'Unknown',
-                        'warden' => 'Not Assigned', // Will be updated when warden relationship is added
+                        'warden' => 'Not Assigned',
                         'check_in' => $roomAllocation->check_in,
-                        'is_allocated' => true
+                        'is_allocated' => true,
                     ];
                 }
 
-                // Get hostel fees
                 $hostelFees = \Modules\Hostel\Models\HostelFee::where('student_id', $student->id)
                     ->orderBy('due_date')
                     ->get();
 
-                // Get hostel issues reported by student
                 $hostelIssues = \Modules\Hostel\Models\HostelIssue::where('reported_by', $student->id)
                     ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->get();
 
-                // Get hostel announcements
                 $hostelAnnouncements = \Modules\Hostel\Models\HostelAnnouncement::where('is_active', true)
                     ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->get();
 
-                // Get leave requests
                 $leaveRequests = \Modules\Hostel\Models\LeaveRequest::where('student_id', $student->id)
                     ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->get();
-
             } catch (\Exception $e) {
-                // Log error but don't break the page
                 \Log::error('Error loading hostel data: ' . $e->getMessage());
             }
         }
 
-        // If no real data, show demo data
-        if (!$hostelDetails) {
-            $hostelDetails = (object)[
-                'name' => 'St. Patrick\'s Hostel',
-                'room_number' => 'B-207',
-                'room_type' => 'Double Occupancy',
-                'bed_number' => '1',
-                'warden' => 'Mr. John Doe',
-                'check_in' => now()->subMonths(2),
-                'is_allocated' => false
-            ];
+        $menu = [];
+        try {
+            $menu = \Modules\Hostel\Models\CafeteriaMenu::where('is_active', true)
+                ->where('date', '>=', now()->startOfWeek())
+                ->where('date', '<=', now()->endOfWeek())
+                ->get()
+                ->groupBy(function ($item) {
+                    return $item->date->format('l');
+                })
+                ->map(function ($items) {
+                    return $items->pluck('meal_name', 'meal_type')->toArray();
+                })
+                ->toArray();
+        } catch (\Exception $e) {
+            $menu = [];
         }
 
-        // Demo cafeteria menu (this would come from Cafeteria module)
-        $menu = [
-            'Monday' => ['Breakfast' => 'Toast & Eggs', 'Lunch' => 'Rice & Chicken Curry', 'Dinner' => 'Chapati & Lentils'],
-            'Tuesday' => ['Breakfast' => 'Pancakes', 'Lunch' => 'Pasta', 'Dinner' => 'Vegetable Stir-fry'],
-            'Wednesday' => ['Breakfast' => 'Oatmeal', 'Lunch' => 'Fish & Chips', 'Dinner' => 'Noodles'],
-            'Thursday' => ['Breakfast' => 'Cereal', 'Lunch' => 'Tacos', 'Dinner' => 'Pizza'],
-            'Friday' => ['Breakfast' => 'Waffles', 'Lunch' => 'Burger', 'Dinner' => 'Biryani'],
-            'Saturday' => ['Breakfast' => 'Idli & Sambar', 'Lunch' => 'Special Thali', 'Dinner' => 'Fried Rice'],
-            'Sunday' => ['Breakfast' => 'Brunch', 'Lunch' => '-', 'Dinner' => 'Steak'],
-        ];
-
         return view('portal::hostel', compact(
-            'students', 
-            'all_students', 
-            'hostelDetails', 
-            'menu', 
-            'hostelFees', 
-            'hostelIssues', 
-            'hostelAnnouncements', 
+            'students',
+            'all_students',
+            'hostelDetails',
+            'menu',
+            'hostelFees',
+            'hostelIssues',
+            'hostelAnnouncements',
             'leaveRequests'
         ));
     }
@@ -517,30 +440,35 @@ class PortalController extends Controller
         $studentData = $this->getStudentData($request);
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
+        $student = $students->first();
 
+        $transportDetails = null;
         try {
-            $tripPassenger = \Modules\Transport\Models\TripPassenger::with(['trip.vehicle', 'trip.driver', 'trip.route'])
-                ->where('student_id', $student->id ?? auth()->id())
-                ->latest()
-                ->first();
+            if ($student) {
+                $tripPassenger = \Modules\Transport\Models\TripPassenger::with(['trip.vehicle', 'trip.driver', 'trip.route'])
+                    ->where('student_id', $student->id)
+                    ->latest()
+                    ->first();
 
-            $transportDetails = null;
-            if ($tripPassenger && $tripPassenger->trip) {
-                $trip = $tripPassenger->trip;
-                $transportDetails = (object)[
-                    'is_allocated' => true,
-                    'route_name' => $trip->route->name ?? 'N/A',
-                    'vehicle_number' => $trip->vehicle->vehicle_number ?? 'N/A',
-                    'driver_name' => $trip->driver->name ?? 'N/A',
-                    'driver_phone' => $trip->driver->phone ?? 'N/A',
-                    'pickup_point' => $trip->route->start_location ?? 'N/A',
-                    'pickup_time' => $trip->start_time ?? 'N/A',
-                    'dropoff_time' => $trip->end_time ?? 'N/A',
-                ];
-            } else {
-                $transportDetails = (object)['is_allocated' => false];
+                if ($tripPassenger && $tripPassenger->trip) {
+                    $trip = $tripPassenger->trip;
+                    $transportDetails = (object)[
+                        'is_allocated' => true,
+                        'route_name' => $trip->route->name ?? 'N/A',
+                        'vehicle_number' => $trip->vehicle->vehicle_number ?? 'N/A',
+                        'driver_name' => $trip->driver->name ?? 'N/A',
+                        'driver_phone' => $trip->driver->phone ?? 'N/A',
+                        'pickup_point' => $trip->route->start_location ?? 'N/A',
+                        'pickup_time' => $trip->start_time ?? 'N/A',
+                        'dropoff_time' => $trip->end_time ?? 'N/A',
+                    ];
+                }
             }
         } catch (\Throwable $e) {
+            $transportDetails = null;
+        }
+
+        if (!$transportDetails) {
             $transportDetails = (object)['is_allocated' => false];
         }
 
@@ -553,7 +481,6 @@ class PortalController extends Controller
         $students = $studentData['students'];
         $all_students = $studentData['all_students'];
 
-        // Welfare counsellor from school settings or default
         $counselor = (object)[
             'name' => 'School Counsellor',
             'email' => config('mail.from.address', 'support@school.com'),
@@ -596,7 +523,6 @@ class PortalController extends Controller
             $user->phone = $request->input('phone');
 
             if ($request->hasFile('avatar')) {
-                // Delete old avatar if it exists
                 if ($user->avatar) {
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
                 }
@@ -611,9 +537,9 @@ class PortalController extends Controller
 
             $user->password = \Illuminate\Support\Facades\Hash::make($request->input('password'));
         } elseif ($formType === 'preferences') {
-             $user->setSetting('theme', $request->input('theme', 'light'));
-             $user->setSetting('notifications.email', $request->has('notifications.email'));
-             $user->setSetting('notifications.sms', $request->has('notifications.sms'));
+            $user->setSetting('theme', $request->input('theme', 'light'));
+            $user->setSetting('notifications.email', $request->has('notifications.email'));
+            $user->setSetting('notifications.sms', $request->has('notifications.sms'));
         }
 
         $user->save();

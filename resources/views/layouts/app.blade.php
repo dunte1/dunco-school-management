@@ -6,6 +6,9 @@
     <title>@yield('title', 'Dunco School Management System')</title>
     <!-- Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icon-512x512.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -47,336 +50,309 @@
         h1 { font-size: 2.2rem; }
         h2 { font-size: 1.6rem; }
         h3 { font-size: 1.3rem; }
-        /* Sidebar Modernization */
+        /* Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
-            width: 180px;
-            background: linear-gradient(135deg, #162447 0%, #1a237e 60%, #3949ab 100%);
-            color: #fff;
+            width: 224px;
+            background: #0f172a;
+            color: #e2e8f0;
             z-index: 1030;
-            transition: width 0.3s, left 0.3s, box-shadow 0.2s;
+            transition: width 0.3s, left 0.3s;
             overflow-x: hidden;
-            box-shadow: 0 8px 32px 0 rgba(30,167,255,0.10), 0 1.5px 6px 0 rgba(21,101,192,0.10);
-            padding: 20px 0 20px 0;
+            overflow-y: auto;
+            padding: 0;
             display: flex;
             flex-direction: column;
-            border-top-right-radius: 18px;
-            border-bottom-right-radius: 18px;
-            align-items: center;
+            align-items: stretch;
             justify-content: flex-start;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
-        .sidebar.collapsed { width: 64px; }
+        .sidebar.collapsed { width: 68px; }
+        .sidebar.collapsed .sidebar-header { justify-content: center; padding: 0; }
+        .sidebar.collapsed .brand-text { display: none; }
+        .sidebar.collapsed .sidebar-collapse-toggle { display: none !important; }
+        .sidebar.collapsed #sidebarExpandBtn { display: flex !important; }
+        .sidebar.collapsed .sidebar-section { display: none; }
+        .sidebar.collapsed .nav-link,
+        .sidebar.collapsed .accordion-button { padding: 0; justify-content: center; border-radius: 8px; margin: 2px 6px; height: 40px; }
+        .sidebar.collapsed .nav-link .nav-text,
+        .sidebar.collapsed .accordion-button .nav-text,
+        .sidebar.collapsed .accordion-button .custom-chevron,
+        .sidebar.collapsed .nav-link .badge { display: none !important; }
+        .sidebar.collapsed .nav-link .nav-icon,
+        .sidebar.collapsed .accordion-button .nav-icon { width: auto; min-width: unset; font-size: 20px; }
+        .sidebar.collapsed .accordion-body,
+        .sidebar.collapsed .accordion-collapse { display: none !important; }
+        #sidebarExpandBtn { display: none; }
+
+        /* Sidebar header */
         .sidebar .sidebar-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            width: 100%;
-            min-height: 64px;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            margin-bottom: 12px;
-            background: transparent;
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: 1px;
+            height: 64px;
+            padding: 0 16px;
+            border-bottom: 1px solid #334155;
+            flex-shrink: 0;
         }
         .sidebar .brand-text {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.05rem;
+            font-size: 15px;
             font-weight: 700;
-            letter-spacing: 1.2px;
-            color: #eaf6fb;
-            text-shadow: 0 1px 4px rgba(30,167,255,0.08);
-            text-transform: uppercase;
+            color: #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
         }
         .sidebar .brand-logo {
-            background: #1ea7ff22;
+            width: 32px;
+            height: 32px;
+            background: rgba(6,182,212,0.15);
             border-radius: 8px;
-            padding: 6px 8px;
-            margin-right: 8px;
-            font-size: 1.3rem;
-            color: #1ea7ff;
-            box-shadow: 0 2px 8px rgba(30,167,255,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #06b6d4;
+            flex-shrink: 0;
+            line-height: 1;
         }
         .sidebar .collapse-btn {
             background: none;
             border: none;
-            color: var(--color-text-muted);
-            font-size: 1.3rem;
+            color: #64748b;
+            font-size: 0.85rem;
             cursor: pointer;
-            padding: 0.35rem 0.5rem;
+            padding: 6px;
             border-radius: 6px;
-            transition: color 0.2s, background 0.2s, box-shadow 0.2s;
-            box-shadow: none;
-            display: block !important;
-        }
-        .sidebar.collapsed .collapse-btn {
-            display: block !important;
-        }
-        .sidebar-section {
-            padding: 0 10px 0 10px;
-            font-size: 12px;
-            color: #1ea7ff;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            font-weight: 800;
-            opacity: 1;
-            margin-top: 32px;
-            margin-bottom: 10px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            text-shadow: 0 1px 8px rgba(30,167,255,0.18);
-        }
-        .sidebar-section-divider {
-            width: 80%;
-            height: 2.5px;
-            background: linear-gradient(90deg, #1ea7ff 0%, #ffb300 100%);
-            border-radius: 2px;
-            margin: 0.5rem auto 1rem auto;
-            box-shadow: 0 2px 8px rgba(30,167,255,0.13);
-        }
-        .sidebar .nav-link.active, .sidebar .accordion-button.active {
-            background: rgba(30,167,255,0.18);
-            color: #fff;
-            border-left: 4px solid #ffb300;
-            box-shadow: 0 4px 16px rgba(30,167,255,0.18);
-            font-weight: 700;
-            transform: translateX(2px) scale(1.04);
-        }
-        .sidebar .nav-link .badge, .sidebar .accordion-button .badge {
-            background: linear-gradient(90deg, #ffb300 0%, #1ea7ff 100%);
-            color: #0d133d;
-            font-size: 0.78rem;
-            font-weight: 700;
-            border-radius: 8px;
-            padding: 2px 8px;
-            margin-left: 8px;
-            box-shadow: 0 2px 8px rgba(30,167,255,0.13);
-        }
-        .sidebar.collapsed .sidebar-section {
-            opacity: 0;
-            height: 0;
-            padding: 0;
-            margin: 0;
-        }
-        .sidebar .nav-link, .sidebar .accordion-button {
-            color: #eaf6fb;
-            font-size: 1.05rem;
-            font-weight: 500;
-            padding: 14px 0;
-            border-radius: 6px;
-            margin-bottom: 2px;
-            transition: all 0.2s cubic-bezier(.4,0,.2,1);
+            transition: color 0.15s, background 0.15s;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .sidebar .collapse-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.05); }
+
+        /* Section titles */
+        .sidebar-section {
+            padding: 20px 16px 8px;
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Nav link (top-level) */
+        .sidebar .nav-link {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            height: 40px;
+            padding: 0 12px;
+            margin: 1px 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #cbd5e1;
             text-decoration: none;
-            gap: 6px;
-            line-height: 1.5;
+            white-space: nowrap;
+            transition: background 0.15s, color 0.15s;
             position: relative;
             outline: none;
-            width: 100%;
+            width: calc(100% - 16px);
         }
-        .sidebar .nav-link:focus {
-            box-shadow: 0 0 0 2px #1ea7ff55;
-            background: rgba(30,167,255,0.10);
-        }
-        .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.07);
-            color: #fff;
-            border-left: 3px solid #1ea7ff;
-            box-shadow: 0 2px 8px rgba(30,167,255,0.10);
-            transform: translateX(2px) scale(1.01);
-        }
-        .sidebar .nav-link.active {
-            background: rgba(30,167,255,0.13);
-            color: #fff;
-            border-left: 3px solid #1ea7ff;
-            box-shadow: 0 4px 16px rgba(30,167,255,0.13);
-            font-weight: 600;
-            transform: translateX(2px) scale(1.02);
-        }
-        .sidebar.collapsed .nav-link {
-            padding: 12px 10px;
-            font-size: 1.2rem;
+        .sidebar .nav-link:hover { background: rgba(255,255,255,0.05); color: #f1f5f9; }
+        .sidebar .nav-link:focus-visible { outline: 2px solid rgba(6,182,212,0.5); outline-offset: -2px; }
+        .sidebar .nav-link.active { background: rgba(6,182,212,0.12); color: #f1f5f9; font-weight: 600; }
+
+        /* Nav icon */
+        .sidebar .nav-link .nav-icon,
+        .sidebar .accordion-button .nav-icon {
+            width: 20px;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            border-radius: 8px;
-            margin: 0 6px 2px 6px;
-        }
-        .sidebar.collapsed .nav-link .nav-text {
-            opacity: 0;
-            width: 0;
-            display: none;
-        }
-        .sidebar .nav-link .nav-icon, .sidebar .accordion-button .nav-icon {
-            width: 28px;
-            min-width: 28px;
-            text-align: center;
-            font-size: 1.25rem;
+            font-size: 16px;
             flex-shrink: 0;
-            transition: color 0.2s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
+            transition: color 0.15s;
         }
-        .sidebar .nav-link:hover .nav-icon, .sidebar .nav-link.active .nav-icon {
-            color: #1ea7ff;
-            transform: scale(1.13) rotate(-6deg);
-        }
-        .sidebar .nav-link .nav-text, .sidebar .accordion-button .nav-text, .sidebar .accordion-body .nav-link .nav-text {
-            transition: opacity 0.2s, width 0.2s;
+        .sidebar .nav-link:hover .nav-icon,
+        .sidebar .nav-link.active .nav-icon,
+        .sidebar .accordion-button:hover .nav-icon { color: #22d3ee; }
+
+        /* Nav text */
+        .sidebar .nav-link .nav-text,
+        .sidebar .accordion-button .nav-text {
+            flex: 1;
             overflow: hidden;
-            font-size: 1.05rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 13px;
             font-weight: 500;
-            text-align: center;
-            width: 100%;
+            text-align: left;
+            line-height: 1;
         }
-        .sidebar.collapsed .nav-link .nav-text,
-        .sidebar.collapsed .accordion-button .nav-text,
-        .sidebar.collapsed .accordion-body .nav-link .nav-text,
-        .sidebar.collapsed .sidebar-section {
-            opacity: 0;
-            width: 0;
-            display: none !important;
+        .sidebar .nav-link.active .nav-text { font-weight: 600; }
+
+        /* Badge */
+        .sidebar .nav-link .badge,
+        .sidebar .accordion-button .badge {
+            background: #06b6d4;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 1px 6px;
+            margin-left: auto;
+            flex-shrink: 0;
         }
-        .sidebar .nav-link, .sidebar .accordion-button, .sidebar .accordion-body .nav-link {
+
+        /* Accordion button (parent menu items) */
+        .sidebar .accordion-button {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-        .sidebar .accordion-body, .sidebar .nav.flex-column {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .sidebar .accordion-body .nav-link {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-        .sidebar-collapse-toggle, .expand-btn {
-            background: #fff;
-            color: #1ea7ff;
+            gap: 12px;
+            height: 40px;
+            padding: 0 12px;
+            margin: 1px 8px;
+            border-radius: 8px;
             border: none;
-            border-radius: 50%;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: #cbd5e1;
+            text-align: left;
+            white-space: nowrap;
+            transition: background 0.15s, color 0.15s;
+            outline: none;
+            width: calc(100% - 16px);
+            cursor: pointer;
+        }
+        .sidebar .accordion-button:hover { background: rgba(255,255,255,0.05); color: #f1f5f9; }
+        .sidebar .accordion-button::after { display: none !important; }
+        .sidebar .accordion-button .custom-chevron {
+            color: #475569;
+            font-size: 12px;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .sidebar .accordion-button:not(.collapsed) .custom-chevron { transform: rotate(180deg); }
+
+        /* Accordion body / submenu */
+        .sidebar .accordion-body,
+        .sidebar .nav.flex-column { width: 100%; display: flex; flex-direction: column; padding: 0; }
+        .sidebar .accordion-body .nav-link,
+        .sidebar .accordion-body .nav .nav-link {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            height: 36px;
+            padding: 0 12px 0 44px;
+            margin: 1px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 400;
+            color: #94a3b8;
+            text-align: left;
+            width: calc(100% - 16px);
+            transition: background 0.15s, color 0.15s;
+        }
+        .sidebar .accordion-body .nav-link:hover,
+        .sidebar .accordion-body .nav .nav-link:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+        .sidebar .accordion-body .nav-link.active,
+        .sidebar .accordion-body .nav .nav-link.active { background: rgba(6,182,212,0.12); color: #f1f5f9; font-weight: 500; }
+        .sidebar .accordion-body .nav-link.d-flex,
+        .sidebar .accordion-body .nav .nav-link.d-flex {
+            display: flex !important; flex-direction: row !important; align-items: center !important;
+            gap: 10px; margin-bottom: 0 !important; color: #94a3b8 !important;
+        }
+        .sidebar .accordion-body .nav-link.d-flex:hover,
+        .sidebar .accordion-body .nav .nav-link.d-flex:hover { color: #e2e8f0 !important; }
+        .sidebar .accordion-body .nav-link.d-flex.active,
+        .sidebar .accordion-body .nav .nav-link.d-flex.active { color: #f1f5f9 !important; }
+        .sidebar .accordion-body .nav-link .me-2,
+        .sidebar .accordion-body .nav .nav-link .me-2 { margin-right: 0 !important; }
+
+        /* Toggle buttons */
+        .sidebar-collapse-toggle, .expand-btn {
+            background: rgba(255,255,255,0.05);
+            color: #64748b;
+            border: none;
+            border-radius: 6px;
             width: 32px;
             height: 32px;
-            font-size: 1.1rem;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(30,167,255,0.13);
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s, left 0.3s, top 0.3s, transform 0.3s;
+            transition: background 0.15s, color 0.15s;
             cursor: pointer;
             margin: 0;
         }
-        .sidebar-collapse-toggle:hover, .expand-btn:hover, .sidebar-collapse-toggle:focus, .expand-btn:focus {
-            background: #1ea7ff;
-            color: #fff;
-            box-shadow: 0 4px 16px rgba(30,167,255,0.18);
-            outline: none;
-        }
-        .sidebar.collapsed .sidebar-header .sidebar-collapse-toggle {
-            display: none !important;
-        }
-        .sidebar.collapsed #sidebarExpandBtn {
-            display: flex !important;
-        }
-        #sidebarExpandBtn {
-            display: none;
-        }
+        .sidebar-collapse-toggle:hover, .expand-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+
+        /* Mobile overlay */
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1020; }
+        .sidebar-overlay.show { display: block; }
+
+        /* Main content */
         .main-content {
-            margin-left: 180px;
-            padding: 2rem 1rem 1rem 1rem;
+            margin-left: 224px;
+            padding: 1.5rem;
             transition: margin-left 0.3s ease;
             min-height: 100vh;
-            width: calc(100vw - 180px);
+            width: calc(100vw - 224px);
             overflow-x: auto;
         }
         .sidebar.collapsed ~ .main-content {
-            margin-left: 64px;
-            width: calc(100vw - 64px);
+            margin-left: 68px;
+            width: calc(100vw - 68px);
         }
         @media (max-width: 991.98px) {
-            .sidebar { left: -248px; width: 248px; }
+            .sidebar { left: -260px; width: 260px; }
             .sidebar.show { left: 0; }
-            .main-content { 
-                margin-left: 0; 
-                width: 100vw;
-                padding: 1rem 0.5rem 0.5rem 0.5rem;
-            }
-            .sidebar.collapsed ~ .main-content { 
-                margin-left: 0; 
-                width: 100vw;
-            }
-            .sidebar-section-divider { width: 95%; }
+            .main-content { margin-left: 0; width: 100vw; padding: 1rem 0.75rem; }
+            .sidebar.collapsed ~ .main-content { margin-left: 0; width: 100vw; }
         }
-        /* Remove default Bootstrap accordion arrow */
-        .sidebar .accordion-button::after {
-            display: none !important;
-        }
-        /* Style custom chevron icon */
-        .sidebar .accordion-button .custom-chevron {
-            color: #1ea7ff;
-            font-size: 1.3rem;
-            margin-left: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s;
-        }
-        .sidebar .accordion-button:not(.collapsed) .custom-chevron {
-            transform: rotate(180deg);
-        }
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-            box-shadow: 0 0 6px rgba(30,167,255,0.18);
-            vertical-align: middle;
-        }
-        .status-dot.online {
-            background: #22c55e;
-            box-shadow: 0 0 8px #22c55e88;
-        }
-        .status-dot.offline {
-            background: #b0bec5;
-            box-shadow: 0 0 6px #b0bec588;
-        }
+
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+        .status-dot.online { background: #22c55e; }
+        .status-dot.offline { background: #64748b; }
+
     </style>
 </head>
 <body>
     <button class="sidebar-toggle d-lg-none" id="sidebarToggle" aria-label="Open sidebar">
         <i class="fas fa-bars"></i>
     </button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     
-    <nav class="sidebar d-flex flex-column shadow-lg" id="sidebarNav" aria-label="Main navigation" style="background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);">
+    <nav class="sidebar d-flex flex-column shadow-lg" id="sidebarNav" aria-label="Main navigation">
         <div class="sidebar-header d-flex align-items-center justify-content-between position-relative" style="width: 100%;">
             <span class="brand-text d-flex align-items-center gap-2">
                 <span class="brand-logo"><i class="fas fa-graduation-cap"></i></span>
-                <span class="fw-bold">Dunco SMS</span>
+                <span class="fw-bold">Dunco</span>
             </span>
-            <button class="collapse-btn sidebar-collapse-toggle" id="sidebarCollapseBtn" aria-label="Collapse sidebar" style="margin-left: 8px;">
+            <button class="collapse-btn sidebar-collapse-toggle" id="sidebarCollapseBtn" aria-label="Collapse sidebar">
                 <i class="fas fa-angle-double-left"></i>
             </button>
         </div>
-        <button class="expand-btn sidebar-collapse-toggle d-none" id="sidebarExpandBtn" aria-label="Expand sidebar" style="position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 1100;">
+        <button class="expand-btn sidebar-collapse-toggle d-none" id="sidebarExpandBtn" aria-label="Expand sidebar">
             <i class="fas fa-angle-double-right"></i>
         </button>
         <div class="sidebar-section mt-2">Main</div>
@@ -501,7 +477,7 @@
                             </a>
                             @endif
                             @if(auth()->check() && auth()->user()->hasPermission('hr.contract.view'))
-                            <a href="{{ route('hr.contract.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link">
+                            <a href="{{ route('hr.contracts.index') }}" class="nav-link d-flex align-items-center mb-1 text-white sidebar-link">
                                 <i class="fas fa-file-contract me-2"></i> Contracts
                             </a>
                             @endif
@@ -1498,20 +1474,58 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
-            
+            const collapseBtn = document.getElementById('sidebarCollapseBtn');
+            const expandBtn = document.getElementById('sidebarExpandBtn');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+
             function updateContentSpacing() {
+                if (!sidebar || !mainContent) return;
                 if (sidebar.classList.contains('collapsed')) {
-                    mainContent.style.marginLeft = '64px';
-                    mainContent.style.width = 'calc(100vw - 64px)';
+                    mainContent.style.marginLeft = '68px';
+                    mainContent.style.width = 'calc(100vw - 68px)';
                 } else {
-                    mainContent.style.marginLeft = '180px';
-                    mainContent.style.width = 'calc(100vw - 180px)';
+                    mainContent.style.marginLeft = '200px';
+                    mainContent.style.width = 'calc(100vw - 200px)';
                 }
             }
-            
+
+            // Sidebar collapse/expand toggle
+            if (collapseBtn) {
+                collapseBtn.addEventListener('click', function() {
+                    sidebar.classList.add('collapsed');
+                    collapseBtn.classList.add('d-none');
+                    expandBtn.classList.remove('d-none');
+                    updateContentSpacing();
+                });
+            }
+            if (expandBtn) {
+                expandBtn.addEventListener('click', function() {
+                    sidebar.classList.remove('collapsed');
+                    expandBtn.classList.add('d-none');
+                    collapseBtn.classList.remove('d-none');
+                    updateContentSpacing();
+                });
+            }
+
+            // Mobile sidebar toggle
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    var overlay = document.getElementById('sidebarOverlay');
+                    if (overlay) overlay.classList.toggle('show');
+                });
+            }
+            var overlay = document.getElementById('sidebarOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+            }
+
             // Initial setup
             updateContentSpacing();
-            
+
             // Watch for sidebar state changes
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
@@ -1520,7 +1534,7 @@
                     }
                 });
             });
-            
+
             if (sidebar) {
                 observer.observe(sidebar, {
                     attributes: true,

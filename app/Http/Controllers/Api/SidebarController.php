@@ -346,7 +346,7 @@ class SidebarController extends Controller
                         ],
                         [
                             'name' => 'Contracts',
-                            'route' => 'hr.contract.index',
+                            'route' => 'hr.contracts.index',
                             'icon' => 'fas fa-file-contract',
                             'accessible' => in_array('hr.contract.view', $userPermissions)
                         ],

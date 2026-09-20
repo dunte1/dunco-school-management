@@ -2,7 +2,7 @@
 
 @section('content')
 <h2>Add Contract</h2>
-<form method="POST" action="{{ route('hr.contract.store') }}">
+<form method="POST" action="{{ route('hr.contracts.store') }}">
     @csrf
     <div class="mb-3">
         <label class="form-label">Staff</label>
@@ -73,6 +73,6 @@
         </select>
     </div>
     <button type="submit" class="btn btn-success">Save</button>
-    <a href="{{ route('hr.contract.index') }}" class="btn btn-secondary">Cancel</a>
+    <a href="{{ route('hr.contracts.index') }}" class="btn btn-secondary">Cancel</a>
 </form>
 @endsection 

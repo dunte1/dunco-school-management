@@ -4,7 +4,10 @@ namespace Modules\Settings\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use App\Models\Setting;
+use App\Models\AuditLog;
 
 class SettingsController extends Controller
 {
@@ -96,7 +99,8 @@ class SettingsController extends Controller
 
     public function backup()
     {
-        return view('settings::backup');
+        $backups = $this->getBackupList();
+        return view('settings::backup', compact('backups'));
     }
 
     public function global()
@@ -172,11 +176,17 @@ class SettingsController extends Controller
 
         // Handle file uploads
         if ($request->hasFile('logo')) {
+            $request->validate([
+                'logo' => 'required|file|mimes:jpeg,jpg,png,svg,webp|max:2048',
+            ]);
             $logoPath = $request->file('logo')->store('logos', 'public');
             $request->merge(['logo_path' => $logoPath]);
         }
 
         if ($request->hasFile('favicon')) {
+            $request->validate([
+                'favicon' => 'required|file|mimes:jpeg,jpg,png,svg,webp,ico|max:512',
+            ]);
             $faviconPath = $request->file('favicon')->store('favicons', 'public');
             $request->merge(['favicon_path' => $faviconPath]);
         }
@@ -284,31 +294,225 @@ class SettingsController extends Controller
 
     public function updateGlobalAjax(Request $request)
     {
-        // AJAX settings update logic
-        return response()->json(['success' => true]);
+        foreach ($request->except(['_token']) as $key => $value) {
+            if (defined('Setting::SECRET_KEYS') && in_array($key, Setting::SECRET_KEYS, true) && ($value === null || $value === '')) {
+                continue;
+            }
+            Setting::updateOrCreate(
+                ['key' => $key, 'type' => 'global'],
+                ['value' => $value, 'description' => 'Global setting: ' . $key]
+            );
+        }
+        return response()->json(['success' => true, 'message' => 'Settings updated.']);
     }
 
     public function updatePerSchoolAjax(Request $request)
     {
-        // AJAX settings update logic
-        return response()->json(['success' => true]);
+        $request->validate(['school_id' => 'required|exists:schools,id']);
+        $schoolId = $request->school_id;
+        foreach ($request->except(['_token', 'school_id']) as $key => $value) {
+            \App\Models\SchoolSetting::updateOrCreate(
+                ['school_id' => $schoolId, 'key' => $key],
+                ['value' => $value, 'type' => 'string', 'description' => 'School setting: ' . $key]
+            );
+        }
+        return response()->json(['success' => true, 'message' => 'School settings updated.']);
     }
 
     public function getSettingsAjax(Request $request)
     {
-        // AJAX settings retrieval logic
-        return response()->json(['settings' => []]);
+        $type = $request->get('type', 'global');
+        if ($type === 'global') {
+            $settings = Setting::where('type', 'global')->get()->pluck('value', 'key')->toArray();
+        } else {
+            $schoolId = $request->get('school_id');
+            $settings = $schoolId
+                ? \App\Models\SchoolSetting::where('school_id', $schoolId)->pluck('value', 'key')->toArray()
+                : [];
+        }
+        return response()->json(['settings' => $settings]);
     }
 
     public function backupCreate()
     {
-        // Backup creation logic
-        return redirect()->route('settings.backup')->with('success', 'Backup created successfully');
+        try {
+            $backupDir = storage_path('app/backups');
+            if (!File::isDirectory($backupDir)) {
+                File::makeDirectory($backupDir, 0755, true);
+            }
+
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $filename = "backup_{$timestamp}.sql";
+            $dumpPath = $backupDir . DIRECTORY_SEPARATOR . $filename;
+
+            $dbConfig = config('database.connections.' . config('database.default'));
+            $host = $dbConfig['host'] ?? '127.0.0.1';
+            $port = $dbConfig['port'] ?? 3306;
+            $database = $dbConfig['database'] ?? '';
+            $username = $dbConfig['username'] ?? '';
+            $password = $dbConfig['password'] ?? '';
+
+            $passwordFlag = !empty($password) ? '-p' . escapeshellarg($password) : '';
+            $command = sprintf(
+                'mysqldump -h %s -P %d -u %s %s %s > %s 2>&1',
+                escapeshellarg($host),
+                (int)$port,
+                escapeshellarg($username),
+                $passwordFlag,
+                escapeshellarg($database),
+                escapeshellarg($dumpPath)
+            );
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode !== 0 || !File::exists($dumpPath)) {
+                $fallbackContent = "-- Dunco School Management Database Backup\n";
+                $fallbackContent .= "-- Generated: " . now()->toDateTimeString() . "\n";
+                $fallbackContent .= "-- Database: {$database}\n\n";
+
+                $tables = DB::select('SHOW TABLES');
+                $dbName = DB::getDatabaseName();
+                $tableKey = "Tables_in_{$dbName}";
+
+                foreach ($tables as $table) {
+                    $tableName = $table->$tableKey ?? null;
+                    if (!$tableName) continue;
+
+                    $fallbackContent .= "-- Table: {$tableName}\n";
+                    $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
+                    if (!empty($createTable)) {
+                        $fallbackContent .= $createTable[0]->{'Create Table'} ?? '';
+                        $fallbackContent .= ";\n\n";
+                    }
+
+                    $rows = DB::table($tableName)->get();
+                    foreach ($rows as $row) {
+                        $values = array_map(function ($v) {
+                            return $v === null ? 'NULL' : "'" . addslashes($v) . "'";
+                        }, (array) $row);
+                        $fallbackContent .= "INSERT INTO `{$tableName}` VALUES (" . implode(', ', $values) . ");\n";
+                    }
+                    $fallbackContent .= "\n";
+                }
+
+                File::put($dumpPath, $fallbackContent);
+            }
+
+            $size = File::exists($dumpPath) ? File::size($dumpPath) : 0;
+
+            AuditLog::log('settings.backup.create', "Created backup: {$filename}", null, [
+                'filename' => $filename,
+                'size' => $size,
+            ]);
+
+            return redirect()->route('settings.backup')->with('success', "Backup created: {$filename} (" . $this->formatBytes($size) . ")");
+        } catch (\Exception $e) {
+            \Log::error('Backup creation failed: ' . $e->getMessage());
+            return redirect()->route('settings.backup')->with('error', 'Backup failed: ' . $e->getMessage());
+        }
     }
 
     public function backupRestore(Request $request)
     {
-        // Backup restore logic
-        return redirect()->route('settings.backup')->with('success', 'Backup restored successfully');
+        $request->validate([
+            'backup_file' => 'required|string',
+        ]);
+
+        $backupFile = $request->input('backup_file');
+        $backupDir = storage_path('app/backups');
+        $filePath = $backupDir . DIRECTORY_SEPARATOR . basename($backupFile);
+
+        if (!File::exists($filePath)) {
+            return redirect()->route('settings.backup')->with('error', 'Backup file not found.');
+        }
+
+        try {
+            $dbConfig = config('database.connections.' . config('database.default'));
+            $host = $dbConfig['host'] ?? '127.0.0.1';
+            $port = $dbConfig['port'] ?? 3306;
+            $database = $dbConfig['database'] ?? '';
+            $username = $dbConfig['username'] ?? '';
+            $password = $dbConfig['password'] ?? '';
+
+            $passwordFlag = !empty($password) ? '-p' . escapeshellarg($password) : '';
+            $command = sprintf(
+                'mysql -h %s -P %d -u %s %s %s < %s 2>&1',
+                escapeshellarg($host),
+                (int)$port,
+                escapeshellarg($username),
+                $passwordFlag,
+                escapeshellarg($database),
+                escapeshellarg($filePath)
+            );
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                $sqlContent = File::get($filePath);
+                $statements = array_filter(array_map('trim', explode(';', $sqlContent)));
+                foreach ($statements as $statement) {
+                    if (!empty($statement) && !str_starts_with($statement, '--')) {
+                        DB::unprepared($statement);
+                    }
+                }
+            }
+
+            AuditLog::log('settings.backup.restore', "Restored from backup: {$backupFile}");
+            return redirect()->route('settings.backup')->with('success', 'Backup restored successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Backup restore failed: ' . $e->getMessage());
+            return redirect()->route('settings.backup')->with('error', 'Restore failed: ' . $e->getMessage());
+        }
+    }
+
+    public function backupDelete(Request $request)
+    {
+        $request->validate(['backup_file' => 'required|string']);
+        $backupDir = storage_path('app/backups');
+        $filePath = $backupDir . DIRECTORY_SEPARATOR . basename($request->input('backup_file'));
+
+        if (File::exists($filePath)) {
+            File::delete($filePath);
+            AuditLog::log('settings.backup.delete', "Deleted backup: " . basename($filePath));
+            return back()->with('success', 'Backup deleted.');
+        }
+
+        return back()->with('error', 'Backup file not found.');
+    }
+
+    private function getBackupList(): array
+    {
+        $backupDir = storage_path('app/backups');
+        if (!File::isDirectory($backupDir)) {
+            return [];
+        }
+
+        $files = File::files($backupDir);
+        $backups = [];
+        foreach ($files as $file) {
+            if ($file->getExtension() === 'sql') {
+                $backups[] = [
+                    'filename' => $file->getFilename(),
+                    'size' => $file->getSize(),
+                    'size_formatted' => $this->formatBytes($file->getSize()),
+                    'created_at' => \Carbon\Carbon::createFromTimestamp($file->getMTime()),
+                ];
+            }
+        }
+
+        usort($backups, fn($a, $b) => $b['created_at']->timestamp - $a['created_at']->timestamp);
+        return $backups;
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+        $size = (float)$bytes;
+        while ($size >= 1024 && $i < count($units) - 1) {
+            $size /= 1024;
+            $i++;
+        }
+        return round($size, 2) . ' ' . $units[$i];
     }
 }

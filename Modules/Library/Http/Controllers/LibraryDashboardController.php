@@ -14,10 +14,10 @@ class LibraryDashboardController extends Controller
     public function index(Request $request)
     {
         $totalBooks = Book::count();
-        $activeMembers = Member::where('status', 'active')->count();
+        $activeMembers = Member::count();
         $booksBorrowed = BorrowRecord::whereNull('returned_at')->count();
         $overdueBooks = BorrowRecord::whereNull('returned_at')
-            ->where('due_date', '<', Carbon::now())
+            ->where('due_at', '<', Carbon::now())
             ->count();
 
         // Recent books

@@ -8,7 +8,7 @@ use Modules\Transport\Models\Trip;
 use Modules\Transport\Models\Vehicle;
 use Modules\Transport\Models\Driver;
 use Modules\Transport\Models\Route;
-use Modules\Academic\app\Models\Student;
+use Modules\Academic\Models\Student;
 
 class TripController extends Controller
 {

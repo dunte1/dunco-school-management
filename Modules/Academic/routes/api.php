@@ -6,7 +6,6 @@ use Modules\Academic\Http\Controllers\Api\StudentApiController;
 
 Route::middleware(['auth:sanctum','throttle:60,1'])->prefix('v1')->group(function () {
     Route::apiResource('academics', AcademicController::class)->names('academic');
+    Route::get('/students', [StudentApiController::class, 'index']);
 });
-
-Route::get('/students', [StudentApiController::class, 'index']);
 

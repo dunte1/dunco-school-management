@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Timetable\Models\ClassSchedule;
 use Modules\Timetable\Models\Room;
 use Modules\Timetable\Models\RoomAllocation;
+use Modules\Timetable\Models\Timetable;
 use Modules\HR\Models\Staff;
 use Illuminate\Http\Request;
 use App\Models\AuditLog;
+use Modules\Timetable\Services\TimetableAutoGenerator;
 
 class TimetableController extends Controller
 {
@@ -36,9 +38,9 @@ class TimetableController extends Controller
                 $totalAllocations = 0;
             }
 
-            if (Schema::hasTable('teachers')) {
+            if (Schema::hasTable('users')) {
                 try {
-                    $totalTeachers = \App\Models\Teacher::count();
+                    $totalTeachers = \App\Models\User::whereHas('roles', function($q){ $q->where('name', 'teacher'); })->count();
                 } catch (\Exception $e) {
                     $totalTeachers = 0;
                 }
@@ -46,10 +48,9 @@ class TimetableController extends Controller
                 $totalTeachers = 0;
             }
 
-            // Get timetables for the dashboard view
             if (Schema::hasTable('timetables')) {
                 try {
-                    $allTimetables = \App\Models\Modules\Timetable\Models\Timetable::all();
+                    $allTimetables = Timetable::all();
                 } catch (\Exception $e) {
                     $allTimetables = collect();
                 }
@@ -57,7 +58,6 @@ class TimetableController extends Controller
                 $allTimetables = collect();
             }
 
-            // Get teachers for the dashboard view
             if (Schema::hasTable('users')) {
                 try {
                     $allTeachers = \App\Models\User::whereHas('roles', function($q){ $q->where('name', 'teacher'); })->get();
@@ -68,7 +68,6 @@ class TimetableController extends Controller
                 $allTeachers = collect();
             }
 
-            // Get classes for the dashboard view
             if (Schema::hasTable('academic_classes')) {
                 try {
                     $allClasses = \Modules\Academic\Models\AcademicClass::all();
@@ -79,10 +78,9 @@ class TimetableController extends Controller
                 $allClasses = collect();
             }
 
-            // Get rooms for the dashboard view
             if (Schema::hasTable('rooms')) {
                 try {
-                    $allRooms = \Modules\Timetable\Models\Room::all();
+                    $allRooms = Room::all();
                 } catch (\Exception $e) {
                     $allRooms = collect();
                 }
@@ -90,7 +88,6 @@ class TimetableController extends Controller
                 $allRooms = collect();
             }
 
-            // Conflict detection (teacher/room double-booking)
             $conflicts = 0;
             if ($schedules->count() > 0) {
                 foreach ($schedules as $i => $s1) {
@@ -108,12 +105,10 @@ class TimetableController extends Controller
                 }
             }
 
-            // Teacher availability summary (available today)
             $today = now()->format('l');
-            $availableTeachers = $totalTeachers; // Simplified for now
+            $availableTeachers = $totalTeachers;
             $unavailableTeachers = 0;
 
-            // Upcoming schedules (next 5)
             if (Schema::hasTable('class_schedules')) {
                 $upcomingSchedules = ClassSchedule::with(['teacher', 'room', 'academicClass'])
                     ->where('day_of_week', '>=', now()->format('l'))
@@ -125,16 +120,14 @@ class TimetableController extends Controller
                 $upcomingSchedules = collect();
             }
 
-            // Timetable status (simple logic)
             $status = 'complete';
             if ($conflicts > 0) {
                 $status = 'conflict';
-            } elseif ($totalSchedules < ($totalTeachers * 5)) { // arbitrary partial threshold
+            } elseif ($totalSchedules < ($totalTeachers * 5)) {
                 $status = 'partial';
             }
 
         } catch (\Exception $e) {
-            // If there's any error, set default values
             $totalSchedules = 0;
             $totalRooms = 0;
             $totalAllocations = 0;
@@ -171,14 +164,14 @@ class TimetableController extends Controller
     {
         try {
             if (Schema::hasTable('timetables')) {
-                $timetables = \App\Models\Modules\Timetable\Models\Timetable::all();
+                $timetables = Timetable::all();
             } else {
                 $timetables = collect();
             }
         } catch (\Exception $e) {
             $timetables = collect();
         }
-        
+
         return view('timetable::calendar', compact('timetables'));
     }
 
@@ -186,7 +179,7 @@ class TimetableController extends Controller
     {
         try {
             if (Schema::hasTable('class_schedules')) {
-                $schedules = \Modules\Timetable\Models\ClassSchedule::with(['teacher', 'room', 'academicClass'])->get();
+                $schedules = ClassSchedule::with(['teacher', 'room', 'academicClass'])->get();
                 $events = $schedules->map(function($s) {
                     return [
                         'id' => $s->id,
@@ -210,7 +203,7 @@ class TimetableController extends Controller
         } catch (\Exception $e) {
             $events = collect();
         }
-        
+
         return response()->json($events);
     }
 
@@ -219,7 +212,7 @@ class TimetableController extends Controller
         $data = $request->validate([
             'timetable_id' => 'required|integer|exists:timetables,id',
             'class_ids' => 'nullable|array',
-            'class_ids.*' => 'integer|exists:school_classes,id',
+            'class_ids.*' => 'integer|exists:academic_classes,id',
             'teacher_ids' => 'nullable|array',
             'teacher_ids.*' => 'integer|exists:users,id',
             'room_ids' => 'nullable|array',
@@ -231,7 +224,6 @@ class TimetableController extends Controller
             'enforce_availability' => 'nullable|boolean',
         ]);
 
-        // Parse constraints
         $classIds = $data['class_ids'] ?? [];
         $teacherIds = $data['teacher_ids'] ?? [];
         $roomIds = $data['room_ids'] ?? [];
@@ -239,19 +231,17 @@ class TimetableController extends Controller
         $timeSlots = array_map('trim', explode(',', $data['time_slots'] ?? '08:00-09:00,09:00-10:00,10:00-11:00'));
         $timetableId = $data['timetable_id'];
 
-        // Fetch data
         $classes = \Modules\Academic\Models\AcademicClass::whereIn('id', $classIds)->get();
         $teachers = \App\Models\User::whereIn('id', $teacherIds)->get();
-        $rooms = \Modules\Timetable\Models\Room::whereIn('id', $roomIds)->get();
-        // Convert time slots to array of ['start' => ..., 'end' => ...]
+        $rooms = Room::whereIn('id', $roomIds)->get();
+
         $slotArr = array_map(function($slot) {
             $parts = explode('-', $slot);
             return ['start' => $parts[0] ?? '', 'end' => $parts[1] ?? ''];
         }, $timeSlots);
 
-        // Use the advanced generator
-        $generator = new \Modules\Timetable\Services\TimetableAutoGenerator();
-        $result = $generator->generate($classes, $teachers, $rooms, $days, $slotArr);
+        $generator = new TimetableAutoGenerator();
+        $result = $generator->generate($classes, $teachers, $rooms, $days, $slotArr, $timetableId);
 
         AuditLog::log('timetable.schedule.autogenerate', 'Auto-generated timetable preview', null, $data);
         return view('timetable::autogen_summary', [
@@ -259,6 +249,7 @@ class TimetableController extends Controller
             'results' => $result['assignments'],
             'unassigned' => $result['violations'],
             'score' => $result['score'],
+            'utilization' => $result['utilization'] ?? 0,
         ]);
     }
 
@@ -271,10 +262,9 @@ class TimetableController extends Controller
         $assignments = json_decode($data['assignments'], true);
         $created = 0;
         foreach ($assignments as $row) {
-            // Avoid duplicate: check if already scheduled for this timetable, class, teacher, room, day, and time
-            $exists = \Modules\Timetable\Models\ClassSchedule::where([
+            $exists = ClassSchedule::where([
                 'timetable_id' => $data['timetable_id'],
-                'class_id' => $row['class_id'],
+                'academic_class_id' => $row['class_id'],
                 'teacher_id' => $row['teacher_id'],
                 'room_id' => $row['room_id'],
                 'day_of_week' => $row['day_of_week'],
@@ -282,14 +272,15 @@ class TimetableController extends Controller
                 'end_time' => $row['end_time'],
             ])->exists();
             if (!$exists) {
-                \Modules\Timetable\Models\ClassSchedule::create([
+                ClassSchedule::create([
                     'timetable_id' => $data['timetable_id'],
-                    'class_id' => $row['class_id'],
+                    'academic_class_id' => $row['class_id'],
                     'teacher_id' => $row['teacher_id'],
                     'room_id' => $row['room_id'],
                     'day_of_week' => $row['day_of_week'],
                     'start_time' => $row['start_time'],
                     'end_time' => $row['end_time'],
+                    'status' => 'draft',
                 ]);
                 $created++;
             }
@@ -300,15 +291,14 @@ class TimetableController extends Controller
 
     public function print(Request $request)
     {
-        
         try {
             if (Schema::hasTable('class_schedules')) {
-                $query = \Modules\Timetable\Models\ClassSchedule::query();
+                $query = ClassSchedule::query();
                 if ($request->filled('timetable_id')) {
                     $query->where('timetable_id', $request->timetable_id);
                 }
                 if ($request->filled('class_id')) {
-                    $query->where('class_id', $request->class_id);
+                    $query->where('academic_class_id', $request->class_id);
                 }
                 if ($request->filled('teacher_id')) {
                     $query->where('teacher_id', $request->teacher_id);
@@ -316,26 +306,24 @@ class TimetableController extends Controller
                 if ($request->filled('room_id')) {
                     $query->where('room_id', $request->room_id);
                 }
-                $schedules = $query->with(['teacher', 'room', 'class'])->orderBy('day_of_week')->orderBy('start_time')->get();
+                $schedules = $query->with(['teacher', 'room', 'academicClass'])->orderBy('day_of_week')->orderBy('start_time')->get();
             } else {
                 $schedules = collect();
             }
         } catch (\Exception $e) {
             $schedules = collect();
         }
-        
+
         AuditLog::log('timetable.schedule.print', 'Printed timetable', null, $request->all());
         return view('timetable::print', compact('schedules'));
     }
 
     public function reports()
     {
-        
         try {
             if (Schema::hasTable('class_schedules')) {
-                $schedules = \Modules\Timetable\Models\ClassSchedule::with(['teacher', 'room', 'class'])->get();
+                $schedules = ClassSchedule::with(['teacher', 'room', 'academicClass'])->get();
                 $totalSchedules = $schedules->count();
-                // Teacher workload
                 $teacherWorkload = $schedules->groupBy('teacher_id')->map(function($items, $teacherId) {
                     return [
                         'teacher_id' => $teacherId,
@@ -343,7 +331,6 @@ class TimetableController extends Controller
                         'periods' => $items->count(),
                     ];
                 })->sortByDesc('periods');
-                // Room utilization
                 $roomUtilization = $schedules->groupBy('room_id')->map(function($items, $roomId) {
                     return [
                         'room_id' => $roomId,
@@ -351,11 +338,10 @@ class TimetableController extends Controller
                         'periods' => $items->count(),
                     ];
                 })->sortByDesc('periods');
-                // Class density
-                $classDensity = $schedules->groupBy('class_id')->map(function($items, $classId) {
+                $classDensity = $schedules->groupBy('academic_class_id')->map(function($items, $classId) {
                     return [
                         'class_id' => $classId,
-                        'class_name' => optional($items->first()->class)->name ?? $classId,
+                        'class_name' => optional($items->first()->academicClass)->name ?? $classId,
                         'periods' => $items->count(),
                     ];
                 })->sortByDesc('periods');
@@ -371,64 +357,35 @@ class TimetableController extends Controller
             $roomUtilization = collect();
             $classDensity = collect();
         }
-        
+
         return view('timetable::reports', compact('totalSchedules', 'teacherWorkload', 'roomUtilization', 'classDensity'));
     }
 
     public function conflicts()
     {
-        
         try {
             if (Schema::hasTable('class_schedules')) {
-                $schedules = \Modules\Timetable\Models\ClassSchedule::with(['teacher', 'room', 'class'])->get();
+                $schedules = ClassSchedule::with(['teacher', 'room', 'academicClass'])->get();
                 $conflicts = [];
 
-                // Teacher/Room overlap conflicts
                 foreach ($schedules as $s1) {
                     foreach ($schedules as $s2) {
-                        if ($s1->id === $s2->id) continue; // avoid comparing the same schedule
-
+                        if ($s1->id === $s2->id) continue;
                         if ($s1->day_of_week === $s2->day_of_week) {
-                            // Check for time overlap
                             if (!($s1->end_time <= $s2->start_time || $s2->end_time <= $s1->start_time)) {
+                                $type = 'Unknown Overlap';
+                                if ($s1->teacher_id === $s2->teacher_id) {
+                                    $type = 'Teacher Overlap';
+                                } elseif ($s1->room_id === $s2->room_id) {
+                                    $type = 'Room Overlap';
+                                }
                                 $conflicts[] = [
-                                    'type' => 'Teacher/Room Overlap',
+                                    'type' => $type,
                                     'schedule1' => $s1,
                                     'schedule2' => $s2,
                                 ];
                             }
                         }
-                    }
-                }
-
-                // Student/class overlap conflicts
-                if (Schema::hasTable('students')) {
-                    try {
-                        $students = \Modules\Academic\Models\Student::with('user')->get();
-                        foreach ($students as $student) {
-                            // Get all schedules for this student (by class_id)
-                            $studentSchedules = $schedules->where('class_id', $student->class_id);
-                            // Compare each pair for overlap
-                            foreach ($studentSchedules as $i => $s1) {
-                                foreach ($studentSchedules as $j => $s2) {
-                                    if ($i >= $j) continue; // avoid duplicate pairs
-                                    if ($s1->day_of_week === $s2->day_of_week) {
-                                        // Check for time overlap
-                                        if (!($s1->end_time <= $s2->start_time || $s2->end_time <= $s1->start_time)) {
-                                            $conflicts[] = [
-                                                'type' => 'Student Overlap',
-                                                'student' => $student->user->name ?? $student->id,
-                                                'day' => $s1->day_of_week,
-                                                'time' => $s1->start_time . ' - ' . $s1->end_time,
-                                                'schedules' => collect([$s1, $s2]),
-                                            ];
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        // Skip student conflicts if there's an error
                     }
                 }
             } else {
@@ -443,15 +400,13 @@ class TimetableController extends Controller
 
     public function analytics()
     {
-        
         try {
             if (Schema::hasTable('class_schedules')) {
-                $schedules = \Modules\Timetable\Models\ClassSchedule::with(['teacher', 'room', 'class'])->get();
-                // Trends: schedules per week
+                $schedules = ClassSchedule::with(['teacher', 'room', 'academicClass'])->get();
                 $trends = $schedules->groupBy(function($s) {
                     return \Carbon\Carbon::parse($s->created_at)->startOfWeek()->format('Y-m-d');
                 })->map->count();
-                // Teacher heatmap: [day][hour] => count
+
                 $teacherHeatmap = [];
                 foreach ($schedules as $s) {
                     $day = $s->day_of_week;
@@ -459,7 +414,6 @@ class TimetableController extends Controller
                     $teacher = $s->teacher->name ?? $s->teacher_id;
                     $teacherHeatmap[$teacher][$day][$hour] = ($teacherHeatmap[$teacher][$day][$hour] ?? 0) + 1;
                 }
-                // Room heatmap: [day][hour] => count
                 $roomHeatmap = [];
                 foreach ($schedules as $s) {
                     $day = $s->day_of_week;
@@ -467,7 +421,7 @@ class TimetableController extends Controller
                     $room = $s->room->name ?? $s->room_id;
                     $roomHeatmap[$room][$day][$hour] = ($roomHeatmap[$room][$day][$hour] ?? 0) + 1;
                 }
-                // Free/busy slots: for each teacher/room, show free/busy for each day/hour
+
                 $teachers = $schedules->pluck('teacher')->unique('id')->filter();
                 $rooms = $schedules->pluck('room')->unique('id')->filter();
                 $days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
@@ -512,90 +466,59 @@ class TimetableController extends Controller
             $days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
             $hours = ['08','09','10','11','12','13','14','15','16'];
         }
-        
+
         return view('timetable::analytics', compact('trends', 'teacherHeatmap', 'roomHeatmap', 'teacherFreeBusy', 'roomFreeBusy', 'days', 'hours'));
     }
 
-    /**
-     * Return timetable settings/configuration
-     */
     public function settings()
     {
         $settings = config('timetable');
         return response()->json($settings);
     }
 
-    // Helper: get next date for a given day of week and time
+    public function approvalList()
+    {
+        $timetables = Timetable::withCount('schedules')->latest()->get();
+        return view('timetable::approval_list', compact('timetables'));
+    }
+
+    public function approve(Request $request, int $id)
+    {
+        $timetable = Timetable::findOrFail($id);
+        $success = TimetableAutoGenerator::approveTimetable($id, auth()->id());
+
+        if ($success) {
+            AuditLog::log('timetable.approve', "Approved timetable: {$timetable->name}", null, ['timetable_id' => $id]);
+            return back()->with('success', 'Timetable approved successfully.');
+        }
+
+        return back()->with('error', 'Failed to approve timetable.');
+    }
+
+    public function reject(Request $request, int $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $timetable = Timetable::findOrFail($id);
+        $success = TimetableAutoGenerator::rejectTimetable($id, auth()->id(), $request->input('reason'));
+
+        if ($success) {
+            AuditLog::log('timetable.reject', "Rejected timetable: {$timetable->name}", null, ['timetable_id' => $id, 'reason' => $request->input('reason')]);
+            return back()->with('success', 'Timetable rejected.');
+        }
+
+        return back()->with('error', 'Failed to reject timetable.');
+    }
+
     private function getNextDateForDay($dayOfWeek, $time)
     {
         $days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
         $today = now();
         $targetDay = array_search(ucfirst(strtolower($dayOfWeek)), $days);
-        if ($targetDay === false) $targetDay = 1; // Default to Monday
+        if ($targetDay === false) $targetDay = 1;
         $date = $today->copy()->startOfWeek()->addDays($targetDay);
         return $date->format('Y-m-d') . 'T' . $time;
-    }
-
-    private function suggestNextAvailableSlot($schedule)
-    {
-        try {
-            // Get all possible days and time slots (assuming 08:00-17:00, 1-hour slots)
-            $days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
-            $startTimes = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'];
-            $endTimes = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
-            
-            if (Schema::hasTable('class_schedules')) {
-                $schedules = \Modules\Timetable\Models\ClassSchedule::all();
-            } else {
-                $schedules = collect();
-            }
-            
-            if (Schema::hasTable('teacher_availabilities')) {
-                $teacherAvail = \Modules\Timetable\Models\TeacherAvailability::where('teacher_id', $schedule->teacher_id)->get();
-            } else {
-                $teacherAvail = collect();
-            }
-            
-            if (Schema::hasTable('room_availabilities')) {
-                $roomAvail = \Modules\Timetable\Models\RoomAvailability::where('room_id', $schedule->room_id)->get();
-            } else {
-                $roomAvail = collect();
-            }
-        foreach ($days as $day) {
-            for ($i = 0; $i < count($startTimes); $i++) {
-                $start = $startTimes[$i];
-                $end = $endTimes[$i];
-                // Skip current slot
-                if ($day == $schedule->day_of_week && $start == $schedule->start_time) continue;
-                // Check teacher/room availability
-                $teacherOk = $teacherAvail->where('day_of_week', $day)->filter(function($a) use ($start, $end) {
-                    return $start >= $a->start_time && $end <= $a->end_time;
-                })->isNotEmpty();
-                $roomOk = $roomAvail->where('day_of_week', $day)->filter(function($a) use ($start, $end) {
-                    return $start >= $a->start_time && $end <= $a->end_time;
-                })->isNotEmpty();
-                if ($teacherAvail->count() && !$teacherOk) continue;
-                if ($roomAvail->count() && !$roomOk) continue;
-                // Check for double-booking
-                $teacherConflict = $schedules->where('teacher_id', $schedule->teacher_id)->where('day_of_week', $day)->filter(function($s) use ($start, $end) {
-                    return !($s->end_time <= $start || $s->start_time >= $end);
-                })->isNotEmpty();
-                $roomConflict = $schedules->where('room_id', $schedule->room_id)->where('day_of_week', $day)->filter(function($s) use ($start, $end) {
-                    return !($s->end_time <= $start || $s->start_time >= $end);
-                })->isNotEmpty();
-                if ($teacherConflict || $roomConflict) continue;
-                // Found a slot
-                return [
-                    'day' => $day,
-                    'start_time' => $start,
-                    'end_time' => $end,
-                ];
-            }
-            }
-        } catch (\Exception $e) {
-            // Return null if there's an error
-        }
-        
-        return null;
     }
 }

@@ -4,9 +4,13 @@ namespace Modules\Examination\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Modules\Examination\Models\Exam;
 use Modules\Examination\Models\ExamType;
 use Modules\Examination\Models\QuestionCategory;
+use Modules\Examination\Models\Question;
+use Modules\Examination\Models\ExamResult;
+use Modules\Examination\Models\ExamAnswer;
 
 class ExamController extends Controller
 {
@@ -51,6 +55,8 @@ class ExamController extends Controller
             'show_results_immediately' => 'boolean',
             'allow_review' => 'boolean',
             'negative_marking' => 'nullable|numeric|min:0',
+            'max_attempts' => 'nullable|integer|min:1',
+            'allow_retake' => 'boolean',
         ]);
 
         $data['status'] = 'draft';
@@ -63,7 +69,7 @@ class ExamController extends Controller
 
     public function show($id)
     {
-        $exam = Exam::with(['type', 'questions', 'results'])->findOrFail($id);
+        $exam = Exam::with(['type', 'questions.category', 'results.student'])->findOrFail($id);
         return view('examination::exams.show', compact('exam'));
     }
 
@@ -100,6 +106,8 @@ class ExamController extends Controller
             'allow_review' => 'boolean',
             'status' => 'required|in:draft,published,ongoing,completed,archived',
             'negative_marking' => 'nullable|numeric|min:0',
+            'max_attempts' => 'nullable|integer|min:1',
+            'allow_retake' => 'boolean',
         ]);
 
         $exam->update($data);
@@ -108,13 +116,26 @@ class ExamController extends Controller
 
     public function destroy($id)
     {
-        Exam::findOrFail($id)->delete();
+        $exam = Exam::findOrFail($id);
+
+        $hasAttempts = $exam->attempts()->count() > 0;
+        if ($hasAttempts) {
+            return redirect()->back()->with('error', 'Cannot delete exam with existing attempts. Archive it instead.');
+        }
+
+        $exam->questions()->detach();
+        $exam->delete();
         return redirect()->route('examination.exams.index')->with('success', 'Exam deleted successfully.');
     }
 
     public function publish($exam)
     {
         $exam = Exam::findOrFail($exam);
+
+        if ($exam->questions()->count() === 0) {
+            return redirect()->back()->with('error', 'Cannot publish exam with no questions. Add questions first.');
+        }
+
         $exam->update(['status' => 'published']);
         return redirect()->back()->with('success', 'Exam published successfully.');
     }
@@ -135,9 +156,16 @@ class ExamController extends Controller
 
     public function addQuestions($exam)
     {
-        $exam = Exam::findOrFail($exam);
+        $exam = Exam::with('questions')->findOrFail($exam);
         $categories = QuestionCategory::orderBy('name')->get();
-        return view('examination::exams.show', compact('exam', 'categories'));
+
+        $availableQuestions = Question::where('is_active', true)
+            ->whereNotIn('id', $exam->questions->pluck('id'))
+            ->with('category')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('examination::exams.add-questions', compact('exam', 'categories', 'availableQuestions'));
     }
 
     public function removeQuestion($exam, $question)
@@ -150,22 +178,66 @@ class ExamController extends Controller
     public function generateRandomQuestions($exam)
     {
         $exam = Exam::findOrFail($exam);
-        return redirect()->back()->with('info', 'Random question generation requires manual selection.');
+
+        $request = request();
+        $categoryId = $request->input('category_id');
+        $difficulty = $request->input('difficulty');
+        $count = $request->input('count', 10);
+
+        $query = Question::where('is_active', true)
+            ->whereNotIn('id', $exam->questions->pluck('id'));
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+        if ($difficulty) {
+            $query->where('difficulty', $difficulty);
+        }
+
+        $questions = $query->inRandomOrder()->limit($count)->get();
+
+        if ($questions->isEmpty()) {
+            return redirect()->back()->with('error', 'No questions available matching the criteria.');
+        }
+
+        $order = $exam->questions()->count() + 1;
+        foreach ($questions as $question) {
+            $exam->questions()->attach($question->id, [
+                'order' => $order++,
+                'marks' => $question->marks,
+                'is_required' => true,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Added {$questions->count()} random questions to the exam.");
     }
 
     public function results($exam)
     {
-        $results = \Modules\Examination\Models\ExamResult::with('student')
+        $results = ExamResult::with('student')
             ->where('exam_id', $exam)
             ->orderByDesc('percentage')
             ->get();
         $examModel = Exam::find($exam);
-        return view('examination::exams.results', compact('results', 'examModel'));
+
+        $stats = [
+            'total_students' => $results->count(),
+            'average_percentage' => $results->avg('percentage'),
+            'highest_percentage' => $results->max('percentage'),
+            'lowest_percentage' => $results->min('percentage'),
+            'pass_count' => $results->where('result_status', 'pass')->count(),
+            'fail_count' => $results->where('result_status', 'fail')->count(),
+            'pass_rate' => $results->count() > 0
+                ? round(($results->where('result_status', 'pass')->count() / $results->count()) * 100, 1)
+                : 0,
+        ];
+
+        return view('examination::exams.results', compact('results', 'examModel', 'stats'));
     }
 
     public function exportResults($exam)
     {
-        $results = \Modules\Examination\Models\ExamResult::with('student')->where('exam_id', $exam)->get();
+        $results = ExamResult::with('student')->where('exam_id', $exam)->get();
         $examModel = Exam::find($exam);
 
         $filename = 'exam-results-' . ($examModel->code ?? $exam) . '.csv';
@@ -197,7 +269,10 @@ class ExamController extends Controller
 
     public function studentExams()
     {
-        $exams = Exam::where('is_active', true)->where('start_date', '>=', now())->orderBy('start_date')->paginate(20);
+        $exams = Exam::where('is_active', true)
+            ->where('start_date', '>=', now())
+            ->orderBy('start_date')
+            ->paginate(20);
         return view('examination::student.exams', compact('exams'));
     }
 
@@ -218,12 +293,41 @@ class ExamController extends Controller
 
     public function gradeExams()
     {
-        return view('examination::teacher.grade');
+        $pendingGrading = ExamAnswer::where('is_graded', false)
+            ->whereHas('attempt', function ($q) {
+                $q->where('status', 'submitted');
+            })
+            ->with(['attempt.exam', 'question', 'attempt.student'])
+            ->orderByDesc('answered_at')
+            ->paginate(20);
+
+        return view('examination::teacher.grade', compact('pendingGrading'));
     }
 
-    public function gradeAnswer($answer)
+    public function gradeAnswer(Request $request, $answerId)
     {
-        return redirect()->back()->with('success', 'Answer graded.');
+        $answer = ExamAnswer::with(['question', 'attempt'])->findOrFail($answerId);
+
+        $request->validate([
+            'marks_obtained' => 'required|numeric|min:0|max:' . $answer->max_marks,
+            'feedback' => 'nullable|string|max:2000',
+        ]);
+
+        $answer->update([
+            'marks_obtained' => $request->marks_obtained,
+            'feedback' => $request->feedback,
+            'is_graded' => true,
+            'is_correct' => $request->marks_obtained > 0,
+            'auto_grade_data' => array_merge($answer->auto_grade_data ?? [], [
+                'manual_grade' => true,
+                'graded_by' => auth()->id(),
+                'graded_at' => now()->toIso8601String(),
+            ]),
+        ]);
+
+        $this->recalculateAttemptResult($answer->attempt);
+
+        return redirect()->back()->with('success', 'Answer graded successfully.');
     }
 
     public function examAnalytics()
@@ -232,8 +336,20 @@ class ExamController extends Controller
             'total_exams' => Exam::count(),
             'published' => Exam::where('status', 'published')->count(),
             'completed' => Exam::where('status', 'completed')->count(),
+            'ongoing' => Exam::where('status', 'ongoing')->count(),
+            'total_attempts' => \Modules\Examination\Models\ExamAttempt::count(),
+            'average_score' => ExamResult::avg('percentage'),
+            'overall_pass_rate' => ExamResult::count() > 0
+                ? round((ExamResult::where('result_status', 'pass')->count() / ExamResult::count()) * 100, 1)
+                : 0,
         ];
-        return view('examination::teacher.analytics', compact('stats'));
+
+        $recentResults = ExamResult::with(['exam', 'student'])
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+
+        return view('examination::teacher.analytics', compact('stats', 'recentResults'));
     }
 
     public function adminDashboard()
@@ -242,7 +358,12 @@ class ExamController extends Controller
             'total_exams' => Exam::count(),
             'total_types' => ExamType::count(),
             'active_exams' => Exam::where('status', 'ongoing')->count(),
+            'total_questions' => Question::count(),
+            'total_attempts' => \Modules\Examination\Models\ExamAttempt::count(),
+            'published_exams' => Exam::where('status', 'published')->count(),
+            'completed_exams' => Exam::where('status', 'completed')->count(),
         ];
+
         return view('examination::admin.dashboard', compact('stats'));
     }
 
@@ -264,5 +385,50 @@ class ExamController extends Controller
     public function backup()
     {
         return view('examination::admin.backup');
+    }
+
+    protected function recalculateAttemptResult($attempt)
+    {
+        $answers = $attempt->answers()->get();
+        $totalObtained = $answers->sum('marks_obtained');
+        $totalPossible = $answers->sum('max_marks');
+
+        $exam = $attempt->exam;
+        if ($totalPossible > 0) {
+            $totalPossible = (float) $exam->total_marks;
+        }
+
+        $percentage = $totalPossible > 0 ? round(($totalObtained / $totalPossible) * 100, 2) : 0;
+        $passingPercentage = $totalPossible > 0
+            ? round(($exam->passing_marks / $totalPossible) * 100, 2)
+            : 0;
+
+        $grade = $this->calculateGrade($percentage);
+        $resultStatus = $percentage >= $passingPercentage ? 'pass' : 'fail';
+
+        ExamResult::where('exam_attempt_id', $attempt->id)->update([
+            'total_marks' => $totalPossible,
+            'obtained_marks' => $totalObtained,
+            'percentage' => $percentage,
+            'grade' => $grade,
+            'result_status' => $resultStatus,
+        ]);
+
+        $attempt->update([
+            'total_marks' => $totalPossible,
+            'obtained_marks' => $totalObtained,
+        ]);
+    }
+
+    protected function calculateGrade($percentage): string
+    {
+        if ($percentage >= 90) return 'A+';
+        if ($percentage >= 80) return 'A';
+        if ($percentage >= 70) return 'B+';
+        if ($percentage >= 60) return 'B';
+        if ($percentage >= 50) return 'C+';
+        if ($percentage >= 40) return 'C';
+        if ($percentage >= 30) return 'D';
+        return 'F';
     }
 }

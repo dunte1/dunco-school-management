@@ -33,6 +33,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => App\Http\Middleware\CheckPermission::class,
             'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
+
+        // Exempt M-Pesa callback routes from CSRF verification (external server callbacks)
+        $middleware->validateCsrfTokens(except: [
+            'finance/payment/mpesa-callback',
+            'finance/payment/c2b-confirmation',
+            'finance/payment/c2b-validation',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Return JSON for API routes on common exceptions
@@ -40,6 +47,14 @@ return Application::configure(basePath: dirname(__DIR__))
             $request = request();
             if (! $request->expectsJson() && ! str_starts_with($request->path(), 'api')) {
                 return null; // Let Laravel handle web responses normally
+            }
+
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
             }
 
             $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;

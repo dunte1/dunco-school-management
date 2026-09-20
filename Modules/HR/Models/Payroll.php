@@ -8,7 +8,11 @@ class Payroll extends Model
 {
     protected $table = 'payrolls';
     protected $fillable = [
-        'staff_id', 'basic_salary', 'allowances', 'bonuses', 'deductions', 'net_salary', 'payroll_period', 'status', 'payslip_path'
+        'staff_id', 'basic_salary', 'allowances', 'bonuses', 'deductions', 'net_salary', 'payroll_period', 'status', 'payslip_path', 'paid_at'
+    ];
+
+    protected $casts = [
+        'paid_at' => 'datetime',
     ];
 
     public function staff()

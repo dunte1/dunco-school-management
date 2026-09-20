@@ -51,7 +51,7 @@ class Trip extends Model
 
     public function passengers()
     {
-        return $this->belongsToMany(\Modules\Academic\app\Models\Student::class, 'trip_passengers');
+        return $this->belongsToMany(\Modules\Academic\Models\Student::class, 'trip_passengers');
     }
 
     public function school()

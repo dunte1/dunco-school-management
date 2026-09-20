@@ -27,6 +27,14 @@ Route::middleware(['web', 'auth'])->prefix('hostel')->group(function () {
     Route::resource('visitors', HostelVisitorController::class)->names('hostel.visitors');
     Route::resource('announcements', HostelAnnouncementController::class)->names('hostel.announcements');
     Route::resource('wardens', WardenController::class)->names('hostel.wardens');
-    Route::get('reports/dashboard', [HostelReportController::class, 'dashboard'])->name('hostel.reports.dashboard');
+
+    // Reports
+    Route::get('reports', [HostelReportController::class, 'dashboard'])->name('hostel.reports.dashboard');
+    Route::get('reports/occupancy', [HostelReportController::class, 'occupancy'])->name('hostel.reports.occupancy');
+    Route::get('reports/allocations', [HostelReportController::class, 'allocations'])->name('hostel.reports.allocation');
+    Route::get('reports/maintenance', [HostelReportController::class, 'maintenance'])->name('hostel.reports.maintenance');
+    Route::get('reports/movement', [HostelReportController::class, 'movement'])->name('hostel.reports.movement');
+    Route::get('reports/fee-defaulters', [HostelReportController::class, 'feeDefaulters'])->name('hostel.reports.defaulters');
+    Route::get('reports/damages', [HostelReportController::class, 'damages'])->name('hostel.reports.damage');
 });
 

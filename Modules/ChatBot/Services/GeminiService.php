@@ -21,6 +21,14 @@ class GeminiService
     }
 
     /**
+     * Check if the Gemini API key is configured and service is available
+     */
+    public function isAvailable(): bool
+    {
+        return !empty($this->apiKey);
+    }
+
+    /**
      * Generate AI response using Gemini API
      */
     public function generateResponse(string $message, array $context = []): array

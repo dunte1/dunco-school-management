@@ -12,16 +12,24 @@ class StudentPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->hasRole($user, ['teacher', 'academic_admin', 'hr_manager']);
+        return $user->hasPermission('student.view')
+            || $this->hasRole($user, ['teacher', 'academic_admin']);
     }
 
     public function view(User $user, Student $student): bool
     {
+        if ($student->school_id !== $user->school_id) {
+            return false;
+        }
+
+        if ($user->hasPermission('student.view')) {
+            return true;
+        }
+
         if ($this->hasRole($user, ['teacher', 'academic_admin'])) {
             return true;
         }
 
-        // A student may view their own record; a parent their children's.
         if (($student->user_id ?? null) === $user->id) {
             return true;
         }
@@ -31,16 +39,27 @@ class StudentPolicy
 
     public function create(User $user): bool
     {
-        return false; // admin only
+        return $user->hasPermission('student.create')
+            || $this->hasRole($user, ['academic_admin']);
     }
 
     public function update(User $user, Student $student): bool
     {
-        return false; // admin only
+        if ($student->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('student.edit')
+            || $this->hasRole($user, ['academic_admin']);
     }
 
     public function delete(User $user, Student $student): bool
     {
-        return false; // admin only
+        if ($student->school_id !== $user->school_id) {
+            return false;
+        }
+
+        return $user->hasPermission('student.delete')
+            || $this->hasRole($user, ['academic_admin']);
     }
 }

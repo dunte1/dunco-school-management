@@ -92,22 +92,22 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="/portal" class="btn btn-primary btn-block" >
+                            <a href="{{ route('portal.dashboard') }}" class="btn btn-primary btn-block" >
                                 <i class="fas fa-child me-2"></i>My Children
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="/portal" class="btn btn-success btn-block" >
+                            <a href="{{ route('portal.finance') }}" class="btn btn-success btn-block" >
                                 <i class="fas fa-dollar-sign me-2"></i>Pay Fees
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="/portal" class="btn btn-warning btn-block" >
+                            <a href="{{ route('portal.communication') }}" class="btn btn-warning btn-block" >
                                 <i class="fas fa-comments me-2"></i>Messages
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="/portal" class="btn btn-info btn-block" >
+                            <a href="{{ route('portal.profile') }}" class="btn btn-info btn-block" >
                                 <i class="fas fa-user me-2"></i>My Profile
                             </a>
                         </div>

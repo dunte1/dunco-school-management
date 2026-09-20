@@ -178,7 +178,8 @@ class ChatBotService
             'total_messages' => $totalMessages,
             'today_conversations' => $todayConversations,
             'today_messages' => $todayMessages,
-            'openai_available' => $this->openAIService->isAvailable(),
+            'ai_provider' => config('chatbot.chatbot.provider', 'gemini'),
+            'ai_available' => $this->geminiService->isAvailable(),
         ];
     }
 
@@ -190,17 +191,19 @@ class ChatBotService
         try {
             $testMessage = "Hello, this is a test message.";
             $response = $this->processMessage($testMessage, null, ['test' => true]);
-            
+
             return [
                 'success' => true,
                 'response' => $response['ai_response'],
-                'openai_available' => $this->openAIService->isAvailable(),
+                'ai_provider' => config('chatbot.chatbot.provider', 'gemini'),
+                'ai_available' => $this->geminiService->isAvailable(),
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'openai_available' => $this->openAIService->isAvailable(),
+                'ai_provider' => config('chatbot.chatbot.provider', 'gemini'),
+                'ai_available' => false,
             ];
         }
     }

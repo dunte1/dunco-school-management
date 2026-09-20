@@ -4,6 +4,7 @@ namespace Modules\Finance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Modules\Finance\Models\Fee;
 use Modules\Finance\Models\FeeCategory;
 use Modules\Finance\Models\FeeType;
@@ -64,7 +65,7 @@ class FinanceController extends Controller
                         ->sum('amount') ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -73,7 +74,7 @@ class FinanceController extends Controller
                     $pendingPayments = StudentFee::where('status', '!=', 'paid')->count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -81,7 +82,7 @@ class FinanceController extends Controller
                     $activeStudents = \Modules\Academic\Models\Student::where('is_active', true)->count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -89,7 +90,7 @@ class FinanceController extends Controller
                     $bankAccounts = BankAccount::count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -97,7 +98,7 @@ class FinanceController extends Controller
                     $totalFees = Fee::count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -105,7 +106,7 @@ class FinanceController extends Controller
                     $feeCategories = FeeCategory::count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -113,7 +114,7 @@ class FinanceController extends Controller
                     $feeTypes = FeeType::count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             try {
@@ -121,7 +122,7 @@ class FinanceController extends Controller
                     $totalTaxes = Tax::count() ?? 0;
                 }
             } catch (\Exception $e) {
-                // Table doesn't exist or has issues
+                Log::warning('FinanceController: Error querying table - ' . $e->getMessage());
             }
             
             return [
@@ -217,43 +218,55 @@ class FinanceController extends Controller
             $bankAccounts = 0;
             $taxes = 0;
             $settings = 0;
-            
+
             try {
                 if (Schema::hasTable('fee_categories')) {
                     $feeCategories = FeeCategory::count() ?? 0;
                 }
-            } catch (\Exception $e) {}
-            
+            } catch (\Exception $e) {
+                Log::warning('FinanceController: Error counting fee_categories - ' . $e->getMessage());
+            }
+
             try {
                 if (Schema::hasTable('fee_types')) {
                     $feeTypes = FeeType::count() ?? 0;
                 }
-            } catch (\Exception $e) {}
-            
+            } catch (\Exception $e) {
+                Log::warning('FinanceController: Error counting fee_types - ' . $e->getMessage());
+            }
+
             try {
                 if (Schema::hasTable('student_fees')) {
                     $pendingPayments = StudentFee::where('status', '!=', 'paid')->count() ?? 0;
                 }
-            } catch (\Exception $e) {}
-            
+            } catch (\Exception $e) {
+                Log::warning('FinanceController: Error counting pending_payments - ' . $e->getMessage());
+            }
+
             try {
                 if (Schema::hasTable('bank_accounts')) {
                     $bankAccounts = BankAccount::count() ?? 0;
                 }
-            } catch (\Exception $e) {}
-            
+            } catch (\Exception $e) {
+                Log::warning('FinanceController: Error counting bank_accounts - ' . $e->getMessage());
+            }
+
             try {
                 if (Schema::hasTable('taxes')) {
                     $taxes = Tax::count() ?? 0;
                 }
-            } catch (\Exception $e) {}
-            
+            } catch (\Exception $e) {
+                Log::warning('FinanceController: Error counting taxes - ' . $e->getMessage());
+            }
+
             try {
                 if (Schema::hasTable('finance_settings')) {
                     $settings = FinanceSetting::count() ?? 0;
                 }
-            } catch (\Exception $e) {}
-            
+            } catch (\Exception $e) {
+                Log::warning('FinanceController: Error counting finance_settings - ' . $e->getMessage());
+            }
+
             return [
                 'fee_categories' => $feeCategories,
                 'fee_types' => $feeTypes,
@@ -263,6 +276,7 @@ class FinanceController extends Controller
                 'settings' => $settings,
             ];
         } catch (\Exception $e) {
+            Log::error('FinanceController: Failed to get quick actions - ' . $e->getMessage());
             return [
                 'fee_categories' => 0,
                 'fee_types' => 0,
@@ -285,14 +299,42 @@ class FinanceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'amount' => 'required|numeric|min:0',
+                'fee_category_id' => 'nullable|exists:fee_categories,id',
+                'fee_type_id' => 'nullable|exists:fee_types,id',
+                'description' => 'nullable|string',
+                'due_date' => 'nullable|date',
+            ]);
+
+            $fee = Fee::create($validated);
+
+            return redirect()->route('finance.index')
+                ->with('success', 'Fee created successfully.');
+        } catch (\Exception $e) {
+            Log::error('FinanceController: Failed to store fee - ' . $e->getMessage());
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to create fee: ' . $e->getMessage());
+        }
+    }
 
     /**
      * Show the specified resource.
      */
     public function show($id)
     {
-        return view('finance::show');
+        try {
+            $fee = Fee::findOrFail($id);
+            return view('finance::show', compact('fee'));
+        } catch (\Exception $e) {
+            Log::error('FinanceController: Failed to show fee - ' . $e->getMessage());
+            return redirect()->route('finance.index')
+                ->with('error', 'Fee not found.');
+        }
     }
 
     /**
@@ -300,16 +342,61 @@ class FinanceController extends Controller
      */
     public function edit($id)
     {
-        return view('finance::edit');
+        try {
+            $fee = Fee::findOrFail($id);
+            $feeCategories = FeeCategory::orderBy('name')->get();
+            $feeTypes = FeeType::orderBy('name')->get();
+            return view('finance::edit', compact('fee', 'feeCategories', 'feeTypes'));
+        } catch (\Exception $e) {
+            Log::error('FinanceController: Failed to edit fee - ' . $e->getMessage());
+            return redirect()->route('finance.index')
+                ->with('error', 'Fee not found.');
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+        try {
+            $fee = Fee::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'amount' => 'required|numeric|min:0',
+                'fee_category_id' => 'nullable|exists:fee_categories,id',
+                'fee_type_id' => 'nullable|exists:fee_types,id',
+                'description' => 'nullable|string',
+                'due_date' => 'nullable|date',
+            ]);
+
+            $fee->update($validated);
+
+            return redirect()->route('finance.index')
+                ->with('success', 'Fee updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('FinanceController: Failed to update fee - ' . $e->getMessage());
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to update fee: ' . $e->getMessage());
+        }
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+        try {
+            $fee = Fee::findOrFail($id);
+            $fee->delete();
+
+            return redirect()->route('finance.index')
+                ->with('success', 'Fee deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('FinanceController: Failed to destroy fee - ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to delete fee: ' . $e->getMessage());
+        }
+    }
 }

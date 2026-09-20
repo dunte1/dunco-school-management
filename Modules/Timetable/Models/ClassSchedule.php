@@ -14,6 +14,17 @@ class ClassSchedule extends Model
         'day_of_week',
         'start_time',
         'end_time',
+        'status',
+        'approved_by',
+        'approved_at',
+        'rejected_by',
+        'rejected_at',
+        'rejection_reason',
+    ];
+
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function academicClass()
@@ -34,5 +45,10 @@ class ClassSchedule extends Model
     public function timetable()
     {
         return $this->belongsTo(\Modules\Timetable\Models\Timetable::class, 'timetable_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(\Modules\Academic\Models\Subject::class, 'subject_id');
     }
 } 

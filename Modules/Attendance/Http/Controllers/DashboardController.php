@@ -42,7 +42,38 @@ class DashboardController extends Controller
 
         // Defaulters: students with attendance below threshold (e.g., <75%)
         $minPercent = 75;
-        $defaulters = []; // TODO: Implement logic for defaulters
+        $cutoffDate = Carbon::today()->subDays(30)->toDateString();
+
+        $recordsQuery = DB::table('academic_attendance_records')
+            ->where('date', '>=', $cutoffDate)
+            ->where('date', '<=', $date);
+        if ($classId) $recordsQuery->where('class_id', $classId);
+        if ($departmentId) $recordsQuery->where('department_id', $departmentId);
+        if ($teacherId) $recordsQuery->where('marked_by', $teacherId);
+
+        $allRecords = $recordsQuery->get()->groupBy('student_id');
+
+        $defaulters = [];
+        foreach ($allRecords as $studentId => $recs) {
+            $totalDays = $recs->count();
+            if ($totalDays === 0) continue;
+            $presentDays = collect($recs)->where('status', 'present')->count();
+            $percent = round(($presentDays / $totalDays) * 100, 1);
+            if ($percent < $minPercent) {
+                $student = DB::table('academic_students')->where('id', $studentId)->first();
+                $defaulters[] = [
+                    'student_id' => $studentId,
+                    'name' => $student ? trim($student->first_name . ' ' . $student->last_name) : 'Unknown',
+                    'class_id' => $student->class_id ?? null,
+                    'attendance_percent' => $percent,
+                    'total_days' => $totalDays,
+                    'present_days' => $presentDays,
+                    'absent_days' => $totalDays - $presentDays,
+                ];
+            }
+        }
+
+        usort($defaulters, fn($a, $b) => $a['attendance_percent'] <=> $b['attendance_percent']);
 
         return response()->json([
             'total_students' => $totalStudents,
@@ -170,4 +201,4 @@ class DashboardController extends Controller
             'datasets' => $datasets,
         ]);
     }
-} 
+}

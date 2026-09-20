@@ -12,7 +12,7 @@
             <i class="bi bi-bell" style="font-size:1.5rem;"></i><br>
             <small>Notifs</small>
         </a>
-        <a href="{{ route('profile') }}" class="nav-link text-center">
+        <a href="{{ route('profile.edit') }}" class="nav-link text-center">
             <i class="bi bi-person-circle" style="font-size:1.5rem;"></i><br>
             <small>Profile</small>
         </a>

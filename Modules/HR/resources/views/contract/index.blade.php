@@ -21,7 +21,7 @@
     </div>
     <div class="col-md-4">
         <button type="submit" class="btn btn-primary">Filter</button>
-        <a href="{{ route('hr.contract.create') }}" class="btn btn-success">Add Contract</a>
+        <a href="{{ route('hr.contracts.create') }}" class="btn btn-success">Add Contract</a>
     </div>
 </form>
 <table class="table table-bordered table-hover">

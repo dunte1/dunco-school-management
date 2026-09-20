@@ -1,62 +1,70 @@
 @extends('layouts.auth')
+@section('title', 'Register - Dunco SMS')
 
 @section('content')
-<div class="card shadow">
-    <div class="card-header text-white">
-        <h4 class="mb-0">Register</h4>
+<div class="auth-form-header">
+    <div class="logo-mobile">
+        <div class="logo-mobile-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span class="logo-mobile-text">Dunco SMS</span>
     </div>
-    <div class="card-body p-4">
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+    <h1>Create an account</h1>
+    <p>Get started with Dunco School Management System</p>
+</div>
+
+<div class="auth-card">
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
+        <div class="form-group">
+            <label for="name" class="form-label">Full name</label>
+            <input id="name" type="text" name="name" class="form-input @error('name') error @enderror" value="{{ old('name') }}" required autofocus placeholder="John Doe">
+            @error('name')<div class="form-error">{{ $message }}</div>@enderror
+        </div>
+        <div class="form-group">
+            <label for="email" class="form-label">Email address</label>
+            <input id="email" type="email" name="email" class="form-input @error('email') error @enderror" value="{{ old('email') }}" required placeholder="you@example.com">
+            @error('email')<div class="form-error">{{ $message }}</div>@enderror
+        </div>
+        <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+                <input id="password" type="password" name="password" class="form-input @error('password') error @enderror" required placeholder="Create a password">
+                <button type="button" class="input-toggle" onclick="togglePassword(this)" aria-label="Toggle password visibility">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
-        @endif
-        
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
-            <div class="mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" 
-                       name="name" value="{{ old('name') }}" required autofocus>
-                @error('name')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+            @error('password')<div class="form-error">{{ $message }}</div>@enderror
+        </div>
+        <div class="form-group">
+            <label for="password_confirmation" class="form-label">Confirm password</label>
+            <div class="input-group">
+                <input id="password_confirmation" type="password" name="password_confirmation" class="form-input" required placeholder="Confirm your password">
+                <button type="button" class="input-toggle" onclick="togglePassword(this)" aria-label="Toggle password visibility">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
-            
-            <div class="mb-3">
-                <label for="email" class="form-label">Email address</label>
-                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
-                       name="email" value="{{ old('email') }}" required>
-                @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-            
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" 
-                       name="password" required>
-                @error('password')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-            
-            <div class="mb-3">
-                <label for="password_confirmation" class="form-label">Confirm Password</label>
-                <input id="password_confirmation" type="password" class="form-control" 
-                       name="password_confirmation" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary w-100 mb-3">Register</button>
-            
-            <div class="text-center">
-                <p class="mb-0">Already have an account? <a href="{{ route('login') }}" class="text-decoration-none">Login here</a></p>
-            </div>
-        </form>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 0.5rem;">Create account</button>
+    </form>
+
+    <div class="auth-footer">
+        Already have an account? <a href="{{ route('login') }}">Sign in</a>
     </div>
 </div>
-@endsection 
+
+@push('scripts')
+<script>
+function togglePassword(btn) {
+    const input = btn.previousElementSibling;
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+    else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+}
+</script>
+@endpush
+@endsection
