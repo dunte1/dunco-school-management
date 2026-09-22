@@ -1,0 +1,9 @@
+{
+    "name": "Nursing",
+    "alias": "nursing",
+    "description": "Nursing Education & Clinical Management module for clinical placements, logbooks, skills competency, and nursing education",
+    "keywords": ["nursing", "clinical", "placement", "logbook", "skills", "competency", "healthcare"],
+    "priority": 10,
+    "providers": ["Modules\\Nursing\\Providers\\NursingServiceProvider"],
+    "files": []
+}

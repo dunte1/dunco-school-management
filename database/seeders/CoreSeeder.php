@@ -88,6 +88,9 @@ class CoreSeeder extends Seeder
             
             // Health and Welfare Roles
             ['name' => 'nurse', 'display_name' => 'School Nurse', 'description' => 'Provides health services to students and staff', 'is_system' => true],
+            ['name' => 'nursing_admin', 'display_name' => 'Nursing Admin', 'description' => 'Manages nursing education and clinical placements', 'is_system' => true],
+            ['name' => 'nursing_instructor', 'display_name' => 'Nursing Instructor', 'description' => 'Clinical instructor for nursing students', 'is_system' => true],
+            ['name' => 'clinical_instructor', 'display_name' => 'Clinical Instructor', 'description' => 'Supervises students in clinical settings', 'is_system' => true],
             ['name' => 'counselor', 'display_name' => 'School Counselor', 'description' => 'Provides counseling and guidance services', 'is_system' => true],
             ['name' => 'welfare_officer', 'display_name' => 'Welfare Officer', 'description' => 'Manages student and staff welfare programs', 'is_system' => true],
             

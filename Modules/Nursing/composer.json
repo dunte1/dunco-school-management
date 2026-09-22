@@ -1,0 +1,26 @@
+{
+    "name": "nwidart/nursing",
+    "description": "Nursing Education & Clinical Management Module",
+    "authors": [
+        {
+            "name": "Dunco",
+            "email": "admin@dunco.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Nursing\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Nursing\\Tests\\": "tests/"
+        }
+    }
+}

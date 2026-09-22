@@ -18,6 +18,7 @@
         'settings' => ['label' => 'Settings', 'icon' => 'fa-cog', 'href' => '/settings'],
         'api' => ['label' => 'API', 'icon' => 'fa-plug', 'href' => '/api'],
         'chatbot' => ['label' => 'ChatBot', 'icon' => 'fa-robot', 'href' => '/chatbot'],
+        'nursing' => ['label' => 'Nursing', 'icon' => 'fa-heartbeat', 'href' => '/nursing'],
     ];
     $submenu = [
         'academic' => [
@@ -57,6 +58,19 @@
             ['label' => 'Inbox', 'icon' => 'fa-inbox', 'href' => '/communication/inbox', 'perm' => 'communication.inbox.view'],
             ['label' => 'Announcements', 'icon' => 'fa-bullhorn', 'href' => '/communication/announcements', 'perm' => 'communication.announcements.view'],
         ],
+        'nursing' => [
+            ['label' => 'Facilities', 'icon' => 'fa-hospital', 'href' => '/nursing/facilities', 'perm' => 'nursing.placements.view'],
+            ['label' => 'Placements', 'icon' => 'fa-map-marker-alt', 'href' => '/nursing/placements', 'perm' => 'nursing.placements.view'],
+            ['label' => 'Logbook', 'icon' => 'fa-book-open', 'href' => '/nursing/logbook', 'perm' => 'nursing.logbooks.view'],
+            ['label' => 'Skills', 'icon' => 'fa-check-circle', 'href' => '/nursing/skills', 'perm' => 'nursing.skills.view'],
+            ['label' => 'Clinical Hours', 'icon' => 'fa-clock', 'href' => '/nursing/hours', 'perm' => 'nursing.hours.view'],
+            ['label' => 'Reference', 'icon' => 'fa-book', 'href' => '/nursing/reference', 'perm' => 'nursing.reference.view'],
+            ['label' => 'Scenarios', 'icon' => 'fa-lightbulb', 'href' => '/nursing/scenarios', 'perm' => 'nursing.scenarios.view'],
+            ['label' => 'CPD', 'icon' => 'fa-certificate', 'href' => '/nursing/cpd', 'perm' => 'nursing.cpd.view'],
+            ['label' => 'Calculators', 'icon' => 'fa-calculator', 'href' => '/nursing/calculators', 'perm' => 'nursing.calculators.view'],
+            ['label' => 'Reports', 'icon' => 'fa-chart-bar', 'href' => '/nursing/reports', 'perm' => 'nursing.reports.view'],
+            ['label' => 'Settings', 'icon' => 'fa-cog', 'href' => '/nursing/settings', 'perm' => 'nursing.settings.manage'],
+        ],
     ];
 @endphp
 
@@ -95,6 +109,15 @@
                 @endif
             @endforeach
         </nav>
+        @if (\App\Helpers\NavigationHelper::hasRole('admin'))
+            <div class="sidebar-section mt-3">Administration</div>
+            <nav class="nav flex-column">
+                <a href="{{ route('admin.modules.index') }}" class="nav-link {{ request()->is('admin/modules*') ? 'active' : '' }}">
+                    <span class="nav-icon"><i class="fas fa-puzzle-piece"></i></span>
+                    <span class="nav-text">Module Management</span>
+                </a>
+            </nav>
+        @endif
     </div>
 </aside>
 <div id="sidebarBackdrop" class="sidebar-backdrop"></div>

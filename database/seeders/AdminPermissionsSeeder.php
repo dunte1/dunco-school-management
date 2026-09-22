@@ -169,6 +169,16 @@ class AdminPermissionsSeeder extends Seeder
             'localization.translations.view', 'localization.translations.create', 'localization.translations.edit', 'localization.translations.delete',
             'localization.currencies.view', 'localization.currencies.create', 'localization.currencies.edit', 'localization.currencies.delete',
 
+            // Nursing Module
+            'nursing.dashboard.view', 'nursing.placements.view', 'nursing.placements.create', 'nursing.placements.edit', 'nursing.placements.delete', 'nursing.placements.manage',
+            'nursing.logbooks.view', 'nursing.logbooks.create', 'nursing.logbooks.review',
+            'nursing.skills.view', 'nursing.skills.manage', 'nursing.skills.assess', 'nursing.competency.award',
+            'nursing.attendance.view', 'nursing.attendance.mark', 'nursing.hours.view', 'nursing.hours.manage', 'nursing.hours.approve',
+            'nursing.instructors.manage', 'nursing.reference.view', 'nursing.reference.create', 'nursing.reference.approve',
+            'nursing.scenarios.view', 'nursing.scenarios.create', 'nursing.assessments.view', 'nursing.assessments.create', 'nursing.assessments.grade',
+            'nursing.cpd.view', 'nursing.cpd.manage', 'nursing.reports.view', 'nursing.reports.export', 'nursing.settings.manage',
+            'nursing.calculators.view', 'nursing.study.view', 'nursing.study.manage',
+
             // Additional Core Permissions
             'dashboard.view', 'dashboard.create', 'dashboard.edit', 'dashboard.delete',
             'profile.view', 'profile.create', 'profile.edit', 'profile.delete',

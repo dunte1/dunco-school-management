@@ -15,5 +15,6 @@
     "Notification": true,
     "Settings": true,
     "API": true,
-    "ChatBot": true
+    "ChatBot": true,
+    "Nursing": true
 }

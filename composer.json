@@ -54,7 +54,8 @@
       "Modules\\Timetable\\": "Modules/Timetable/",
       "Modules\\Transport\\": "Modules/Transport/",
       "Modules\\API\\": "Modules/API/",
-      "Modules\\ChatBot\\": "Modules/ChatBot/"
+      "Modules\\ChatBot\\": "Modules/ChatBot/",
+      "Modules\\Nursing\\": "Modules/Nursing/"
     },
     "files": [
       "app/Helpers/NavigationHelper.php",

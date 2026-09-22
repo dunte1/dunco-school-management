@@ -46,6 +46,7 @@ class ModuleViewServiceProvider extends ServiceProvider
             'settings' => base_path('Modules/Settings/resources/views'),
             'timetable' => base_path('Modules/Timetable/resources/views'),
             'transport' => base_path('Modules/Transport/resources/views'),
+            'nursing' => base_path('Modules/Nursing/resources/views'),
         ];
 
         foreach ($modules as $hint => $path) {

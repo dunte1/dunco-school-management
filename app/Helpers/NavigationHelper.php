@@ -51,7 +51,7 @@ class NavigationHelper
         $functionalModules = [
             'core', 'academic', 'examination', 'finance', 'hr', 'library', 
             'hostel', 'transport', 'timetable', 'attendance', 'communication', 
-            'portal', 'document', 'notification', 'settings', 'api', 'chatbot'
+            'portal', 'document', 'notification', 'settings', 'api', 'chatbot', 'nursing'
         ];
 
         // If module is not in functional modules, return false
@@ -80,6 +80,7 @@ class NavigationHelper
                 'settings' => ['settings.view', 'settings.global.view', 'settings.per_school.view'],
                 'api' => ['api.view', 'api.manage.view'],
                 'chatbot' => ['chatbot.view', 'chatbot.manage.view'],
+                'nursing' => ['nursing.dashboard.view', 'nursing.placements.view', 'nursing.logbooks.view', 'nursing.skills.view'],
             ];
 
             if (!isset($modulePermissions[$module])) {
@@ -108,7 +109,7 @@ class NavigationHelper
             $allModules = [
                 'core','academic','examination','finance','hr','library','hostel','transport',
                 'timetable','attendance','communication','portal','document','notification',
-                'settings','api','chatbot'
+                'settings','api','chatbot','nursing'
             ];
 
             // Admin gets everything
