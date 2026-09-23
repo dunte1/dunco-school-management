@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('examination::layouts.app')
 
 @section('title', 'Exam Result')
 

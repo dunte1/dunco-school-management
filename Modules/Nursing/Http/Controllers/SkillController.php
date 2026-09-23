@@ -53,7 +53,11 @@ class SkillController extends Controller
         $student = $user->academicStudent;
 
         if (!$student) {
-            return view('nursing::skills.my-progress', ['studentSkills' => collect()]);
+            return Inertia::render('Nursing/Skills/MyProgress', [
+                'studentSkills' => collect(),
+                'categories' => collect(),
+                'stats' => ['total' => 0, 'competent' => 0, 'in_progress' => 0, 'remediation' => 0],
+            ]);
         }
 
         $studentSkills = StudentSkill::where('student_id', $student->id)

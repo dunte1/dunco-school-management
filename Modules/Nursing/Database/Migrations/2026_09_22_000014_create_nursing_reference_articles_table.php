@@ -30,7 +30,9 @@ return new class extends Migration
 
             $table->index(['category_id', 'status']);
             $table->index(['status', 'is_featured']);
-            $table->fullText(['title', 'content']);
+            if (config('database.default') === 'mysql') {
+                $table->fullText(['title', 'content']);
+            }
         });
     }
 

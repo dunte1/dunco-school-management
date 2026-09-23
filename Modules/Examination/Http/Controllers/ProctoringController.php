@@ -119,11 +119,11 @@ class ProctoringController extends Controller
             ->limit(10)
             ->get();
 
-        $activeExams = Exam::where('status', 'ongoing')
+        $exams = Exam::where('status', 'ongoing')
             ->withCount('attempts')
             ->get();
 
-        return view('examination::proctoring.dashboard', compact('recentLogs', 'activeExams'));
+        return view('examination::proctoring.dashboard', compact('recentLogs', 'exams'));
     }
 
     protected function loadSettings(): array

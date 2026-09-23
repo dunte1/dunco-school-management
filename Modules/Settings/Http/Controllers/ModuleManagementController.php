@@ -40,7 +40,7 @@ class ModuleManagementController extends Controller
             'Nursing' => ['Nursing education - Placements, Logbook, Skills, Clinical', 'fa-heartbeat'],
         ];
 
-        return view('admin.modules.index', compact('statuses', 'moduleDescriptions'));
+        return view('settings::modules.index', compact('statuses', 'moduleDescriptions'));
     }
 
     public function toggle(Request $request)

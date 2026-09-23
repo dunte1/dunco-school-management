@@ -4,6 +4,7 @@ namespace Modules\Examination\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Modules\Examination\Models\Exam;
@@ -78,8 +79,18 @@ class ExamController extends Controller
 
     public function show($id)
     {
-        $exam = Exam::with(['type', 'questions.category', 'results.student'])->findOrFail($id);
-        return view('examination::exams.show', compact('exam'));
+        $exam = Exam::with(['type', 'questions.category', 'results.student', 'schedules'])->findOrFail($id);
+        
+        $student = Auth::user()->academicStudent;
+        $isPaid = false;
+        if ($student && $exam->fee_required && $exam->fee_amount) {
+            $isPaid = \Modules\Examination\Models\ExamPayment::where('exam_id', $exam->id)
+                ->where('student_id', $student->id)
+                ->where('status', 'completed')
+                ->exists();
+        }
+        
+        return view('examination::exams.show', compact('exam', 'isPaid'));
     }
 
     public function edit($id)

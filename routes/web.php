@@ -72,6 +72,31 @@ Route::prefix('performance')->middleware(['auth', 'admin'])->group(function () {
     Route::post('/clear-caches', [App\Http\Controllers\PerformanceController::class, 'clearCaches'])->name('performance.clear-caches');
 });
 
+// API Index route (referenced by main layout sidebar)
+Route::get('/api', function () {
+    return redirect('/dashboard');
+})->name('api.index');
+
+Route::get('/api/manage', function () {
+    return redirect('/dashboard');
+})->name('api.manage');
+
+Route::get('/analytics', function () {
+    return redirect('/dashboard');
+})->name('analytics.index');
+
+Route::get('/research', function () {
+    return redirect('/dashboard');
+})->name('research.index');
+
+Route::get('/alumni', function () {
+    return redirect('/dashboard');
+})->name('alumni.index');
+
+Route::get('/marketplace', function () {
+    return redirect('/dashboard');
+})->name('marketplace.index');
+
 // Auth routes
 require __DIR__.'/auth.php';
 

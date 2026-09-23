@@ -92,7 +92,7 @@ Route::middleware(['auth'])->prefix('nursing')->name('nursing.')->group(function
     });
 
     // Instructor Portal
-    Route::prefix('instructor')->name('instructor.')->middleware('permission:nursing.instructors.manage')->group(function () {
+    Route::prefix('instructor')->name('instructor.')->middleware('role:nursing_instructor,clinical_instructor,admin,super_admin')->group(function () {
         Route::get('/', [InstructorController::class, 'dashboard'])->name('dashboard');
         Route::get('/students', [InstructorController::class, 'students'])->name('students');
         Route::get('/students/{student}', [InstructorController::class, 'studentDetail'])->name('student-detail');
