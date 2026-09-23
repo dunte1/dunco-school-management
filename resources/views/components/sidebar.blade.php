@@ -3,7 +3,7 @@
     $moduleMeta = [
         'core' => ['label' => 'Dashboard', 'icon' => 'fa-home', 'href' => '/dashboard'],
         'academic' => ['label' => 'Academic', 'icon' => 'fa-graduation-cap', 'href' => '/academic'],
-        'examination' => ['label' => 'Exams', 'icon' => 'fa-file-alt', 'href' => '/examinations'],
+        'examination' => ['label' => 'Exams', 'icon' => 'fa-file-alt', 'href' => '/examination'],
         'finance' => ['label' => 'Finance', 'icon' => 'fa-money-bill-wave', 'href' => '/finance'],
         'hr' => ['label' => 'HR', 'icon' => 'fa-user-tie', 'href' => '/hr'],
         'library' => ['label' => 'Library', 'icon' => 'fa-book', 'href' => '/library'],
@@ -25,6 +25,14 @@
             ['label' => 'Students', 'icon' => 'fa-user-graduate', 'href' => '/academic/students', 'perm' => 'academic.students.view'],
             ['label' => 'Classes', 'icon' => 'fa-door-open', 'href' => '/academic/classes', 'perm' => 'academic.classes.view'],
             ['label' => 'Subjects', 'icon' => 'fa-book-open', 'href' => '/academic/subjects', 'perm' => 'academic.subjects.view'],
+        ],
+        'examination' => [
+            ['label' => 'Exams', 'icon' => 'fa-file-alt', 'href' => '/examination/exams', 'perm' => 'examination.view'],
+            ['label' => 'Question Bank', 'icon' => 'fa-database', 'href' => '/examination/questions', 'perm' => 'examination.view'],
+            ['label' => 'Categories', 'icon' => 'fa-tags', 'href' => '/examination/categories', 'perm' => 'examination.view'],
+            ['label' => 'Schedules', 'icon' => 'fa-calendar', 'href' => '/examination/schedules', 'perm' => 'examination.view'],
+            ['label' => 'Results', 'icon' => 'fa-chart-bar', 'href' => '/examination/results', 'perm' => 'examination.view'],
+            ['label' => 'Proctoring', 'icon' => 'fa-eye', 'href' => '/examination/proctoring', 'perm' => 'examination.view'],
         ],
         'finance' => [
             ['label' => 'Fees', 'icon' => 'fa-receipt', 'href' => '/finance/fees', 'perm' => 'finance.fees.view'],

@@ -119,8 +119,8 @@ class NavigationHelper
 
             // Role-based default modules
             $roleModules = [
-                'teacher'           => ['core','academic','examination','attendance','timetable','library','communication','notification','portal'],
-                'student'           => ['core','academic','examination','library','hostel','transport','attendance','portal','notification'],
+                'teacher'           => ['core','academic','examination','attendance','timetable','library','communication','notification','portal','nursing'],
+                'student'           => ['core','academic','examination','library','hostel','transport','attendance','portal','notification','nursing'],
                 'parent'            => ['core','academic','examination','library','hostel','finance','portal','notification'],
                 'finance_manager'   => ['core','finance','notification'],
                 'hr_manager'        => ['core','hr','attendance','notification'],
