@@ -3,7 +3,7 @@
 namespace Modules\Examination\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Examination\app\Models\ExamType;
+use Modules\Examination\Models\ExamType;
 
 class ExamTypeSeeder extends Seeder
 {

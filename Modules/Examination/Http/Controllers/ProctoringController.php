@@ -4,12 +4,20 @@ namespace Modules\Examination\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\File;
 use Modules\Examination\Models\ProctoringLog;
 use Modules\Examination\Models\Exam;
 use Modules\Examination\Models\ExamAttempt;
 
 class ProctoringController extends Controller
 {
+    protected $settingsPath;
+
+    public function __construct()
+    {
+        $this->settingsPath = storage_path('exam_proctoring_settings.json');
+    }
+
     public function index()
     {
         $logs = ProctoringLog::with('attempt.exam', 'attempt.student')
@@ -41,18 +49,33 @@ class ProctoringController extends Controller
 
     public function settings()
     {
-        return view('examination::proctoring.settings');
+        $settings = $this->loadSettings();
+
+        return view('examination::proctoring.settings', compact('settings'));
     }
 
     public function updateSettings(Request $request)
     {
-        $request->validate([
-            'tab_switch_detection' => 'boolean',
-            'webcam_required' => 'boolean',
-            'face_detection' => 'boolean',
+        $validated = $request->validate([
+            'proctor_webcam' => 'boolean',
+            'proctor_tab_switch' => 'boolean',
+            'proctor_face_detection' => 'boolean',
+            'proctor_idle_timeout' => 'nullable|integer|min:30|max:600',
         ]);
 
-        return redirect()->back()->with('success', 'Proctoring settings updated.');
+        $settings = $this->loadSettings();
+        $settings = array_merge($settings, [
+            'proctor_webcam' => $request->boolean('proctor_webcam', false),
+            'proctor_tab_switch' => $request->boolean('proctor_tab_switch', false),
+            'proctor_face_detection' => $request->boolean('proctor_face_detection', false),
+            'proctor_idle_timeout' => $validated['proctor_idle_timeout'] ?? $settings['proctor_idle_timeout'] ?? 120,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+
+        $this->saveSettings($settings);
+
+        return redirect()->route('examination.proctoring.settings')
+            ->with('success', 'Proctoring settings updated successfully.');
     }
 
     public function liveMonitoring($exam)
@@ -101,5 +124,29 @@ class ProctoringController extends Controller
             ->get();
 
         return view('examination::proctoring.dashboard', compact('recentLogs', 'activeExams'));
+    }
+
+    protected function loadSettings(): array
+    {
+        $defaults = [
+            'proctor_webcam' => false,
+            'proctor_tab_switch' => true,
+            'proctor_face_detection' => false,
+            'proctor_idle_timeout' => 120,
+        ];
+
+        if (!File::exists($this->settingsPath)) {
+            return $defaults;
+        }
+
+        $content = File::get($this->settingsPath);
+        $stored = json_decode($content, true);
+
+        return is_array($stored) ? array_merge($defaults, $stored) : $defaults;
+    }
+
+    protected function saveSettings(array $settings): void
+    {
+        File::put($this->settingsPath, json_encode($settings, JSON_PRETTY_PRINT));
     }
 }

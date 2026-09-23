@@ -5,6 +5,8 @@ namespace Modules\Examination\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Modules\Examination\Models\Exam;
 use Modules\Examination\Models\ExamAttempt;
 use Modules\Examination\Models\ExamAnswer;
@@ -237,11 +239,11 @@ class OnlineExamController extends Controller
             abort(403);
         }
 
-        if (!$answer->file_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($answer->file_path)) {
+        if (!$answer->file_path || !Storage::disk('local')->exists($answer->file_path)) {
             abort(404, 'Answer file not found.');
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download($answer->file_path);
+        return Storage::disk('local')->download($answer->file_path);
     }
 
     public function heartbeat(Request $request)
@@ -294,7 +296,7 @@ class OnlineExamController extends Controller
             $imageData = $request->input('image');
             $decoded = base64_decode(explode(',', $imageData)[1] ?? '');
             $filename = 'screenshots/' . $attempt->id . '/' . time() . '.png';
-            \Illuminate\Support\Facades\Storage::disk('local')->put($filename, $decoded);
+            Storage::disk('local')->put($filename, $decoded);
 
             ProctoringLog::create([
                 'exam_attempt_id' => $attempt->id,
@@ -411,6 +413,564 @@ class OnlineExamController extends Controller
         $exam = Exam::find($examId);
         return view('examination::online.proctoring', compact('exam', 'examId'));
     }
+
+    // ───────────────────────────────────────────────────────────
+    //  NEW API METHODS
+    // ───────────────────────────────────────────────────────────
+
+    /**
+     * Receive a base64-encoded video frame, log to ProctoringLog if suspicious.
+     */
+    public function videoFrame(Request $request)
+    {
+        $request->validate([
+            'attempt_id' => 'required|exists:exam_attempts,id',
+            'frame_data' => 'required|string',
+        ]);
+
+        $attempt = ExamAttempt::where('id', $request->attempt_id)
+            ->where('student_id', auth()->id())
+            ->first();
+
+        if (!$attempt) {
+            return response()->json(['success' => false, 'message' => 'Attempt not found.'], 404);
+        }
+
+        $frameData = $request->input('frame_data');
+        $decoded = base64_decode(explode(',', $frameData)[1] ?? $frameData);
+        $filename = 'video-frames/' . $attempt->id . '/' . time() . '.jpg';
+        Storage::disk('local')->put($filename, $decoded);
+
+        $suspicious = false;
+        $severity = 'low';
+        $description = 'Video frame captured';
+
+        if ($request->has('faces_detected') && $request->faces_detected > 1) {
+            $suspicious = true;
+            $severity = 'high';
+            $description = "Multiple faces detected ({$request->faces_detected})";
+        }
+
+        $log = ProctoringLog::create([
+            'exam_attempt_id' => $attempt->id,
+            'event_type' => 'video_frame',
+            'description' => $description,
+            'severity' => $severity,
+            'event_data' => [
+                'path' => $filename,
+                'faces_detected' => $request->input('faces_detected', 1),
+                'timestamp' => now()->toIso8601String(),
+            ],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'suspicious' => $suspicious,
+            'log_id' => $log->id,
+        ]);
+    }
+
+    /**
+     * Receive audio sample data, log voice detection events.
+     */
+    public function audioSample(Request $request)
+    {
+        $request->validate([
+            'attempt_id' => 'required|exists:exam_attempts,id',
+            'audio_data' => 'required|string',
+        ]);
+
+        $attempt = ExamAttempt::where('id', $request->attempt_id)
+            ->where('student_id', auth()->id())
+            ->first();
+
+        if (!$attempt) {
+            return response()->json(['success' => false, 'message' => 'Attempt not found.'], 404);
+        }
+
+        $audioData = $request->input('audio_data');
+        $decoded = base64_decode(explode(',', $audioData)[1] ?? $audioData);
+        $filename = 'audio-samples/' . $attempt->id . '/' . time() . '.webm';
+        Storage::disk('local')->put($filename, $decoded);
+
+        $voiceDetected = $request->input('voice_detected', false);
+        $severity = $voiceDetected ? 'medium' : 'low';
+        $description = $voiceDetected ? 'Voice detected during exam' : 'Audio sample captured';
+
+        $log = ProctoringLog::create([
+            'exam_attempt_id' => $attempt->id,
+            'event_type' => 'audio_sample',
+            'description' => $description,
+            'severity' => $severity,
+            'event_data' => [
+                'path' => $filename,
+                'voice_detected' => $voiceDetected,
+                'duration_seconds' => $request->input('duration_seconds'),
+                'timestamp' => now()->toIso8601String(),
+            ],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'voice_detected' => $voiceDetected,
+            'log_id' => $log->id,
+        ]);
+    }
+
+    /**
+     * Return exam progress: answered count, total, percentage, time remaining.
+     */
+    public function examProgress($attemptId)
+    {
+        $attempt = ExamAttempt::with('exam')->findOrFail($attemptId);
+
+        if ($attempt->student_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $expired = $attempt->expires_at && now()->gt($attempt->expires_at);
+        if ($expired && $attempt->status === 'in_progress') {
+            $this->finalizeAttempt($attempt);
+        }
+
+        $answeredCount = $attempt->answers()->count();
+        $totalQuestions = $attempt->exam->questions()->count();
+        $percentage = $totalQuestions > 0 ? round(($answeredCount / $totalQuestions) * 100, 2) : 0;
+
+        return response()->json([
+            'answered_count' => $answeredCount,
+            'total_questions' => $totalQuestions,
+            'percentage_complete' => $percentage,
+            'time_remaining_seconds' => $attempt->expires_at
+                ? max(0, $attempt->expires_at->diffInSeconds(now()))
+                : null,
+            'status' => $attempt->status,
+        ]);
+    }
+
+    /**
+     * Store a push notification subscription.
+     */
+    public function subscribeNotifications(Request $request)
+    {
+        $request->validate([
+            'endpoint' => 'required|string',
+            'keys.p256dh' => 'required|string',
+            'keys.auth' => 'required|string',
+        ]);
+
+        $userId = auth()->id();
+        $subscriptions = Cache::get("notification_subscriptions:{$userId}", []);
+        $endpoint = $request->input('endpoint');
+
+        // Avoid duplicates
+        $subscriptions = collect($subscriptions)->reject(function ($sub) use ($endpoint) {
+            return $sub['endpoint'] === $endpoint;
+        })->values()->toArray();
+
+        $subscriptions[] = [
+            'endpoint' => $endpoint,
+            'keys' => $request->input('keys'),
+            'created_at' => now()->toIso8601String(),
+        ];
+
+        Cache::put("notification_subscriptions:{$userId}", $subscriptions, now()->addDays(90));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification subscription stored.',
+        ]);
+    }
+
+    /**
+     * Remove a push notification subscription.
+     */
+    public function unsubscribeNotifications(Request $request)
+    {
+        $request->validate([
+            'endpoint' => 'required|string',
+        ]);
+
+        $userId = auth()->id();
+        $subscriptions = Cache::get("notification_subscriptions:{$userId}", []);
+
+        $subscriptions = collect($subscriptions)->reject(function ($sub) use ($request) {
+            return $sub['endpoint'] === $request->input('endpoint');
+        })->values()->toArray();
+
+        Cache::put("notification_subscriptions:{$userId}", $subscriptions, now()->addDays(90));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification subscription removed.',
+        ]);
+    }
+
+    /**
+     * Handle file upload for exam answers.
+     */
+    public function uploadAttachment(Request $request)
+    {
+        $request->validate([
+            'attempt_id' => 'required|exists:exam_attempts,id',
+            'question_id' => 'required|exists:questions,id',
+            'file' => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,zip,txt',
+        ]);
+
+        $attempt = ExamAttempt::where('id', $request->attempt_id)
+            ->where('student_id', auth()->id())
+            ->where('status', 'in_progress')
+            ->first();
+
+        if (!$attempt) {
+            return response()->json(['success' => false, 'message' => 'No active attempt found.'], 404);
+        }
+
+        $file = $request->file('file');
+        $filename = 'exam-attachments/' . $attempt->id . '/' . $request->question_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('exam-attachments/' . $attempt->id, $request->question_id . '_' . time() . '.' . $file->getClientOriginalExtension(), 'local');
+
+        ExamAnswer::updateOrCreate(
+            [
+                'exam_attempt_id' => $attempt->id,
+                'question_id' => $request->question_id,
+            ],
+            [
+                'file_path' => $path,
+                'answered_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'file_path' => $path,
+            'file_name' => $file->getClientOriginalName(),
+        ]);
+    }
+
+    /**
+     * Return live analytics for an exam (teacher/admin only).
+     */
+    public function liveAnalytics($examId)
+    {
+        $exam = Exam::findOrFail($examId);
+
+        $activeAttempts = ExamAttempt::where('exam_id', $examId)
+            ->where('status', 'in_progress')
+            ->count();
+
+        $allAttempts = ExamAttempt::where('exam_id', $examId)
+            ->whereIn('status', ['in_progress', 'submitted', 'completed'])
+            ->get();
+
+        $avgProgress = 0;
+        if ($allAttempts->count() > 0) {
+            $totalProgress = $allAttempts->sum(function ($attempt) {
+                $total = $attempt->exam->questions()->count();
+                if ($total === 0) return 0;
+                $answered = $attempt->answers()->count();
+                return round(($answered / $total) * 100, 2);
+            });
+            $avgProgress = round($totalProgress / $allAttempts->count(), 2);
+        }
+
+        $avgScore = $allAttempts
+            ->where('status', '!=', 'in_progress')
+            ->where('obtained_marks', '>', 0)
+            ->avg('obtained_marks') ?? 0;
+
+        $proctoringEventsCount = ProctoringLog::whereHas('attempt', function ($q) use ($examId) {
+            $q->where('exam_id', $examId);
+        })->count();
+
+        return response()->json([
+            'exam_id' => $exam->id,
+            'exam_name' => $exam->name,
+            'active_attempts' => $activeAttempts,
+            'average_progress' => $avgProgress,
+            'average_score' => round($avgScore, 2),
+            'proctoring_events_count' => $proctoringEventsCount,
+            'total_attempts' => $allAttempts->count(),
+        ]);
+    }
+
+    /**
+     * Return exam summary stats (teacher/admin only).
+     */
+    public function examSummary($examId)
+    {
+        $exam = Exam::findOrFail($examId);
+
+        $attempts = ExamAttempt::where('exam_id', $examId)
+            ->whereIn('status', ['submitted', 'completed'])
+            ->get();
+
+        $totalAttempts = $attempts->count();
+        $completed = $attempts->where('status', 'completed')->count();
+        $avgScore = $attempts->avg('obtained_marks') ?? 0;
+        $passCount = $attempts->filter(function ($a) use ($exam) {
+            return $a->obtained_marks >= $exam->passing_marks;
+        })->count();
+        $passRate = $totalAttempts > 0 ? round(($passCount / $totalAttempts) * 100, 2) : 0;
+
+        $timeDistribution = [
+            'under_15_min' => $attempts->where('time_taken_minutes', '<=', 15)->count(),
+            '15_30_min' => $attempts->filter(fn ($a) => $a->time_taken_minutes > 15 && $a->time_taken_minutes <= 30)->count(),
+            '30_60_min' => $attempts->filter(fn ($a) => $a->time_taken_minutes > 30 && $a->time_taken_minutes <= 60)->count(),
+            'over_60_min' => $attempts->where('time_taken_minutes', '>', 60)->count(),
+        ];
+
+        return response()->json([
+            'exam_id' => $exam->id,
+            'exam_name' => $exam->name,
+            'total_attempts' => $totalAttempts,
+            'completed' => $completed,
+            'average_score' => round($avgScore, 2),
+            'pass_rate' => $passRate,
+            'time_distribution' => $timeDistribution,
+        ]);
+    }
+
+    /**
+     * Return unresolved proctoring alerts grouped by severity.
+     */
+    public function proctoringAlerts($examId)
+    {
+        $alerts = ProctoringLog::whereHas('attempt', function ($q) use ($examId) {
+            $q->where('exam_id', $examId);
+        })
+            ->where('is_resolved', false)
+            ->get()
+            ->groupBy('severity');
+
+        return response()->json([
+            'exam_id' => $examId,
+            'alerts' => $alerts->map(function ($group) {
+                return $group->map(function ($log) {
+                    return [
+                        'id' => $log->id,
+                        'event_type' => $log->event_type,
+                        'description' => $log->description,
+                        'event_data' => $log->event_data,
+                        'created_at' => $log->created_at,
+                    ];
+                });
+            }),
+            'total_unresolved' => $alerts->flatten()->count(),
+        ]);
+    }
+
+    /**
+     * Return published exams available to the authenticated student.
+     */
+    public function studentExams()
+    {
+        $exams = Exam::where('is_active', true)
+            ->where('status', 'published')
+            ->orderByDesc('start_date')
+            ->get();
+
+        return response()->json(['data' => $exams]);
+    }
+
+    /**
+     * Return the student's past exam attempts with results.
+     */
+    public function examHistory()
+    {
+        $attempts = ExamAttempt::with(['exam', 'result'])
+            ->where('student_id', auth()->id())
+            ->whereIn('status', ['submitted', 'completed'])
+            ->orderByDesc('submitted_at')
+            ->get();
+
+        return response()->json(['data' => $attempts]);
+    }
+
+    /**
+     * Return published results for the authenticated student.
+     */
+    public function studentResults()
+    {
+        $results = ExamResult::with('exam')
+            ->where('student_id', auth()->id())
+            ->where('is_published', true)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json(['data' => $results]);
+    }
+
+    /**
+     * Return ungraded answers for the teacher's exams.
+     */
+    public function gradeExams()
+    {
+        $answers = ExamAnswer::with(['attempt.exam', 'question'])
+            ->where('is_graded', false)
+            ->whereHas('attempt.exam', function ($q) {
+                $q->where('is_active', true);
+            })
+            ->orderByDesc('answered_at')
+            ->get();
+
+        return response()->json(['data' => $answers]);
+    }
+
+    /**
+     * Grade a single answer via API and recalculate the attempt result.
+     */
+    public function gradeAnswer(Request $request, $answerId)
+    {
+        $request->validate([
+            'marks_obtained' => 'required|numeric|min:0',
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+
+        $answer = ExamAnswer::with(['attempt', 'question'])->findOrFail($answerId);
+
+        $teacher = auth()->user();
+        if (!$answer->attempt->exam || !$teacher->hasAnyRole(['admin', 'teacher'])) {
+            abort(403);
+        }
+
+        $maxMarks = $answer->question->marks ?? $answer->max_marks ?? 0;
+        if ($request->marks_obtained > $maxMarks) {
+            return response()->json(['success' => false, 'message' => 'Marks cannot exceed maximum.'], 422);
+        }
+
+        $answer->update([
+            'marks_obtained' => $request->marks_obtained,
+            'max_marks' => $maxMarks,
+            'feedback' => $request->input('feedback'),
+            'is_graded' => true,
+            'is_correct' => $request->marks_obtained > 0,
+        ]);
+
+        // Recalculate attempt totals
+        $attempt = $answer->attempt;
+        $allAnswers = $attempt->answers()->where('is_graded', true)->get();
+        $totalObtained = $allAnswers->sum('marks_obtained');
+        $totalPossible = $allAnswers->sum('max_marks');
+
+        $attempt->update([
+            'obtained_marks' => $totalObtained,
+            'total_marks' => $totalPossible,
+            'is_graded' => true,
+        ]);
+
+        // Update or create result
+        $percentage = $totalPossible > 0 ? round(($totalObtained / $totalPossible) * 100, 2) : 0;
+        $passingPercentage = $totalPossible > 0
+            ? round(($attempt->exam->passing_marks / $totalPossible) * 100, 2)
+            : 0;
+
+        ExamResult::updateOrCreate(
+            ['exam_attempt_id' => $attempt->id],
+            [
+                'exam_id' => $attempt->exam_id,
+                'student_id' => $attempt->student_id,
+                'total_marks' => $totalPossible,
+                'obtained_marks' => $totalObtained,
+                'percentage' => $percentage,
+                'grade' => $this->calculateGrade($percentage),
+                'result_status' => $percentage >= $passingPercentage ? 'pass' : 'fail',
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'answer_id' => $answer->id,
+            'marks_obtained' => $answer->marks_obtained,
+            'attempt_total' => $totalObtained,
+        ]);
+    }
+
+    /**
+     * Return analytics for the teacher's exams.
+     */
+    public function examAnalytics()
+    {
+        $teacherId = auth()->id();
+
+        $exams = Exam::where('is_active', true)->get();
+        $examCount = $exams->count();
+
+        $totalAttempts = ExamAttempt::whereIn('exam_id', $exams->pluck('id'))
+            ->whereIn('status', ['submitted', 'completed'])
+            ->get();
+
+        $passCount = $totalAttempts->filter(function ($a) use ($exams) {
+            $exam = $exams->firstWhere('id', $a->exam_id);
+            return $exam && $a->obtained_marks >= $exam->passing_marks;
+        })->count();
+
+        $passRate = $totalAttempts->count() > 0
+            ? round(($passCount / $totalAttempts->count()) * 100, 2)
+            : 0;
+
+        $avgScore = $totalAttempts->avg('obtained_marks') ?? 0;
+
+        return response()->json([
+            'total_exams' => $examCount,
+            'total_attempts' => $totalAttempts->count(),
+            'pass_rate' => $passRate,
+            'average_score' => round($avgScore, 2),
+        ]);
+    }
+
+    /**
+     * Return public exam info without requiring authentication.
+     */
+    public function publicExamInfo($examId)
+    {
+        $exam = Exam::findOrFail($examId);
+
+        return response()->json([
+            'id' => $exam->id,
+            'name' => $exam->name,
+            'description' => $exam->description,
+            'start_date' => $exam->start_date,
+            'end_date' => $exam->end_date,
+            'duration_minutes' => $exam->duration_minutes,
+            'total_marks' => $exam->total_marks,
+            'is_online' => $exam->is_online,
+            'status' => $exam->status,
+        ]);
+    }
+
+    /**
+     * Accept and store a support message.
+     */
+    public function contactSupport(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'message' => 'required|string|max:5000',
+            'exam_id' => 'nullable|exists:exams,id',
+        ]);
+
+        $supportMessage = [
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'message' => $request->input('message'),
+            'exam_id' => $request->input('exam_id'),
+            'created_at' => now()->toIso8601String(),
+        ];
+
+        $filename = 'support/' . now()->format('Y-m-d_H-i-s') . '_' . uniqid() . '.json';
+        Storage::disk('local')->put($filename, json_encode($supportMessage, JSON_PRETTY_PRINT));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Support message received. We will get back to you shortly.',
+        ]);
+    }
+
+    // ───────────────────────────────────────────────────────────
+    //  PROTECTED HELPERS
+    // ───────────────────────────────────────────────────────────
 
     /**
      * Auto-grade answers and finalize the attempt

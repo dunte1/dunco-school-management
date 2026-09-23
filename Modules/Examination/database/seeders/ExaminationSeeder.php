@@ -4,10 +4,10 @@ namespace Modules\Examination\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Modules\Examination\app\Models\ExamType;
-use Modules\Examination\app\Models\QuestionCategory;
-use Modules\Examination\app\Models\Question;
-use Modules\Examination\app\Models\Exam;
+use Modules\Examination\Models\ExamType;
+use Modules\Examination\Models\QuestionCategory;
+use Modules\Examination\Models\Question;
+use Modules\Examination\Models\Exam;
 
 class ExaminationSeeder extends Seeder
 {

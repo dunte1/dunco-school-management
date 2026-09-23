@@ -5,15 +5,24 @@ namespace Modules\Examination\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Modules\Examination\Models\Exam;
 use Modules\Examination\Models\ExamType;
 use Modules\Examination\Models\QuestionCategory;
 use Modules\Examination\Models\Question;
 use Modules\Examination\Models\ExamResult;
 use Modules\Examination\Models\ExamAnswer;
+use Modules\Examination\Models\ExamAttempt;
 
 class ExamController extends Controller
 {
+    protected $settingsPath;
+
+    public function __construct()
+    {
+        $this->settingsPath = storage_path('exam_settings.json');
+    }
+
     public function index()
     {
         $exams = Exam::with('type')->orderByDesc('created_at')->paginate(15);
@@ -278,7 +287,7 @@ class ExamController extends Controller
 
     public function examHistory()
     {
-        $attempts = \Modules\Examination\Models\ExamAttempt::with('exam')
+        $attempts = ExamAttempt::with('exam')
             ->where('student_id', auth()->id())
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -337,7 +346,7 @@ class ExamController extends Controller
             'published' => Exam::where('status', 'published')->count(),
             'completed' => Exam::where('status', 'completed')->count(),
             'ongoing' => Exam::where('status', 'ongoing')->count(),
-            'total_attempts' => \Modules\Examination\Models\ExamAttempt::count(),
+            'total_attempts' => ExamAttempt::count(),
             'average_score' => ExamResult::avg('percentage'),
             'overall_pass_rate' => ExamResult::count() > 0
                 ? round((ExamResult::where('result_status', 'pass')->count() / ExamResult::count()) * 100, 1)
@@ -359,7 +368,7 @@ class ExamController extends Controller
             'total_types' => ExamType::count(),
             'active_exams' => Exam::where('status', 'ongoing')->count(),
             'total_questions' => Question::count(),
-            'total_attempts' => \Modules\Examination\Models\ExamAttempt::count(),
+            'total_attempts' => ExamAttempt::count(),
             'published_exams' => Exam::where('status', 'published')->count(),
             'completed_exams' => Exam::where('status', 'completed')->count(),
         ];
@@ -369,22 +378,99 @@ class ExamController extends Controller
 
     public function settings()
     {
-        return view('examination::admin.settings');
+        $settings = $this->loadSettings();
+
+        return view('examination::admin.settings', compact('settings'));
     }
 
     public function updateSettings(Request $request)
     {
-        return redirect()->back()->with('success', 'Settings updated.');
+        $validated = $request->validate([
+            'passing_mark_percentage' => 'required|numeric|min:0|max:100',
+            'max_attempts_default' => 'required|integer|min:1',
+            'allow_retake_default' => 'boolean',
+            'show_results_immediately' => 'boolean',
+            'allow_review' => 'boolean',
+            'shuffle_questions_default' => 'boolean',
+            'shuffle_options_default' => 'boolean',
+            'enable_proctoring_default' => 'boolean',
+            'exam_duration_default' => 'nullable|integer|min:1|max:480',
+        ]);
+
+        $settings = $this->loadSettings();
+        $settings = array_merge($settings, [
+            'passing_mark_percentage' => $validated['passing_mark_percentage'] ?? 50,
+            'max_attempts_default' => $validated['max_attempts_default'] ?? 1,
+            'allow_retake_default' => $request->boolean('allow_retake_default', false),
+            'show_results_immediately' => $request->boolean('show_results_immediately', false),
+            'allow_review' => $request->boolean('allow_review', true),
+            'shuffle_questions_default' => $request->boolean('shuffle_questions_default', false),
+            'shuffle_options_default' => $request->boolean('shuffle_options_default', false),
+            'enable_proctoring_default' => $request->boolean('enable_proctoring_default', false),
+            'exam_duration_default' => $validated['exam_duration_default'] ?? 60,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+
+        $this->saveSettings($settings);
+
+        return redirect()->route('examination.admin.settings')
+            ->with('success', 'Settings updated successfully.');
     }
 
     public function reports()
     {
-        return view('examination::admin.reports');
+        $stats = [
+            'total_exams' => Exam::count(),
+            'total_attempts' => ExamAttempt::count(),
+            'total_results' => ExamResult::count(),
+            'average_score' => round(ExamResult::avg('percentage') ?? 0, 2),
+            'pass_rate' => ExamResult::count() > 0
+                ? round((ExamResult::where('result_status', 'pass')->count() / ExamResult::count()) * 100, 1)
+                : 0,
+            'exams_by_status' => Exam::select('status', DB::raw('count(*) as count'))
+                ->groupBy('status')
+                ->pluck('count', 'status'),
+            'attempts_by_month' => ExamAttempt::select(
+                    DB::raw('MONTH(created_at) as month'),
+                    DB::raw('YEAR(created_at) as year'),
+                    DB::raw('count(*) as count')
+                )
+                ->groupBy('year', 'month')
+                ->orderBy('year')
+                ->orderBy('month')
+                ->get(),
+            'top_exams' => Exam::withCount('results')
+                ->withAvg('results', 'percentage')
+                ->orderByDesc('results_count')
+                ->limit(10)
+                ->get(),
+        ];
+
+        return view('examination::admin.reports', compact('stats'));
     }
 
     public function backup()
     {
-        return view('examination::admin.backup');
+        $data = [
+            'exported_at' => now()->toIso8601String(),
+            'exams' => Exam::all(),
+            'exam_types' => ExamType::all(),
+            'question_categories' => QuestionCategory::all(),
+            'questions' => Question::all(),
+            'exam_attempts' => ExamAttempt::all(),
+            'exam_answers' => ExamAnswer::all(),
+            'exam_results' => ExamResult::all(),
+        ];
+
+        $filename = 'exam-backup-' . now()->format('Y-m-d-His') . '.json';
+
+        return response()->streamDownload(
+            function () use ($data) {
+                echo json_encode($data, JSON_PRETTY_PRINT);
+            },
+            $filename,
+            ['Content-Type' => 'application/json']
+        );
     }
 
     protected function recalculateAttemptResult($attempt)
@@ -430,5 +516,34 @@ class ExamController extends Controller
         if ($percentage >= 40) return 'C';
         if ($percentage >= 30) return 'D';
         return 'F';
+    }
+
+    protected function loadSettings(): array
+    {
+        $defaults = [
+            'passing_mark_percentage' => 50,
+            'max_attempts_default' => 1,
+            'allow_retake_default' => false,
+            'show_results_immediately' => false,
+            'allow_review' => true,
+            'shuffle_questions_default' => false,
+            'shuffle_options_default' => false,
+            'enable_proctoring_default' => false,
+            'exam_duration_default' => 60,
+        ];
+
+        if (!File::exists($this->settingsPath)) {
+            return $defaults;
+        }
+
+        $content = File::get($this->settingsPath);
+        $stored = json_decode($content, true);
+
+        return is_array($stored) ? array_merge($defaults, $stored) : $defaults;
+    }
+
+    protected function saveSettings(array $settings): void
+    {
+        File::put($this->settingsPath, json_encode($settings, JSON_PRETTY_PRINT));
     }
 }

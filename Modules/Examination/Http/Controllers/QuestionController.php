@@ -58,7 +58,7 @@ class QuestionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'question_text' => 'required|string',
-            'type' => 'required|string|in:multiple_choice,true_false,short_answer,essay,fill_blank,matching,code',
+            'type' => 'required|string|in:mcq,true_false,short_answer,essay,fill_blank,matching,coding',
             'category_id' => 'nullable|exists:question_categories,id',
             'options' => 'nullable|array|min:2',
             'options.*' => 'required|string|max:1000',
@@ -123,7 +123,7 @@ class QuestionController extends Controller
 
         $validator = Validator::make($request->all(), [
             'question_text' => 'required|string',
-            'type' => 'required|string|in:multiple_choice,true_false,short_answer,essay,fill_blank,matching,code',
+            'type' => 'required|string|in:mcq,true_false,short_answer,essay,fill_blank,matching,coding',
             'category_id' => 'nullable|exists:question_categories,id',
             'options' => 'nullable|array|min:2',
             'options.*' => 'required|string|max:1000',
@@ -204,7 +204,7 @@ class QuestionController extends Controller
             foreach ($json as $item) {
                 $validator = Validator::make($item, [
                     'question_text' => 'required|string',
-                    'type' => 'required|string|in:multiple_choice,true_false,short_answer,essay,fill_blank,matching,code',
+                    'type' => 'required|string|in:mcq,true_false,short_answer,essay,fill_blank,matching,coding',
                     'options' => 'nullable|array',
                     'correct_answers' => 'required|array',
                     'marks' => 'required|numeric|min:0.5',
