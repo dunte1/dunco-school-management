@@ -9,6 +9,7 @@ use Modules\Examination\Http\Controllers\ExamScheduleController;
 use Modules\Examination\Http\Controllers\ProctoringController;
 use Modules\Examination\Http\Controllers\ResultController;
 use Modules\Examination\Http\Controllers\ExamTypeController;
+use Modules\Examination\Http\Controllers\ExamPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -145,6 +146,20 @@ Route::prefix('examination')->name('examination.')->middleware(['auth', 'verifie
     // Add this route for online exam creation
     Route::get('exams/online/create', [ExamController::class, 'createOnline'])->name('online-exams.create');
     Route::resource('exam-types', ExamTypeController::class)->names('exam-types');
+
+    // Exam Payment Routes
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/', [ExamPaymentController::class, 'index'])->name('index');
+        Route::get('/exam/{exam}/pay', [ExamPaymentController::class, 'selectMethod'])->name('select-method');
+        Route::post('/exam/{exam}/process', [ExamPaymentController::class, 'processPayment'])->name('process');
+        Route::post('/mpesa/{payment}/confirm', [ExamPaymentController::class, 'confirmMpesa'])->name('confirm-mpesa');
+        Route::post('/bank/{payment}/confirm', [ExamPaymentController::class, 'confirmBankTransfer'])->name('confirm-bank');
+        Route::post('/card/{payment}/confirm', [ExamPaymentController::class, 'confirmCard'])->name('confirm-card');
+        Route::post('/cash/{payment}/confirm', [ExamPaymentController::class, 'confirmCash'])->name('confirm-cash');
+        Route::get('/{payment}', [ExamPaymentController::class, 'show'])->name('show');
+        Route::get('/{payment}/receipt', [ExamPaymentController::class, 'receipt'])->name('receipt');
+        Route::post('/{payment}/verify', [ExamPaymentController::class, 'verify'])->name('verify')->middleware('role:admin');
+    });
 });
 
 // API Routes for real-time features

@@ -9,6 +9,7 @@ use Modules\Examination\Models\Exam;
 use Modules\Examination\Models\ExamAttempt;
 use Modules\Examination\Models\ExamAnswer;
 use Modules\Examination\Models\ExamResult;
+use Modules\Examination\Models\ExamPayment;
 use App\Models\User;
 
 class StudentExamController extends Controller
@@ -82,6 +83,19 @@ class StudentExamController extends Controller
             if ($totalAttempts >= $exam->max_attempts) {
                 return redirect()->route('examination.student-exams.show', $examId)
                     ->with('error', 'You have reached the maximum number of attempts for this exam.');
+            }
+        }
+
+        // Check payment requirement
+        if ($exam->fee_required && $exam->fee_amount) {
+            $isPaid = ExamPayment::where('exam_id', $examId)
+                ->where('student_id', $student->id)
+                ->where('status', 'completed')
+                ->exists();
+
+            if (!$isPaid) {
+                return redirect()->route('examination.payments.select-method', $exam)
+                    ->with('error', 'Payment is required before starting this exam.');
             }
         }
 
