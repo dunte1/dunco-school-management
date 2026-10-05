@@ -117,12 +117,18 @@ return Application::configure(basePath: dirname(__DIR__))
         Laravel\Sanctum\SanctumServiceProvider::class,
         Spatie\Permission\PermissionServiceProvider::class,
 
-        // NOTE: Module package and module providers disabled for now to avoid
-        // cache binding and boot conflicts on Laravel 12.
-        // Nwidart\Modules\LaravelModulesServiceProvider::class,
-        // Modules\Core\Providers\CoreServiceProvider::class,
-        // Modules\Academic\Providers\AcademicServiceProvider::class,
-        // Modules\Examination\Providers\ExaminationServiceProvider::class,
-        // Modules\ChatBot\Providers\ChatBotServiceProvider::class,
+        // Module system (nwidart) + core module providers.
+        // Enable after Sanctum/Spatie are booted so module auth routes work.
+        Nwidart\Modules\LaravelModulesServiceProvider::class,
+        Modules\Core\Providers\CoreServiceProvider::class,
+        Modules\Academic\Providers\AcademicServiceProvider::class,
+        Modules\Examination\Providers\ExaminationServiceProvider::class,
+        Modules\Finance\Providers\FinanceServiceProvider::class,
+        Modules\Hostel\Providers\HostelServiceProvider::class,
+        Modules\Library\Providers\LibraryServiceProvider::class,
+        Modules\Transport\Providers\TransportServiceProvider::class,
+        Modules\Communication\Providers\CommunicationServiceProvider::class,
+        Modules\Settings\Providers\SettingsServiceProvider::class,
+        Modules\ChatBot\Providers\ChatBotServiceProvider::class,
     ])
     ->create();
