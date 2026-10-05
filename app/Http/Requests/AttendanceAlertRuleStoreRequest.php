@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class AttendanceAlertRuleStoreRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'school_id' => ['nullable', 'integer'],
+            'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:absent_consecutive,late_count'],
+            'threshold' => ['required', 'integer', 'min:1'],
+            'window_days' => ['required', 'integer', 'min:1'],
+            'channel' => ['required', 'in:email,sms,both'],
+            'template_name' => ['required', 'string', 'max:255'],
+            'is_active' => ['sometimes', 'boolean'],
+        ];
+    }
+}
+
+

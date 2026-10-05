@@ -1,0 +1,10 @@
+{
+  "chatbot": {
+    "welcome_message": "Hello! I'm your AI assistant for Dunco School Management System. I can help you with academic queries, administrative tasks, and general school information. How can I assist you today?",
+    "input_placeholder": "Type your message...",
+    "send_button": "Send",
+    "close_button": "Close",
+    "loading": "Thinking...",
+    "error": "Sorry, I encountered an error. Please try again."
+  }
+}

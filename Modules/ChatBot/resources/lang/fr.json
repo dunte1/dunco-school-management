@@ -1,0 +1,10 @@
+{
+  "chatbot": {
+    "welcome_message": "Bonjour! Je suis votre assistant IA pour le système de gestion scolaire Dunco. Je peux vous aider avec des questions académiques, des tâches administratives et des informations générales sur l'école. Comment puis-je vous assister aujourd'hui?",
+    "input_placeholder": "Tapez votre message...",
+    "send_button": "Envoyer",
+    "close_button": "Fermer",
+    "loading": "Réflexion...",
+    "error": "Désolé, j'ai rencontré une erreur. Veuillez réessayer."
+  }
+}

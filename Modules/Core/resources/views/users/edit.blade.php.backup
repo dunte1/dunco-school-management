@@ -1,0 +1,934 @@
+@php($errors = $errors ?? app('view')->shared('errors', new \Illuminate\Support\ViewErrorBag))
+
+@extends('layouts.app')
+
+@section('title', 'Edit User')
+
+@section('content')
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1 text-dark fw-bold">
+                        <i class="fas fa-user-edit me-2 text-primary"></i>Edit User
+                    </h1>
+                    <p class="text-muted mb-0">Update user information and manage permissions</p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-info me-3">
+                        <i class="fas fa-clock me-1"></i>
+                        Last updated: {{ $user->updated_at ? $user->updated_at->diffForHumans() : 'Never' }}
+                    </span>
+                    <span class="badge bg-{{ $user->is_active ? 'success' : 'danger' }}">
+                        <i class="fas fa-{{ $user->is_active ? 'check' : 'times' }} me-1"></i>
+                        {{ $user->is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="{{ route('core.users.update', $user->id) }}" method="POST" enctype="multipart/form-data" id="editUserForm">
+        @csrf
+        @method('PUT')
+        
+        <div class="row g-4">
+            <!-- User Profile Sidebar -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <div class="position-relative d-inline-block">
+                                <div id="profilePreview" class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                     style="width: 120px; height: 120px; margin: 0 auto; border: 3px solid #e9ecef;">
+                                    @if($user->avatar)
+                                        <img src="{{ asset('storage/' . $user->avatar) }}" alt="Profile" 
+                                             class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                    @else
+                                        <i class="fas fa-user fa-3x text-muted"></i>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0" 
+                                        onclick="document.getElementById('avatar').click()">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-1">{{ $user->name }}</h5>
+                        <p class="text-muted mb-2">{{ $user->email }}</p>
+                        
+                        @if($user->primaryRole)
+                            <span class="badge bg-primary mb-2">{{ $user->primaryRole->display_name ?? $user->primaryRole->name }}</span>
+                        @endif
+                        
+                        <div class="mt-3">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="border-end">
+                                        <h6 class="mb-0">{{ $user->roles->count() }}</h6>
+                                        <small class="text-muted">Roles</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="mb-0">{{ $user->created_at ? $user->created_at->format('M Y') : 'N/A' }}</h6>
+                                    <small class="text-muted">Joined</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <input type="file" class="d-none" id="avatar" name="avatar" accept="image/*">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="document.getElementById('avatar').click()">
+                                <i class="fas fa-upload me-1"></i>Change Photo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="card shadow-sm border-0 mt-3">
+                    <div class="card-header bg-light border-0 py-3">
+                        <h6 class="card-title mb-0 fw-semibold text-dark">
+                            <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                        </h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-warning btn-sm" id="resetPassword">
+                                <i class="fas fa-key me-1"></i>Reset Password
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" id="viewActivity">
+                                <i class="fas fa-history me-1"></i>Activity Log
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="deleteUser">
+                                <i class="fas fa-trash me-1"></i>Delete User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <!-- Tab Navigation -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-0">
+                        <ul class="nav nav-tabs nav-fill" id="userEditTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab">
+                                    <i class="fas fa-user me-2"></i>Personal Info
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="academic-tab" data-bs-toggle="tab" data-bs-target="#academic" type="button" role="tab">
+                                    <i class="fas fa-graduation-cap me-2"></i>Academic Info
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">
+                                    <i class="fas fa-address-book me-2"></i>Contact & Address
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button" role="tab">
+                                    <i class="fas fa-users-cog me-2"></i>Roles & Permissions
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
+                                    <i class="fas fa-file-alt me-2"></i>Documents
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="userEditTabsContent">
+                    <!-- Personal Information Tab -->
+                    <div class="tab-pane fade show active" id="personal" role="tabpanel">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-light border-0 py-3">
+                                <h5 class="card-title mb-0 fw-semibold text-dark">
+                                    <i class="fas fa-user-circle me-2 text-primary"></i>Basic Information
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="first_name" class="form-label fw-semibold text-dark">First Name *</label>
+                                        <input type="text" class="form-control @error('first_name') is-invalid @enderror" 
+                                               id="first_name" name="first_name" value="{{ old('first_name', $user->first_name ?? explode(' ', $user->name)[0] ?? '') }}" required>
+                                        @error('first_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="middle_name" class="form-label fw-semibold text-dark">Middle Name</label>
+                                        <input type="text" class="form-control @error('middle_name') is-invalid @enderror" 
+                                               id="middle_name" name="middle_name" value="{{ old('middle_name', $user->middle_name ?? '') }}">
+                                        @error('middle_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="last_name" class="form-label fw-semibold text-dark">Last Name *</label>
+                                        <input type="text" class="form-control @error('last_name') is-invalid @enderror" 
+                                               id="last_name" name="last_name" value="{{ old('last_name', $user->last_name ?? explode(' ', $user->name)[1] ?? '') }}" required>
+                                        @error('last_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="username" class="form-label fw-semibold text-dark">Username/ID *</label>
+                                        <input type="text" class="form-control @error('username') is-invalid @enderror" 
+                                               id="username" name="username" value="{{ old('username', $user->username) }}" required>
+                                        @error('username')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label fw-semibold text-dark">Email Address *</label>
+                                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                               id="email" name="email" value="{{ old('email', $user->email) }}" required>
+                                        @error('email')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="phone" class="form-label fw-semibold text-dark">Phone Number *</label>
+                                        <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                                               id="phone" name="phone" value="{{ old('phone', $user->phone) }}" required>
+                                        @error('phone')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="gender" class="form-label fw-semibold text-dark">Gender *</label>
+                                        <select class="form-control @error('gender') is-invalid @enderror" 
+                                                id="gender" name="gender" required>
+                                            <option value="">Select Gender</option>
+                                            <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                            <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                                            <option value="other" {{ old('gender', $user->gender) == 'other' ? 'selected' : '' }}>Other</option>
+                                        </select>
+                                        @error('gender')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="date_of_birth" class="form-label fw-semibold text-dark">Date of Birth *</label>
+                                        <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" 
+                                               id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth', $user->date_of_birth) }}" required>
+                                        @error('date_of_birth')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="nationality" class="form-label fw-semibold text-dark">Nationality</label>
+                                        <input type="text" class="form-control @error('nationality') is-invalid @enderror" 
+                                               id="nationality" name="nationality" value="{{ old('nationality', $user->nationality) }}">
+                                        @error('nationality')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact & Address Tab -->
+                    <div class="tab-pane fade" id="contact" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-light border-0 py-3">
+                                        <h5 class="card-title mb-0 fw-semibold text-dark">
+                                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>Address Information
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label for="address_line1" class="form-label fw-semibold text-dark">Address Line 1 *</label>
+                                                <input type="text" class="form-control @error('address_line1') is-invalid @enderror" 
+                                                       id="address_line1" name="address_line1" value="{{ old('address_line1', $user->address_line1) }}" required>
+                                                @error('address_line1')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label for="address_line2" class="form-label fw-semibold text-dark">Address Line 2</label>
+                                                <input type="text" class="form-control @error('address_line2') is-invalid @enderror" 
+                                                       id="address_line2" name="address_line2" value="{{ old('address_line2', $user->address_line2) }}">
+                                                @error('address_line2')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="city" class="form-label fw-semibold text-dark">City *</label>
+                                                <input type="text" class="form-control @error('city') is-invalid @enderror" 
+                                                       id="city" name="city" value="{{ old('city', $user->city) }}" required>
+                                                @error('city')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="state" class="form-label fw-semibold text-dark">State/Province *</label>
+                                                <input type="text" class="form-control @error('state') is-invalid @enderror" 
+                                                       id="state" name="state" value="{{ old('state', $user->state) }}" required>
+                                                @error('state')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="postal_code" class="form-label fw-semibold text-dark">Postal Code *</label>
+                                                <input type="text" class="form-control @error('postal_code') is-invalid @enderror" 
+                                                       id="postal_code" name="postal_code" value="{{ old('postal_code', $user->postal_code) }}" required>
+                                                @error('postal_code')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="country" class="form-label fw-semibold text-dark">Country *</label>
+                                                <select class="form-control @error('country') is-invalid @enderror" 
+                                                        id="country" name="country" required>
+                                                    <option value="">Select Country</option>
+                                                    <option value="US" {{ old('country', $user->country) == 'US' ? 'selected' : '' }}>United States</option>
+                                                    <option value="CA" {{ old('country', $user->country) == 'CA' ? 'selected' : '' }}>Canada</option>
+                                                    <option value="UK" {{ old('country', $user->country) == 'UK' ? 'selected' : '' }}>United Kingdom</option>
+                                                    <option value="AU" {{ old('country', $user->country) == 'AU' ? 'selected' : '' }}>Australia</option>
+                                                    <option value="IN" {{ old('country', $user->country) == 'IN' ? 'selected' : '' }}>India</option>
+                                                    <option value="JP" {{ old('country', $user->country) == 'JP' ? 'selected' : '' }}>Japan</option>
+                                                    <!-- Add more countries as needed -->
+                                                </select>
+                                                @error('country')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-light border-0 py-3">
+                                        <h5 class="card-title mb-0 fw-semibold text-dark">
+                                            <i class="fas fa-phone me-2 text-primary"></i>Emergency Contact
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="mb-3">
+                                            <label for="emergency_contact_name" class="form-label fw-semibold text-dark">Contact Name *</label>
+                                            <input type="text" class="form-control @error('emergency_contact_name') is-invalid @enderror" 
+                                                   id="emergency_contact_name" name="emergency_contact_name" value="{{ old('emergency_contact_name', $user->emergency_contact_name) }}" required>
+                                            @error('emergency_contact_name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="emergency_contact_phone" class="form-label fw-semibold text-dark">Contact Phone *</label>
+                                            <input type="tel" class="form-control @error('emergency_contact_phone') is-invalid @enderror" 
+                                                   id="emergency_contact_phone" name="emergency_contact_phone" value="{{ old('emergency_contact_phone', $user->emergency_contact_phone) }}" required>
+                                            @error('emergency_contact_phone')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="emergency_contact_relationship" class="form-label fw-semibold text-dark">Relationship</label>
+                                            <select class="form-control @error('emergency_contact_relationship') is-invalid @enderror" 
+                                                    id="emergency_contact_relationship" name="emergency_contact_relationship">
+                                                <option value="">Select Relationship</option>
+                                                <option value="parent" {{ old('emergency_contact_relationship', $user->emergency_contact_relationship) == 'parent' ? 'selected' : '' }}>Parent</option>
+                                                <option value="guardian" {{ old('emergency_contact_relationship', $user->emergency_contact_relationship) == 'guardian' ? 'selected' : '' }}>Guardian</option>
+                                                <option value="spouse" {{ old('emergency_contact_relationship', $user->emergency_contact_relationship) == 'spouse' ? 'selected' : '' }}>Spouse</option>
+                                                <option value="sibling" {{ old('emergency_contact_relationship', $user->emergency_contact_relationship) == 'sibling' ? 'selected' : '' }}>Sibling</option>
+                                                <option value="other" {{ old('emergency_contact_relationship', $user->emergency_contact_relationship) == 'other' ? 'selected' : '' }}>Other</option>
+                                            </select>
+                                            @error('emergency_contact_relationship')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div></div></div></div></div>
+
+                    <!-- Academic Information Tab -->
+                    <div class="tab-pane fade" id="academic" role="tabpanel">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-light border-0 py-3">
+                                <h5 class="card-title mb-0 fw-semibold text-dark">
+                                    <i class="fas fa-graduation-cap me-2 text-primary"></i>Academic Details
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="school_id" class="form-label fw-semibold text-dark">School/Branch *</label>
+                                        <select class="form-control @error('school_id') is-invalid @enderror" 
+                                                id="school_id" name="school_id" required>
+                                            <option value="">Select School</option>
+                                            @foreach($schools as $school)
+                                                <option value="{{ $school->id }}" {{ old('school_id', $user->school_id) == $school->id ? 'selected' : '' }}>
+                                                    {{ $school->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('school_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="department_id" class="form-label fw-semibold text-dark">Department/Faculty</label>
+                                        <select class="form-control @error('department_id') is-invalid @enderror" 
+                                                id="department_id" name="department_id">
+                                            <option value="">Select Department</option>
+                                            <!-- Departments will be loaded dynamically based on school -->
+                                        </select>
+                                        @error('department_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="class_id" class="form-label fw-semibold text-dark">Class</label>
+                                        <select class="form-control @error('class_id') is-invalid @enderror" 
+                                                id="class_id" name="class_id">
+                                            <option value="">Select Class</option>
+                                            <!-- Classes will be loaded dynamically -->
+                                        </select>
+                                        @error('class_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="section_id" class="form-label fw-semibold text-dark">Section</label>
+                                        <select class="form-control @error('section_id') is-invalid @enderror" 
+                                                id="section_id" name="section_id">
+                                            <option value="">Select Section</option>
+                                            <!-- Sections will be loaded dynamically -->
+                                        </select>
+                                        @error('section_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="designation" class="form-label fw-semibold text-dark">Designation</label>
+                                        <input type="text" class="form-control @error('designation') is-invalid @enderror" 
+                                               id="designation" name="designation" value="{{ old('designation', $user->designation) }}" 
+                                               placeholder="e.g. Senior Teacher, Principal">
+                                        @error('designation')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="joining_date" class="form-label fw-semibold text-dark">Joining Date</label>
+                                        <input type="date" class="form-control @error('joining_date') is-invalid @enderror" 
+                                               id="joining_date" name="joining_date" value="{{ old('joining_date', $user->joining_date) }}">
+                                        @error('joining_date')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="enrollment_number" class="form-label fw-semibold text-dark">Enrollment/Staff ID</label>
+                                        <input type="text" class="form-control @error('enrollment_number') is-invalid @enderror" 
+                                               id="enrollment_number" name="enrollment_number" value="{{ old('enrollment_number', $user->enrollment_number) }}">
+                                        @error('enrollment_number')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="academic_year" class="form-label fw-semibold text-dark">Academic Year</label>
+                                        <select class="form-control @error('academic_year') is-invalid @enderror" 
+                                                id="academic_year" name="academic_year">
+                                            <option value="">Select Academic Year</option>
+                                            @for($year = date('Y'); $year >= date('Y') - 5; $year--)
+                                                <option value="{{ $year }}-{{ $year + 1 }}" {{ old('academic_year', $user->academic_year) == $year . '-' . ($year + 1) ? 'selected' : '' }}>
+                                                    {{ $year }}-{{ $year + 1 }}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                        @error('academic_year')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Roles & Permissions Tab -->
+                    <div class="tab-pane fade" id="roles" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-8">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-light border-0 py-3">
+                                        <h5 class="card-title mb-0 fw-semibold text-dark">
+                                            <i class="fas fa-users-cog me-2 text-primary"></i>Role Assignment
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="primary_role_id" class="form-label fw-semibold text-dark">Primary Role *</label>
+                                                <select class="form-control @error('primary_role_id') is-invalid @enderror" 
+                                                        id="primary_role_id" name="primary_role_id" required>
+                                                    <option value="">Select Primary Role</option>
+                                                    @foreach($roles as $role)
+                                                        <option value="{{ $role->id }}" {{ old('primary_role_id', $user->primary_role_id) == $role->id ? 'selected' : '' }}>
+                                                            {{ $role->display_name ?? $role->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </div>
+                                                <div class="form-text">Select additional roles if the user needs multiple permissions</div></div></div></div></div>
+
+                            <div class="col-lg-4">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-light border-0 py-3">
+                                        <h5 class="card-title mb-0 fw-semibold text-dark">
+                                            <i class="fas fa-shield-alt me-2 text-primary"></i>Authentication Setup
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label fw-semibold text-dark">New Password</label>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                                       id="password" name="password">
+                                                <button class="btn btn-outline-secondary" type="button" id="generatePassword">
+                                                    <i class="fas fa-dice"></i>
+                                                </button>
+                                            </div>
+                                            @error('password')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                            <div class="form-text">Click the dice icon to generate a secure password</div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="password_confirmation" class="form-label fw-semibold text-dark">Confirm New Password</label>
+                                            <input type="password" class="form-control" 
+                                                   id="password_confirmation" name="password_confirmation">
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="send_credentials" name="send_credentials" value="1">
+                                            <label class="form-check-label" for="send_credentials">
+                                                Send login credentials via email
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="force_password_reset" name="force_password_reset" value="1">
+                                            <label class="form-check-label" for="force_password_reset">
+                                                Force password reset on next login
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="is_active">
+                                                Active User
+                                            </label>
+                                        </div></div></div></div></div>
+
+                    <!-- Documents Tab -->
+                    <div class="tab-pane fade" id="documents" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-header bg-light border-0 py-3">
+                                        <h5 class="card-title mb-0 fw-semibold text-dark">
+                                            <i class="fas fa-file-alt me-2 text-primary"></i>Document Management
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="id_card" class="form-label fw-semibold text-dark">ID Card</label>
+                                                <input type="file" class="form-control @error('id_card') is-invalid @enderror" 
+                                                       id="id_card" name="documents[id_card]" accept=".pdf,.jpg,.jpeg,.png">
+                                                @error('id_card')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">Upload ID card or student/staff card</div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="birth_certificate" class="form-label fw-semibold text-dark">Birth Certificate</label>
+                                                <input type="file" class="form-control @error('birth_certificate') is-invalid @enderror" 
+                                                       id="birth_certificate" name="documents[birth_certificate]" accept=".pdf,.jpg,.jpeg,.png">
+                                                @error('birth_certificate')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">Upload birth certificate (for students)</div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="academic_certificates" class="form-label fw-semibold text-dark">Academic Certificates</label>
+                                                <input type="file" class="form-control @error('academic_certificates') is-invalid @enderror" 
+                                                       id="academic_certificates" name="documents[academic_certificates]" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                                @error('academic_certificates')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">Upload academic certificates and transcripts</div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="medical_certificate" class="form-label fw-semibold text-dark">Medical Certificate</label>
+                                                <input type="file" class="form-control @error('medical_certificate') is-invalid @enderror" 
+                                                       id="medical_certificate" name="documents[medical_certificate]" accept=".pdf,.jpg,.jpeg,.png">
+                                                @error('medical_certificate')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">Upload medical fitness certificate</div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="parent_consent" class="form-label fw-semibold text-dark">Parent Consent Form</label>
+                                                <input type="file" class="form-control @error('parent_consent') is-invalid @enderror" 
+                                                       id="parent_consent" name="documents[parent_consent]" accept=".pdf,.jpg,.jpeg,.png">
+                                                @error('parent_consent')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">Upload parent consent form (for minors)</div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label for="other_documents" class="form-label fw-semibold text-dark">Other Documents</label>
+                                                <input type="file" class="form-control @error('other_documents') is-invalid @enderror" 
+                                                       id="other_documents" name="documents[other_documents]" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple>
+                                                @error('other_documents')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">Upload any other relevant documents</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                <strong>Document Upload Guidelines:</strong>
+                                                <ul class="mb-0 mt-2">
+                                                    <li>Maximum file size: 5MB per document</li>
+                                                    <li>Supported formats: PDF, JPG, JPEG, PNG, DOC, DOCX</li>
+                                                    <li>All documents will be securely stored and encrypted</li>
+                                                    <li>Required documents are marked with an asterisk (*)</li>
+                                                </ul>
+                                            </div></div></div></div></div></div></div></div>
+        </div>
+        <!-- Action Buttons -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{{ route('core.users.index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Users
+                                </a>
+                                <button type="button" class="btn btn-outline-warning ms-2" id="resetPasswordBtn">
+                                    <i class="fas fa-key me-2"></i>Reset Password
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger me-2" id="deleteUserBtn">
+                                    <i class="fas fa-trash me-2"></i>Delete User
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update User
+                                </button>
+                            </div></div></div></div></div>
+    </form>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Delete User
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ $user->name }}</strong>?</p>
+                <p class="text-muted">This action cannot be undone. All user data will be permanently removed.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('core.users.destroy', $user->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key text-warning me-2"></i>Reset Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Reset password for <strong>{{ $user->name }}</strong>?</p>
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="new_password" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="generateNewPassword">
+                            <i class="fas fa-dice"></i>Generate
+                        </button>
+                    </div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="send_password_email">
+                    <label class="form-check-label" for="send_password_email">
+                        Send new password via email
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmResetPassword">Reset Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Profile picture preview
+    document.getElementById('avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('profilePreview');
+                preview.innerHTML = `<img src="${e.target.result}" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Password generation
+    function generatePassword() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    }
+
+    // Generate password button
+    document.getElementById('generatePassword').addEventListener('click', function() {
+        const password = generatePassword();
+        document.getElementById('password').value = password;
+        document.getElementById('password_confirmation').value = password;
+    });
+
+    // Generate password in modal
+    document.getElementById('generateNewPassword').addEventListener('click', function() {
+        const password = generatePassword();
+        document.getElementById('new_password').value = password;
+    });
+
+    // Delete user modal
+    document.getElementById('deleteUserBtn').addEventListener('click', function() {
+        const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+        modal.show();
+    });
+
+    // Reset password modal
+    document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+        const password = generatePassword();
+        document.getElementById('new_password').value = password;
+        const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        modal.show();
+    });
+
+    // Confirm reset password
+    document.getElementById('confirmResetPassword').addEventListener('click', function() {
+        const newPassword = document.getElementById('new_password').value;
+        const sendEmail = document.getElementById('send_password_email').checked;
+        
+        // Here you would typically make an AJAX call to reset the password
+        // For now, we'll just close the modal and show a success message
+        const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+        modal.hide();
+        
+        // Show success message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+        alert.style.zIndex = '1060';
+        alert.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            Password has been reset successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    });
+
+    // Form validation
+    document.getElementById('editUserForm').addEventListener('submit', function(e) {
+        const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+        const invalidFields = Array.from(requiredFields).filter(field => !field.value.trim());
+        
+        if (invalidFields.length > 0) {
+            e.preventDefault();
+            invalidFields[0].focus();
+            invalidFields[0].classList.add('is-invalid');
+            
+            // Show error message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+            alert.style.zIndex = '1060';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Please complete all required fields before submitting the form.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        } else {
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+                submitBtn.disabled = true;
+            }
+        }
+    });
+
+    // Tab validation
+    const tabs = document.querySelectorAll('#userEditTabs button[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const target = this.getAttribute('data-bs-target');
+            const targetPane = document.querySelector(target);
+            
+            // Validate current tab before switching
+            const currentActiveTab = document.querySelector('.tab-pane.active');
+            if (currentActiveTab) {
+                const requiredFields = currentActiveTab.querySelectorAll('input[required], select[required], textarea[required]');
+                const invalidFields = Array.from(requiredFields).filter(field => !field.value.trim());
+                
+                if (invalidFields.length > 0) {
+                    event.preventDefault();
+                    invalidFields[0].focus();
+                    invalidFields[0].classList.add('is-invalid');
+                    
+                    // Show validation message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-warning alert-dismissible fade show';
+                    alert.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Please complete all required fields in the current tab before proceeding.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    currentActiveTab.querySelector('.card-body').prepend(alert);
+                    return;
+                }
+            }
+        });
+    });
+    
+
+    // Auto-save functionality
+    let autoSaveTimer;
+    const form = document.getElementById('editUserForm');
+    
+    form.addEventListener('input', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            // Save form data to localStorage
+            const formData = new FormData(form);
+            const formObject = {};
+            formData.forEach((value, key) => {
+                formObject[key] = value;
+            });
+            localStorage.setItem('userEditDraft', JSON.stringify(formObject));
+            
+            // Show auto-save indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'position-fixed bottom-0 end-0 p-3';
+            indicator.style.zIndex = '1050';
+            indicator.innerHTML = `
+                <div class="toast show" role="alert">
+                    <div class="toast-body">
+                        <i class="fas fa-save me-2"></i>Auto-saved
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.remove();
+            }, 2000);
+        }, 2000);
+    });
+
+    // Load auto-saved data on page load
+    const savedData = localStorage.getItem('userEditDraft');
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        Object.keys(data).forEach(key => {
+            const field = document.querySelector(`[name="${key}"]`);
+            if (field && !field.value) {
+                field.value = data[key];
+            }
+        });
+    }
+});
+</script>
+@endsection 
