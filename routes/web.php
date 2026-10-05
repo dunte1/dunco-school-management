@@ -59,6 +59,16 @@ Route::prefix('admin/config')->middleware(['web', 'auth', 'admin'])->group(funct
 // Audit logs
 Route::get('/audit-logs', [\App\Http\Controllers\AuditLogController::class, 'index'])->middleware(['auth', 'admin'])->name('audit_logs.index');
 
+// Admin backups (create / list / download / restore / delete)
+Route::prefix('admin/backups')->name('admin.backups.')->middleware(['web', 'auth', 'admin'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\BackupController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\BackupController::class, 'store'])->name('store');
+    Route::get('/download', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('download');
+    Route::post('/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore'])->name('restore');
+    Route::delete('/', [\App\Http\Controllers\Admin\BackupController::class, 'destroy'])->name('destroy');
+});
+
 // Debug route for permission checking - admin only
 Route::get('/debug/permissions', [App\Http\Controllers\DebugController::class, 'permissions'])
     ->middleware(['auth', 'admin'])

@@ -115,6 +115,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Packages disabled from auto-discovery in composer.json (dont-discover)
         Laravel\Sanctum\SanctumServiceProvider::class,
+        Spatie\Permission\PermissionServiceProvider::class,
 
         // NOTE: Module package and module providers disabled for now to avoid
         // cache binding and boot conflicts on Laravel 12.
